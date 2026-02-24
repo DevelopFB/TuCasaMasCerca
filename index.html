@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Casa +Cerca</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #1a1a1a; background: #fff; }
+        header { background: #fff; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 1000; padding: 16px 0; }
+        .header-container { max-width: 1400px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 700; }
+        .logo span { color: #0052cc; }
+        .brand { color: #0052cc; }
+        nav { display: flex; gap: 32px; align-items: center; }
+        nav a { text-decoration: none; color: #1a1a1a; font-size: 14px; font-weight: 500; }
+        .btn-ingresar { background: #0052cc; color: white; padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        
+        .hero { max-width: 1400px; margin: 0 auto; padding: 60px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+        .hero-content h1 { font-family: 'Poppins', sans-serif; font-size: 48px; font-weight: 700; margin-bottom: 20px; }
+        .hero-content p { font-size: 18px; color: #666; margin-bottom: 32px; }
+        
+        .calculator-box { background: linear-gradient(135deg, #f5f5f5 0%, #fff 100%); padding: 40px; border-radius: 16px; border: 1px solid #e5e5e5; box-shadow: 0 4px 20px rgba(0, 82, 204, 0.08); }
+        .calculator-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 2px solid #e5e5e5; border-radius: 8px; font-size: 14px; }
+        
+        .result-highlight { background: #f0f7ff; padding: 24px; border-radius: 12px; border-left: 4px solid #0052cc; margin-top: 24px; }
+        .result-amount { font-size: 32px; font-weight: 700; color: #0052cc; margin: 12px 0; }
+        .result-detail { font-size: 13px; color: #999; margin-bottom: 6px; }
+        .result-detail strong { color: #1a1a1a; }
+        
+        .btn-big { width: 100%; background: #0052cc; color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 24px; }
+        
+        .aspiracion { background: linear-gradient(135deg, #0052cc 0%, #0041a3 100%); color: white; padding: 60px 24px; margin: 60px 0; text-align: center; }
+        .aspiracion h2 { font-family: 'Poppins', sans-serif; font-size: 44px; font-weight: 700; margin-bottom: 20px; }
+        
+        .proceso-section { padding: 80px 24px; background: #f9f9f9; }
+        .section-title { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; text-align: center; margin-bottom: 48px; }
+        
+        .pasos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 60px; }
+        .paso { text-align: center; }
+        .paso-numero { width: 56px; height: 56px; background: #0052cc; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: 700; font-size: 24px; }
+        
+        .flujo { background: white; padding: 40px; border-radius: 12px; border: 1px solid #e5e5e5; }
+        .flujo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 24px; }
+        .flujo-item { padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #0052cc; }
+        .flujo-item h4 { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; color: #0052cc; margin-bottom: 8px; }
+        
+        .casos { padding: 80px 24px; }
+        .casos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+        .caso-card { background: white; padding: 24px; border-radius: 12px; border: 2px solid #e5e5e5; }
+        .caso-emoji { font-size: 40px; margin-bottom: 12px; }
+        .caso-titulo { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+        
+        .plataforma { background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%); padding: 80px 24px; }
+        .plat-titulo { font-family: 'Poppins', sans-serif; font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 16px; }
+        .plat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px; }
+        .plat-card { background: white; padding: 32px; border-radius: 12px; border: 1px solid #e5e5e5; text-align: center; }
+        .plat-icon { font-size: 40px; margin-bottom: 16px; }
+        
+        .tasas { padding: 80px 24px; }
+        .tasas-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; margin-top: 48px; }
+        .tasa-box { background: white; padding: 32px; border-radius: 12px; border: 1px solid #e5e5e5; }
+        .tasa-table-row { display: grid; grid-template-columns: 1fr 1fr; padding: 10px 0; border-bottom: 1px solid #e5e5e5; font-size: 13px; }
+        .tasa-value { color: #0052cc; font-weight: 700; text-align: right; }
+        
+        .faq { padding: 80px 24px; background: #f9f9f9; }
+        .faq-container { max-width: 1000px; margin: 0 auto; }
+        .faq-item { background: white; padding: 24px; margin-bottom: 12px; border-radius: 8px; }
+        .faq-q { display: flex; justify-content: space-between; cursor: pointer; font-weight: 600; }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; color: #666; font-size: 13px; margin-top: 16px; }
+        .faq-item.active .faq-answer { max-height: 500px; }
+        
+        .cta-final { background: linear-gradient(135deg, #0052cc 0%, #0041a3 100%); color: white; padding: 80px 24px; text-align: center; }
+        .cta-final h2 { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; margin-bottom: 20px; }
+        .btn-primary { background: white; color: #0052cc; padding: 16px 48px; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        
+        footer { background: #1a1a1a; color: white; padding: 48px 24px 24px; }
+        .footer-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-bottom: 32px; }
+        
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
+        .modal-content { background: white; margin: 5% auto; padding: 40px; border-radius: 16px; width: 90%; max-width: 450px; }
+        .modal-title { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 16px; }
+        
+        @media (max-width: 768px) {
+            .hero { grid-template-columns: 1fr; }
+            .calculator-wrapper { grid-template-columns: 1fr; }
+            .pasos { grid-template-columns: 1fr; }
+            .flujo-grid { grid-template-columns: 1fr; }
+            .casos-grid { grid-template-columns: 1fr; }
+            .plat-grid { grid-template-columns: repeat(2, 1fr); }
+            .tasas-grid { grid-template-columns: 1fr; }
+        }
+    
+        .hero-icons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-top: 18px; }
+        .hero-icon-item { display:flex; align-items:center; gap:10px; font-size: 13px; color:#1a1a1a; }
+        .hero-check { display:inline-flex; width: 22px; height: 22px; border-radius: 999px; align-items:center; justify-content:center; background:#e9f0ff; color:#0052cc; font-weight: 800; }
+        .btn-secondary { background: #f2f4f7; color: #1a1a1a; padding: 12px 18px; border: 1px solid #e5e5e5; border-radius: 10px; cursor: pointer; font-weight: 700; }
+        .bo-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        @media (max-width: 700px) { .bo-grid { grid-template-columns: 1fr; } .hero-icons { grid-template-columns: 1fr; } }
+
+        /* COLDWELL BANKER SECTION */
+        .cb-section { padding: 80px 24px; background: white; }
+        .cb-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
+        .cb-badge { display: inline-block; background: #e8f0fe; color: #0052cc; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 6px 16px; border-radius: 999px; margin-bottom: 20px; }
+        .cb-subtitle { color: #666; font-size: 16px; max-width: 680px; margin: 0 auto 48px; line-height: 1.7; }
+        .cb-infografia { display: flex; align-items: center; justify-content: center; gap: 0; background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%); border-radius: 16px; padding: 40px 32px; margin-bottom: 48px; flex-wrap: wrap; gap: 8px; }
+        .cb-stat { text-align: center; padding: 0 20px; }
+        .cb-stat-num { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; color: #0052cc; }
+        .cb-stat-label { font-size: 12px; color: #666; margin-top: 4px; }
+        .cb-arrow { font-size: 24px; color: #0052cc; opacity: 0.4; }
+        .cb-beneficios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: left; }
+        .cb-ben-item { display: flex; gap: 16px; align-items: flex-start; background: #f9f9f9; padding: 24px; border-radius: 12px; }
+        .cb-ben-icon { font-size: 28px; flex-shrink: 0; }
+        .cb-ben-item strong { display: block; font-size: 14px; margin-bottom: 6px; }
+        .cb-ben-item p { font-size: 13px; color: #666; margin: 0; }
+
+        /* PROPIEDADES CB */
+        .propiedades-section { padding: 80px 24px; background: #f9f9f9; }
+        .prop-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .prop-filtros { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .btn-cb-buscar { background: #0052cc; color: white; border: none; padding: 14px 28px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; }
+        .btn-cb-buscar:hover { background: #0041a3; }
+        .prop-preview { position: relative; }
+        .prop-card-demo { background: white; border-radius: 12px; border: 1px solid #e5e5e5; padding: 0; overflow: hidden; margin-bottom: -20px; box-shadow: 0 4px 20px rgba(0,82,204,0.1); }
+        .prop-card-img { background: linear-gradient(135deg, #e8f0fe, #f0f7ff); padding: 32px; font-size: 48px; text-align: center; }
+        .prop-card-info { padding: 16px 20px; }
+        .prop-card-tag { display: inline-block; background: #e8f0fe; color: #0052cc; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
+        .prop-card-info strong { display: block; font-size: 15px; }
+        .prop-card-info p { font-size: 13px; color: #666; margin: 2px 0 8px; }
+        .prop-card-price { font-size: 18px; font-weight: 700; color: #0052cc; }
+
+        /* TESTIMONIOS */
+        .testimonios-section { padding: 80px 24px; background: white; }
+        .testimonios-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .testimonio-card { background: #f9f9f9; border-radius: 16px; padding: 32px; border: 1px solid #e5e5e5; }
+        .testimonio-stars { color: #f59e0b; font-size: 18px; margin-bottom: 16px; letter-spacing: 2px; }
+        .testimonio-texto { color: #444; font-size: 14px; line-height: 1.7; margin-bottom: 24px; font-style: italic; }
+        .testimonio-autor { display: flex; gap: 12px; align-items: center; }
+        .testimonio-avatar { width: 44px; height: 44px; background: #0052cc; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+        .testimonio-autor strong { display: block; font-size: 14px; }
+        .testimonio-autor span { font-size: 12px; color: #888; }
+
+        @media (max-width: 768px) {
+            .cb-infografia { flex-direction: column; }
+            .cb-arrow { transform: rotate(90deg); }
+            .cb-beneficios { grid-template-columns: 1fr; }
+            .prop-inner { grid-template-columns: 1fr; }
+            .prop-filtros { grid-template-columns: 1fr; }
+            .testimonios-grid { grid-template-columns: 1fr; }
+            .prop-preview { display: none; }
+        }
+    
+
+</style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">+<span>cerca</span></div>
+            <nav>
+                <a href="#como">Cómo funciona</a>
+                <a href="#cb">Coldwell Banker</a>
+                <a href="#propiedades">Propiedades</a>
+                <a href="#testimonios">Testimonios</a>
+                <a href="#faq">Preguntas</a>
+                <button class="btn-ingresar" onclick="openModal()">Ingresar</button>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero" id="simulador">
+        <div class="hero-content">
+            <h1>Tu casa está <span class="brand">+Cerca</span> de lo que creés</h1>
+            <p>Simulá tu préstamo en minutos y conocé cuánto podés financiar hoy.</p>
+        </div>
+        <div class="calculator-box">
+            <h3>Simulá tu préstamo</h3>
+            <div class="calculator-wrapper">
+                <div>
+                    <div class="form-group">
+                        <label for="property-value">Valor del inmueble</label>
+                        <input type="number" id="property-value" value="100000" min="50000">
+                    </div>
+                    <div class="form-group">
+                        <label for="loan-amount">Préstamo a solicitar</label>
+                        <input type="number" id="loan-amount" value="30000" min="1000" max="50000">
+                    </div>
+                    <div class="form-group">
+                        <label for="loan-term">Plazo</label>
+                        <select id="loan-term">
+                            <option value="12">12 meses</option>
+                            <option value="24">24 meses</option>
+                            <option value="36" selected>36 meses</option>
+                            <option value="48">48 meses</option>
+                            <option value="60">60 meses</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="result-highlight">
+                    <div style="font-size: 13px; color: #666; text-transform: uppercase;">Cuota mensual</div>
+                    <div class="result-amount" id="cuota">$1.064</div>
+                    <div class="result-detail">Préstamo a solicitar: <strong id="ask">$30.000</strong></div>
+                    <div class="result-detail">Monto bruto: <strong id="bruto">$31.815</strong></div>
+                    <div class="result-detail">Recibirás: <strong id="recv">$30.000</strong></div>
+                    <div style="border-top: 1px solid rgba(0, 82, 204, 0.2); margin-top: 12px; padding-top: 12px;">
+                        <div class="result-detail">TNA: <strong id="tna">8.50%</strong></div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-big" onclick="openLeadModal()">Contactar agente</button>
+        </div>
+    </section>
+
+    <section class="aspiracion">
+        <h2>Cuando una casa te elige, el desafío es llegar.</h2>
+        <p>Con +Cerca, llegar es posible. Rápido, simple y 100% online.</p>
+    </section>
+
+    <section class="proceso-section" id="como">
+        <div class="flujo">
+            <h3 style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700;">El flujo completo online en +Cerca</h3>
+            <div class="flujo-grid">
+                <div class="flujo-item"><h4>Simulador</h4><p>Probás tu capacidad según la propiedad.</p></div>
+                <div class="flujo-item"><h4>Link propiedad</h4><p>Compartís el link de inmuebles o CB.</p></div>
+                <div class="flujo-item"><h4>Boleto</h4><p>Cargás boleto u oferta de compra.</p></div>
+                <div class="flujo-item"><h4>KYC</h4><p>Datos personales e identidad.</p></div>
+                <div class="flujo-item"><h4>Capacidad</h4><p>Documentación de ingresos.</p></div>
+                <div class="flujo-item"><h4>Dashboard</h4><p>Seguís todo en tiempo real.</p></div>
+
+            </div>
+            <div class="hero-icons">
+                <div class="hero-icon-item"><span class="hero-check">✓</span><span>Respuesta rápida</span></div>
+                <div class="hero-icon-item"><span class="hero-check">✓</span><span>100% online</span></div>
+                <div class="hero-icon-item"><span class="hero-check">✓</span><span>Sin burocracia</span></div>
+                <div class="hero-icon-item"><span class="hero-check">✓</span><span>Acompañamiento personalizado</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="casos" id="casos">
+        <h2 class="section-title">Historias que podrían ser la tuya</h2>
+        <div class="casos-grid">
+            <div class="caso-card"><div class="caso-emoji">👶</div><div class="caso-titulo">Se agranda la familia</div><p>Necesitás más espacio. Esa casa con un dormitorio más está a tu alcance.</p></div>
+            <div class="caso-card"><div class="caso-emoji">🏙️</div><div class="caso-titulo">La zona preferida</div><p>Siempre soñaste con ese barrio. Con +Cerca completás la diferencia.</p></div>
+            <div class="caso-card"><div class="caso-emoji">🔨</div><div class="caso-titulo">Querés remodelar</div><p>Encontraste la casa perfecta pero necesita arreglos.</p></div>
+            <div class="caso-card"><div class="caso-emoji">💕</div><div class="caso-titulo">Te enamoraste de ese inmueble</div><p>Esta casa tiene que ser tuya.</p></div>
+            <div class="caso-card"><div class="caso-emoji">👥</div><div class="caso-titulo">Sin deudas a familia</div><p>Querés financiamiento formal, sin dramas.</p></div>
+            <div class="caso-card"><div class="caso-emoji">🎯</div><div class="caso-titulo">Querés avanzar</div><p>Mejorar tu calidad de vida es un objetivo.</p></div>
+        </div>
+    </section>
+
+    <!-- ALIANZA COLDWELL BANKER -->
+    <section class="cb-section" id="cb">
+        <div class="cb-inner">
+            <div class="cb-badge">Integración estratégica</div>
+            <h2 class="section-title" style="margin-bottom:16px;">Elegís la propiedad. +Cerca completa el camino.</h2>
+            <p class="cb-subtitle">Encontrás tu propiedad con Coldwell Banker y financiás el complemento con +Cerca, en un proceso integrado y 100% online. Coldwell Banker es una red global reconocida mundialmente, con presencia en +40 países.</p>
+            <div class="cb-infografia">
+                <div class="cb-stat">
+                    <div class="cb-stat-num">100+</div>
+                    <div class="cb-stat-label">Años de trayectoria</div>
+                </div>
+                <div class="cb-arrow">→</div>
+                <div class="cb-stat">
+                    <div class="cb-stat-num">40+</div>
+                    <div class="cb-stat-label">Países con presencia</div>
+                </div>
+                <div class="cb-arrow">→</div>
+                <div class="cb-stat">
+                    <div class="cb-stat-num">CB</div>
+                    <div class="cb-stat-label">Red global reconocida</div>
+                </div>
+                <div class="cb-arrow">→</div>
+                <div class="cb-stat">
+                    <div class="cb-stat-num">+Cerca</div>
+                    <div class="cb-stat-label">Financiás el complemento</div>
+                </div>
+            </div>
+            <div class="cb-beneficios">
+                <div class="cb-ben-item">
+                    <div class="cb-ben-icon">🏠</div>
+                    <div>
+                        <strong>Propiedades verificadas</strong>
+                        <p>Las propiedades publicadas por CB cuentan con acompañamiento inmobiliario profesional durante todo el proceso.</p>
+                    </div>
+                </div>
+                <div class="cb-ben-item">
+                    <div class="cb-ben-icon">🤝</div>
+                    <div>
+                        <strong>Asesoramiento integral</strong>
+                        <p>CB te acompaña en la búsqueda y +Cerca en el financiamiento, coordinado en un mismo recorrido.</p>
+                    </div>
+                </div>
+                <div class="cb-ben-item">
+                    <div class="cb-ben-icon">⚡</div>
+                    <div>
+                        <strong>Proceso unificado</strong>
+                        <p>Elegís la propiedad en CB y gestionás el financiamiento en +Cerca, de forma integrada y sin fricciones.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BUSCADOR COLDWELL BANKER -->
+    <section class="propiedades-section" id="propiedades">
+        <div class="prop-inner">
+            <div class="prop-text">
+                <div class="cb-badge" style="margin-bottom:16px;">Propiedades aptas crédito</div>
+                <h2 class="section-title" style="text-align:left; margin-bottom:16px;">Encontrá tu próxima casa con Coldwell Banker</h2>
+                <p style="color:#666; margin-bottom:28px; font-size:15px;">Buscá propiedades en la red Coldwell Banker. Encontrás el inmueble y nosotros te financiamos el complemento. Así de simple.</p>
+                <div class="prop-filtros">
+                    <div class="form-group">
+                        <label>Zona o barrio</label>
+                        <input type="text" placeholder="Ej: Palermo, Belgrano..." id="cb-zona">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de propiedad</label>
+                        <select id="cb-tipo">
+                            <option value="">Todos</option>
+                            <option>Departamento</option>
+                            <option>Casa</option>
+                            <option>PH</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio hasta (USD)</label>
+                        <input type="number" placeholder="Ej: 150000" id="cb-precio">
+                    </div>
+                </div>
+                <button class="btn-cb-buscar" onclick="buscarEnCB()">
+                    🔍 Ver propiedades en Coldwell Banker
+                </button>
+                <p style="font-size:12px; color:#999; margin-top:12px;">Serás redirigido al sitio oficial de Coldwell Banker Argentina con tu búsqueda aplicada.</p>
+            </div>
+            <div class="prop-imagen">
+                <div class="prop-preview">
+                    <div class="prop-card-demo">
+                        <div class="prop-card-img">🏡</div>
+                        <div class="prop-card-info">
+                            <div class="prop-card-tag">Apto crédito +Cerca</div>
+                            <strong>Departamento 3 amb.</strong>
+                            <p>Palermo, CABA</p>
+                            <div class="prop-card-price">USD 120.000</div>
+                        </div>
+                    </div>
+                    <div class="prop-card-demo" style="opacity:0.7; transform: scale(0.95) translateY(8px);">
+                        <div class="prop-card-img">🏘️</div>
+                        <div class="prop-card-info">
+                            <div class="prop-card-tag">Apto crédito +Cerca</div>
+                            <strong>PH 2 amb.</strong>
+                            <p>Caballito, CABA</p>
+                            <div class="prop-card-price">USD 95.000</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIOS -->
+    <section class="testimonios-section" id="testimonios">
+        <h2 class="section-title">Lo que dicen quienes ya dieron el paso</h2>
+        <p style="text-align:center; color:#666; margin-top:-32px; margin-bottom:48px;">Historias reales de personas que usaron +Cerca para comprar su casa.</p>
+        <div class="testimonios-grid">
+            <div class="testimonio-card">
+                <div class="testimonio-stars">★★★★★</div>
+                <p class="testimonio-texto">"Tenía los ahorros pero me faltaban USD 25.000 para cerrar el trato. Con +Cerca tramité el crédito en 10 días y hoy vivo en el departamento que siempre quise en Palermo."</p>
+                <div class="testimonio-autor">
+                    <div class="testimonio-avatar">ML</div>
+                    <div>
+                        <strong>María Laura G.</strong>
+                        <span>Compró en Palermo, CABA</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonio-card">
+                <div class="testimonio-stars">★★★★★</div>
+                <p class="testimonio-texto">"Mi familia creció y necesitábamos mudarnos. Todo fue 100% online, sin perder tiempo en papelerío. El proceso fue transparente desde el primer momento."</p>
+                <div class="testimonio-autor">
+                    <div class="testimonio-avatar">RS</div>
+                    <div>
+                        <strong>Roberto S.</strong>
+                        <span>Compró en Belgrano, CABA</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonio-card">
+                <div class="testimonio-stars">★★★★★</div>
+                <p class="testimonio-texto">"Encontré la casa a través de Coldwell Banker y la financié con +Cerca. Fue como si todo estuviera diseñado para funcionar junto. Recomiendo el proceso a todo el mundo."</p>
+                <div class="testimonio-autor">
+                    <div class="testimonio-avatar">VF</div>
+                    <div>
+                        <strong>Valeria F.</strong>
+                        <span>Compró en San Isidro, GBA</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="plataforma" id="plat">
+        <h2 class="plat-titulo">Todo se gestiona en +Cerca</h2>
+        <div class="plat-grid">
+            <div class="plat-card"><div class="plat-icon">⚡</div><h4>100% Online</h4></div>
+            <div class="plat-card"><div class="plat-icon">⏱️</div><h4>Rápido</h4></div>
+            <div class="plat-card"><div class="plat-icon">👁️</div><h4>Transparente</h4></div>
+            <div class="plat-card"><div class="plat-icon">✓</div><h4>Simple</h4></div>
+        </div>
+    </section>
+
+    
+    <section class="tasas">
+        <h2 class="section-title" id="tasas">Tasas y Cuotas</h2>
+        <div class="tasas-grid">
+            <div class="tasa-box">
+                <h3>📊 Cuotas por Plazo</h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 16px;">Ejemplos en base a un crédito de 30.000 USD</p>
+                <div class="tasa-table-row"><span>12 meses</span><span class="tasa-value" id="ex-cuota-12">—</span></div>
+                <div class="tasa-table-row"><span>24 meses</span><span class="tasa-value" id="ex-cuota-24">—</span></div>
+                <div class="tasa-table-row"><span>36 meses</span><span class="tasa-value" id="ex-cuota-36">—</span></div>
+                <div class="tasa-table-row"><span>48 meses</span><span class="tasa-value" id="ex-cuota-48">—</span></div>
+                <div class="tasa-table-row"><span>60 meses</span><span class="tasa-value" id="ex-cuota-60">—</span></div>
+            </div>
+            <div class="tasa-box">
+                <h3>⏳ TNA (calculada)</h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 16px;">TNA anualizada (según total pagado)</p>
+                <div class="tasa-table-row"><span>12 meses</span><span class="tasa-value" id="ex-tna-12">—</span></div>
+                <div class="tasa-table-row"><span>24 meses</span><span class="tasa-value" id="ex-tna-24">—</span></div>
+                <div class="tasa-table-row"><span>36 meses</span><span class="tasa-value" id="ex-tna-36">—</span></div>
+                <div class="tasa-table-row"><span>48 meses</span><span class="tasa-value" id="ex-tna-48">—</span></div>
+                <div class="tasa-table-row"><span>60 meses</span><span class="tasa-value" id="ex-tna-60">—</span></div>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="faq" id="faq">
+        <div class="faq-container">
+            <h2 class="section-title">Preguntas Frecuentes</h2>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Cuál es el monto máximo?</span><span>+</span></div>
+                <div class="faq-answer">El menor de: $50.000 o 35% del valor del inmueble.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Qué es el upfront?</span><span>+</span></div>
+                <div class="faq-answer">Comisión 5% + IVA 21%. Si solicitas $30.000, upfront es $1.815. Recibirás $30.000 pero pagarás cuota sobre $31.815.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Cuánto tarda?</span><span>+</span></div>
+                <div class="faq-answer">7-14 días máximo desde solicitud al dinero en cuenta.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Necesito demostrar ingresos?</span><span>+</span></div>
+                <div class="faq-answer">Sí. Evaluamos tu capacidad de pago con documentación de ingresos (recibo de sueldo, declaraciones impositivas o extractos bancarios). El proceso es simple y todo se carga online.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿La hipoteca se hace sobre qué propiedad?</span><span>+</span></div>
+                <div class="faq-answer">La hipoteca se constituye sobre la propiedad que vas a comprar. Es un crédito hipotecario real: la garantía es el inmueble que adquirís.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Puedo cancelar anticipadamente?</span><span>+</span></div>
+                <div class="faq-answer">Sí. Podés cancelar el crédito antes del vencimiento. Te informaremos las condiciones de prepago al momento de la aprobación.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Qué pasa si la propiedad la encontré a través de Coldwell Banker?</span><span>+</span></div>
+                <div class="faq-answer">Perfecto. Operamos en alianza con Coldwell Banker. Solo compartís el link de la propiedad en tu solicitud y el proceso se coordina de forma integrada entre ambas plataformas.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Los créditos son en pesos o en dólares?</span><span>+</span></div>
+                <div class="faq-answer">Los préstamos se denominan en dólares estadounidenses (USD), lo que protege el valor del crédito frente a la inflación y es coherente con los valores de las propiedades en Argentina.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Quién respalda los fondos?</span><span>+</span></div>
+                <div class="faq-answer">+Cerca opera a través de un Fondo Común de Inversión Cerrado (FCICC) con oferta pública bajo regulación de la Comisión Nacional de Valores (CNV). Tus créditos están respaldados por estructura legal formal.</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-final">
+        <h2>¿Listo para dar el siguiente paso?</h2>
+        <p>Simulá tu préstamo y conocé tu cuota real en 2 minutos</p>
+        <button class="btn-primary" onclick="openModal()">Ingresar</button>
+    </section>
+
+    <footer>
+        <div class="footer-container">
+            <div><h4>Producto</h4><a href="#simulador">Simulador</a><a href="#tasas">Tasas</a><a href="#" onclick="openBackoffice(); return false;">Backoffice</a></div>
+            <div><h4>Empresa</h4><a href="#">Blog</a><a href="#">Contacto</a></div>
+            <div><h4>Legal</h4><a href="#">Términos</a><a href="#">Privacidad</a></div>
+            <div><h4>Contacto</h4><a href="tel:+541144444444">+54 (11) 4444-4444</a></div>
+        </div>
+    </footer>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Acceso a plataforma en desarrollo</div><p style="color:#666;margin-top:8px;">Muy pronto vas a poder ingresar y gestionar tu crédito desde acá.</p><div style="margin-top:18px;"><button type="button" class="btn-big" onclick="closeModal()">Entendido</button></div>
+        </div>
+    </div>
+
+
+
+    <div id="leadModal" class="modal">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="modal-title">Contactar agente</div>
+            <p style="color:#666;margin-top:8px;">Dejanos tus datos y un agente se contactará con vos. Guardaremos también tu última simulación.</p>
+
+            <form id="leadForm" style="margin-top: 18px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input id="leadNombre" type="text" required placeholder="Tu nombre">
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido</label>
+                        <input id="leadApellido" type="text" required placeholder="Tu apellido">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input id="leadTelefono" type="tel" required placeholder="+54 11 ...">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input id="leadEmail" type="email" required placeholder="tu@correo.com">
+                    </div>
+                </div>
+
+                <div class="result-highlight" style="margin-top: 10px;">
+                    <div class="result-detail">Última simulación</div>
+                    <div class="result-detail">Valor del inmueble: <strong id="leadProp">—</strong></div>
+                    <div class="result-detail">Préstamo solicitado: <strong id="leadLoan">—</strong></div>
+                    <div class="result-detail">Plazo: <strong id="leadTerm">—</strong></div>
+                    <div class="result-detail">Cuota: <strong id="leadCuota">—</strong></div>
+                    <div class="result-detail">TNA: <strong id="leadTna">—</strong></div>
+                </div>
+
+                <div style="display:flex; gap: 10px; margin-top: 16px; justify-content:flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeLeadModal()">Cancelar</button>
+                    <button type="submit" class="btn-big" style="margin-top:0;">Enviar</button>
+                </div>
+
+                <p style="font-size:12px; color:#999; margin-top:10px;">(Demo) Por ahora no se envía a base de datos: lo guardamos localmente y lo mostramos en consola.</p>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="backofficeModal" class="modal">
+        <div class="modal-content" style="max-width: 720px;">
+            <div class="modal-title">Backoffice — Configuración de Tasas</div>
+            <p style="color:#666;margin-top:8px;">Cambios guardados en este navegador (localStorage).</p>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px;">
+                <div class="form-group">
+                    <label>Máximo % sobre valor del inmueble (LTV)</label>
+                    <input id="bo-maxLtv" type="number" min="1" max="100" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Monto máximo a solicitar (USD)</label>
+                    <input id="bo-maxLoan" type="number" min="1000" step="100">
+                </div>
+            </div>
+
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                <div style="font-weight:700; margin: 6px 0 10px;">Tasas base (anual) por plazo</div>
+                <div class="bo-grid">
+                    <div class="form-group">
+                        <label>12 meses</label>
+                        <input id="bo-rate-12" type="number" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>24 meses</label>
+                        <input id="bo-rate-24" type="number" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>36 meses</label>
+                        <input id="bo-rate-36" type="number" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>48 meses</label>
+                        <input id="bo-rate-48" type="number" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>60 meses</label>
+                        <input id="bo-rate-60" type="number" step="0.01" min="0">
+                    </div>
+                </div>
+                <div style="color:#666; font-size:12px; margin-top:6px;">Ingresá tasas en % (ej: 10.50)</div>
+            </div>
+
+            <div style="display:flex; gap: 10px; margin-top: 18px; justify-content:flex-end;">
+                <button type="button" class="btn-secondary" onclick="resetBackoffice()">Reset</button>
+                <button type="button" class="btn-big" onclick="saveBackoffice()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+
+    
+    <script>
+        const DEFAULT_CONFIG = {
+            tasasBase: { 12: 0.105, 24: 0.115, 36: 0.125, 48: 0.135, 60: 0.145 },
+            maxLTV: 0.35,
+            maxLoan: 50000
+        };
+
+        function loadConfig() {
+            try {
+                const raw = localStorage.getItem('tcmc_config');
+                if (!raw) return structuredClone(DEFAULT_CONFIG);
+                const cfg = JSON.parse(raw);
+
+                // Merge defensivo
+                const merged = structuredClone(DEFAULT_CONFIG);
+                if (cfg && typeof cfg === 'object') {
+                    if (cfg.tasasBase && typeof cfg.tasasBase === 'object') {
+                        for (const k of Object.keys(merged.tasasBase)) {
+                            if (typeof cfg.tasasBase[k] === 'number' && isFinite(cfg.tasasBase[k])) merged.tasasBase[k] = cfg.tasasBase[k];
+                        }
+                    }
+                    if (typeof cfg.maxLTV === 'number' && isFinite(cfg.maxLTV)) merged.maxLTV = cfg.maxLTV;
+                    if (typeof cfg.maxLoan === 'number' && isFinite(cfg.maxLoan)) merged.maxLoan = cfg.maxLoan;
+                }
+                return merged;
+            } catch (e) {
+                return structuredClone(DEFAULT_CONFIG);
+            }
+        }
+
+        function saveConfig(cfg) {
+            localStorage.setItem('tcmc_config', JSON.stringify(cfg));
+        }
+
+        let CONFIG = loadConfig();
+
+
+        // --- Última cotización (para lead) ---
+        let LAST_QUOTE = null;
+
+        function setLastQuote(data) {
+            LAST_QUOTE = data;
+        }
+
+        function fillLeadQuote() {
+            const q = LAST_QUOTE;
+            const fmtMoney0 = (n) => '$' + Math.round(n).toLocaleString('es-AR');
+            const fmtMoney2 = (n) => '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (!q) return;
+
+            document.getElementById('leadProp').textContent = fmtMoney0(q.propertyValue);
+            document.getElementById('leadLoan').textContent = fmtMoney0(q.loanAmount);
+            document.getElementById('leadTerm').textContent = q.termMonths + ' meses';
+            document.getElementById('leadCuota').textContent = fmtMoney2(q.cuota);
+            document.getElementById('leadTna').textContent = (q.tna * 100).toFixed(2) + '%';
+        }
+
+        // ---- Modal Lead ----
+        const leadModal = document.getElementById('leadModal');
+        function openLeadModal() {
+            fillLeadQuote();
+            leadModal.style.display = 'block';
+        }
+        function closeLeadModal() { leadModal.style.display = 'none'; }
+
+
+
+        function calcularCuota(tasaAnual, meses, montoBruto) {
+            const tm = tasaAnual / 12;
+            if (tm === 0) return montoBruto / meses;
+            const num = montoBruto * (tm * Math.pow(1 + tm, meses));
+            const den = Math.pow(1 + tm, meses) - 1;
+            return num / den;
+        }
+
+        function calcularTNA(cuotaMensual, meses, prestamo) {
+            // TD: (Total pagado / Principal solicitado) - 1
+            // TNA anualizada según Excel (compuesta): (1+TD)^(12/meses)-1
+            const td = (cuotaMensual * meses) / prestamo - 1;
+            return Math.pow(1 + td, 12 / meses) - 1;
+        }
+
+        function calcularBruto(prestamo) {
+            const upfront = prestamo * 0.05;
+            const iva = upfront * 0.21;
+            return prestamo + upfront + iva;
+        }
+
+        function updateCalculator() {
+            const prop = parseInt(document.getElementById('property-value').value) || 100000;
+            let loan = parseInt(document.getElementById('loan-amount').value) || 30000;
+            const months = parseInt(document.getElementById('loan-term').value) || 36;
+
+            const maxPct = Math.floor(prop * CONFIG.maxLTV);
+            const maxAllow = Math.min(CONFIG.maxLoan, maxPct);
+            if (loan > maxAllow) loan = maxAllow;
+
+            // feedback en inputs
+            const loanInput = document.getElementById('loan-amount');
+            loanInput.max = maxAllow;
+            loanInput.value = loan;
+
+            const bruto = calcularBruto(loan);
+            const tasa = CONFIG.tasasBase[months] ?? 0.085;
+            const cuota = calcularCuota(tasa, months, bruto);
+            const tnaCalc = calcularTNA(cuota, months, loan);
+
+            document.getElementById('cuota').textContent = '$' + cuota.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('tna').textContent = (tnaCalc * 100).toFixed(2) + '%';
+            document.getElementById('ask').textContent = '$' + loan.toLocaleString('es-AR');
+            document.getElementById('bruto').textContent = '$' + Math.round(bruto).toLocaleString('es-AR');
+            document.getElementById('recv').textContent = '$' + loan.toLocaleString('es-AR');
+
+            // guardar última cotización
+            setLastQuote({
+                propertyValue: prop,
+                loanAmount: loan,
+                termMonths: months,
+                bruto,
+                tasaAnual: tasa,
+                cuota,
+                tna: tnaCalc,
+                ts: new Date().toISOString()
+            });
+        }
+
+        function updateExamples() {
+            const baseLoan = 30000;
+            const bruto = calcularBruto(baseLoan);
+
+            [12,24,36,48,60].forEach(meses => {
+                const tasa = CONFIG.tasasBase[meses] ?? 0.085;
+                const cuota = calcularCuota(tasa, meses, bruto);
+                const tna = calcularTNA(cuota, meses, baseLoan);
+
+                const cuotaEl = document.getElementById(`ex-cuota-${meses}`);
+                const tnaEl = document.getElementById(`ex-tna-${meses}`);
+                if (cuotaEl) cuotaEl.textContent = '$' + cuota.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+                if (tnaEl) tnaEl.textContent = (tna * 100).toFixed(2) + '%';
+            });
+        }
+
+        function buscarEnCB() {
+            const zona = document.getElementById('cb-zona').value;
+            const tipo = document.getElementById('cb-tipo').value;
+            const precio = document.getElementById('cb-precio').value;
+            let url = 'https://www.coldwellbanker.com.ar/propiedades?';
+            const params = [];
+            if (zona) params.push('zona=' + encodeURIComponent(zona));
+            if (tipo) params.push('tipo=' + encodeURIComponent(tipo));
+            if (precio) params.push('precio_hasta=' + encodeURIComponent(precio));
+            url += params.join('&');
+            window.open(url, '_blank');
+        }
+
+        // ---- Modal "Ingresar" ----
+        const modal = document.getElementById('modal');
+        function openModal() { modal.style.display = 'block'; }
+        function closeModal() { modal.style.display = 'none'; }
+
+        // ---- Backoffice ----
+        const backofficeModal = document.getElementById('backofficeModal');
+        function openBackoffice() {
+            // cargar valores
+            document.getElementById('bo-maxLtv').value = (CONFIG.maxLTV * 100).toFixed(1);
+            document.getElementById('bo-maxLoan').value = CONFIG.maxLoan;
+
+            [12,24,36,48,60].forEach(m => {
+                const el = document.getElementById(`bo-rate-${m}`);
+                if (el) el.value = (CONFIG.tasasBase[m] * 100).toFixed(2);
+            });
+
+            backofficeModal.style.display = 'block';
+        }
+        function closeBackoffice() { backofficeModal.style.display = 'none'; }
+
+        function resetBackoffice() {
+            CONFIG = structuredClone(DEFAULT_CONFIG);
+            saveConfig(CONFIG);
+            updateCalculator();
+            updateExamples();
+            openBackoffice();
+        }
+
+        function saveBackoffice() {
+            const maxLtvPct = parseFloat(document.getElementById('bo-maxLtv').value);
+            const maxLoan = parseFloat(document.getElementById('bo-maxLoan').value);
+
+            const tasasBase = {};
+            [12,24,36,48,60].forEach(m => {
+                const v = parseFloat(document.getElementById(`bo-rate-${m}`).value);
+                tasasBase[m] = isFinite(v) ? (v / 100) : DEFAULT_CONFIG.tasasBase[m];
+            });
+
+            const next = {
+                tasasBase,
+                maxLTV: isFinite(maxLtvPct) ? (maxLtvPct / 100) : DEFAULT_CONFIG.maxLTV,
+                maxLoan: isFinite(maxLoan) ? maxLoan : DEFAULT_CONFIG.maxLoan
+            };
+
+            CONFIG = next;
+            saveConfig(CONFIG);
+            updateCalculator();
+            updateExamples();
+            closeBackoffice();
+            alert('Configuración guardada.');
+        }
+
+        window.onclick = (e) => {
+            if (e.target === modal) closeModal();
+            if (e.target === leadModal) closeLeadModal();
+            if (e.target === backofficeModal) closeBackoffice();
+        };
+
+        // Lead form submit (demo: consola + localStorage)
+        document.getElementById('leadForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const payload = {
+                nombre: document.getElementById('leadNombre').value.trim(),
+                apellido: document.getElementById('leadApellido').value.trim(),
+                telefono: document.getElementById('leadTelefono').value.trim(),
+                email: document.getElementById('leadEmail').value.trim(),
+                quote: LAST_QUOTE
+            };
+
+            try {
+                const key = 'tcmc_leads';
+                const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                arr.push(payload);
+                localStorage.setItem(key, JSON.stringify(arr));
+            } catch (err) {}
+
+            console.log('Lead generado (demo):', payload);
+            alert('¡Listo! Un agente se va a contactar con vos.');
+            closeLeadModal();
+            e.target.reset();
+        });
+
+        // FAQ
+        function toggleFaq(el) { el.parentElement.classList.toggle('active'); }
+
+        // smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', (e) => {
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                e.preventDefault();
+                const t = document.querySelector(href);
+                if (t) t.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        document.getElementById('property-value').addEventListener('input', () => { updateCalculator(); });
+        document.getElementById('loan-amount').addEventListener('input', () => { updateCalculator(); });
+        document.getElementById('loan-term').addEventListener('change', () => { updateCalculator(); });
+
+        // init
+        updateCalculator();
+        updateExamples();
+    </script>
+</body>
+</html>
