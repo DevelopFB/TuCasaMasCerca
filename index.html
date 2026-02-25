@@ -7,10 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #1a1a1a; background: #fff; }
+        body {font-family: 'Inter', sans-serif; line-height: 1.6; color: #1a1a1a; background: #fff; overflow-x: hidden; width: 100%;}
         header { background: #fff; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 1000; padding: 16px 0; }
         .header-container { max-width: 1400px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
-        .logo img { height: 40px; width: auto; display: block;}}
+        .logo img { height: 40px; width: auto; display: block; }
         .logo span { color: #0052cc; }
         .brand { color: #0052cc; }
         nav { display: flex; gap: 32px; align-items: center; }
@@ -85,8 +85,10 @@
         .modal-content { background: white; margin: 5% auto; padding: 40px; border-radius: 16px; width: 90%; max-width: 450px; }
         .modal-title { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 16px; }
         
-        @media (max-width: 250px) {
-            .hero { grid-template-columns: 1fr; }
+        @media (max-width: 768px) {
+            
+            .hero-inner { grid-template-columns: 1fr; }
+.hero { grid-template-columns: 1fr; }
             .calculator-wrapper { grid-template-columns: 1fr; }
             .pasos { grid-template-columns: 1fr; }
             .flujo-grid { grid-template-columns: 1fr; }
@@ -170,6 +172,7 @@
 
         /* reemplazo visual de hero original */
         .hero-layered{
+            width: 100%;
             position: relative;
             overflow: hidden;
             padding: 92px 0 72px;
