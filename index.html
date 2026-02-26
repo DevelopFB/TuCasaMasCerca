@@ -365,6 +365,63 @@
     padding-right: var(--container-padding);
 }
 
+
+        /* ===== Tooltip simple (retail) ===== */
+        .tip{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            width:18px;
+            height:18px;
+            margin-left:6px;
+            border-radius:999px;
+            border:1px solid rgba(0,0,0,.12);
+            background:#fff;
+            color:#0052cc;
+            font-weight:800;
+            font-size:12px;
+            cursor:help;
+            position:relative;
+            vertical-align:middle;
+        }
+        .tip::after{
+            content: attr(data-tip);
+            position:absolute;
+            left:50%;
+            bottom: calc(100% + 10px);
+            transform: translateX(-50%);
+            width: min(320px, 72vw);
+            background: rgba(20,20,20,.92);
+            color:#fff;
+            padding:10px 12px;
+            border-radius:10px;
+            font-size:12px;
+            line-height:1.35;
+            box-shadow: 0 12px 30px rgba(0,0,0,.25);
+            opacity:0;
+            pointer-events:none;
+            transition: opacity .15s ease, transform .15s ease;
+            z-index: 9999;
+            text-transform:none;
+        }
+        .tip::before{
+            content:"";
+            position:absolute;
+            left:50%;
+            bottom: calc(100% + 4px);
+            transform: translateX(-50%);
+            border:6px solid transparent;
+            border-top-color: rgba(20,20,20,.92);
+            opacity:0;
+            transition: opacity .15s ease;
+            z-index: 9999;
+        }
+        .tip:hover::after, .tip:focus::after{
+            opacity:1;
+            transform: translateX(-50%) translateY(-2px);
+        }
+        .tip:hover::before, .tip:focus::before{ opacity:1; }
+    
 </style>
 </head>
 <body>
@@ -435,7 +492,7 @@
                             <div class="result-detail">Monto bruto: <strong id="bruto">$31.815</strong></div>
                             <div class="result-detail">Recibirás: <strong id="recv">$30.000</strong></div>
                             <div style="border-top: 1px solid rgba(0, 82, 204, 0.2); margin-top: 12px; padding-top: 12px;">
-                                <div class="result-detail">TNA: <strong id="tna">8.50%</strong></div>
+                                <div class="result-detail">TNA: <strong id="tna">12.50%</strong> <span class="tip" data-tip="Tasa aplicada sobre saldo para calcular tu cuota. No incluye comisión.">?</span></div>
                             </div>
                         </div>
                     </div>
@@ -692,8 +749,8 @@
                 <div class="tasa-table-row"><span>60 meses</span><span class="tasa-value" id="ex-cuota-60">—</span></div>
             </div>
             <div class="tasa-box">
-                <h3>⏳ TNA (calculada)</h3>
-                <p style="font-size: 12px; color: #666; margin-bottom: 16px;">TNA anualizada (según total pagado)</p>
+                <h3>⏳ Costo Implícito Anual (TIR) <span class="tip" data-tip="Tasa implícita anual estimada según los flujos del préstamo (cuotas + costos). No es la TNA contractual sobre saldo.">?</span></h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 16px;">Tasa implícita anual estimada según flujos (incluye comisión y amortización).</p>
                 <div class="tasa-table-row"><span>12 meses</span><span class="tasa-value" id="ex-tna-12">—</span></div>
                 <div class="tasa-table-row"><span>24 meses</span><span class="tasa-value" id="ex-tna-24">—</span></div>
                 <div class="tasa-table-row"><span>36 meses</span><span class="tasa-value" id="ex-tna-36">—</span></div>
@@ -923,7 +980,7 @@
             document.getElementById('leadLoan').textContent = fmtMoney0(q.loanAmount);
             document.getElementById('leadTerm').textContent = q.termMonths + ' meses';
             document.getElementById('leadCuota').textContent = fmtMoney2(q.cuota);
-            document.getElementById('leadTna').textContent = (q.tna * 100).toFixed(2) + '%';
+            document.getElementById('leadTna').textContent = (q.tasaAnual * 100).toFixed(2) + '%';
         }
 
         // ---- Modal Lead ----
@@ -977,7 +1034,7 @@
             const tnaCalc = calcularTNA(cuota, months, loan);
 
             document.getElementById('cuota').textContent = '$' + cuota.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('tna').textContent = (tnaCalc * 100).toFixed(2) + '%';
+            document.getElementById('tna').textContent = (tasa * 100).toFixed(2) + '%';
             document.getElementById('ask').textContent = '$' + loan.toLocaleString('es-AR');
             document.getElementById('bruto').textContent = '$' + Math.round(bruto).toLocaleString('es-AR');
             document.getElementById('recv').textContent = '$' + loan.toLocaleString('es-AR');
@@ -990,7 +1047,8 @@
                 bruto,
                 tasaAnual: tasa,
                 cuota,
-                tna: tnaCalc,
+                tasaAnual: tasa,
+                tir: tnaCalc,
                 ts: new Date().toISOString()
             });
         }
