@@ -13,8 +13,8 @@
         .logo img { height: 40px; width: auto; display: block; }
         .logo span { color: #0052cc; }
         .brand { color: #0052cc; }
-        nav { display: flex; gap: 32px; align-items: center; }
-        nav a { text-decoration: none; color: #1a1a1a; font-size: 14px; font-weight: 500; }
+        #landing-page nav { display: flex; gap: 32px; align-items: center; }
+        #landing-page nav a { text-decoration: none; color: #1a1a1a; font-size: 14px; font-weight: 500; }
         .btn-ingresar { background: #0052cc; color: white; padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
         
         .hero { max-width: 1400px; margin: 0 auto; padding: 60px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
@@ -156,6 +156,17 @@
             .prop-preview { display: none; }
         }
     
+
+        /* ===== APP-ROOT RESET: neutralizar estilos del landing ===== */
+        #app-root { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+        #app-root nav { display: block; gap: 0; align-items: initial; }
+        #app-root nav a { color: inherit; font-size: inherit; font-weight: inherit; }
+        #app-root aside { z-index: 100; }
+        #app-root input, #app-root select, #app-root textarea {
+            padding: initial; border: initial; border-radius: initial; font-size: inherit;
+        }
+        #app-root button { border: none; cursor: pointer; background: transparent; font: inherit; color: inherit; padding: 0; }
+        #app-root *, #app-root *::before, #app-root *::after { box-sizing: border-box; }
 
         /* ===== HERO POR CAPAS (fintech moderno) ===== */
         :root{
@@ -1414,9 +1425,9 @@ const MOCK_CLIENTS = [
 // SIDEBAR COMPONENT
 // ============================================================================
 
-const Sidebar = ({ userRole, userName, userEmail, onLogout, onRoleChange }) => {
+const Sidebar = ({ userRole, userName, userEmail, currentPage, onNavigate, onLogout, onRoleChange }) => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
-  
+
   const navItems = {
     client: [
       { id: 'dashboard', label: 'Simulador', icon: DollarSign },
@@ -1429,7 +1440,6 @@ const Sidebar = ({ userRole, userName, userEmail, onLogout, onRoleChange }) => {
       { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
       { id: 'clients', label: 'Clientes', icon: Users },
       { id: 'pipeline', label: 'Pipeline', icon: TrendingUp },
-      { id: 'support', label: 'Soporte', icon: Phone },
     ],
     admin: [
       { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -1483,9 +1493,17 @@ const Sidebar = ({ userRole, userName, userEmail, onLogout, onRoleChange }) => {
       <nav className="flex-1 p-4">
         {items.map(item => {
           const Icon = item.icon;
+          const isActive = currentPage === item.id;
           return (
-            <div key={item.id} className="mb-2">
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 transition text-sm">
+            <div key={item.id} className="mb-1">
+              <button
+                onClick={() => onNavigate(item.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                }`}
+              >
                 <Icon size={18} />
                 <span>{item.label}</span>
               </button>
@@ -1494,22 +1512,20 @@ const Sidebar = ({ userRole, userName, userEmail, onLogout, onRoleChange }) => {
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-700">
+      <div className="p-4 border-t border-slate-700 space-y-2">
+        <button
+          onClick={goBackToLanding}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition text-sm"
+        >
+          <Home size={16} />
+          <span>Volver al sitio</span>
+        </button>
         <button
           onClick={onLogout}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded bg-red-900 hover:bg-red-800 transition text-sm font-medium"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-400 hover:bg-red-900 hover:text-white transition text-sm"
         >
           <LogOut size={16} />
           <span>Cerrar sesión</span>
-        </button>
-      </div>
-
-      <div className="p-4 text-xs text-slate-400 border-t border-slate-700 text-center">
-        <button
-          onClick={goBackToLanding}
-          className="w-full hover:text-slate-300 transition"
-        >
-          Volver al sitio
         </button>
       </div>
     </aside>
@@ -1673,7 +1689,7 @@ const ClientSimulator = ({ onAdvance }) => {
 // CLIENT DASHBOARD - NEW REQUEST (MULTI-STEP WIZARD)
 // ============================================================================
 
-const ClientNewRequest = ({ prefill }) => {
+const ClientNewRequest = ({ prefill, onSubmit }) => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     // Step 1
@@ -1720,6 +1736,7 @@ const ClientNewRequest = ({ prefill }) => {
   const handleSubmit = () => {
     if (formData.termsAccepted) {
       setSubmitted(true);
+      if (onSubmit) onSubmit(formData);
       setTimeout(() => {
         setStep(1);
         setFormData({
@@ -2221,8 +2238,8 @@ const ClientNewRequest = ({ prefill }) => {
 // CLIENT DASHBOARD - MY REQUEST (Status tracking)
 // ============================================================================
 
-const ClientMyRequest = () => {
-  const [currentClient] = useState(MOCK_CLIENTS[0]); // Juan García López - Activo
+const ClientMyRequest = ({ loan }) => {
+  const currentClient = loan || MOCK_CLIENTS[0]; // Juan García López - Activo
 
   const stages = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'];
   const stageIndex = stages.indexOf(currentClient.stage);
@@ -2317,8 +2334,8 @@ const ClientMyRequest = () => {
 // CLIENT DASHBOARD - PAYMENTS
 // ============================================================================
 
-const ClientPayments = () => {
-  const [selectedLoan] = useState(MOCK_CLIENTS[0]);
+const ClientPayments = ({ loan }) => {
+  const selectedLoan = loan || MOCK_CLIENTS[0];
 
   if (!selectedLoan.payments || selectedLoan.payments.length === 0) {
     return (
@@ -2409,11 +2426,12 @@ const ClientSupport = () => {
 // ADVISOR DASHBOARD
 // ============================================================================
 
-const AdvisorDashboard = () => {
-  const totalClients = MOCK_CLIENTS.length;
-  const totalVolume = MOCK_CLIENTS.reduce((sum, c) => sum + c.loanAmount, 0);
+const AdvisorDashboard = ({ loans }) => {
+  const data = loans || MOCK_CLIENTS;
+  const totalClients = data.length;
+  const totalVolume = data.reduce((sum, c) => sum + c.loanAmount, 0);
   const stageCount = {};
-  MOCK_CLIENTS.forEach(c => {
+  data.forEach(c => {
     stageCount[c.stage] = (stageCount[c.stage] || 0) + 1;
   });
 
@@ -2472,12 +2490,13 @@ const AdvisorDashboard = () => {
 // ADVISOR - CLIENTS LIST
 // ============================================================================
 
-const AdvisorClients = () => {
+const AdvisorClients = ({ loans, onUpdateLoan }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const filtered = MOCK_CLIENTS.filter(c =>
-    c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.apellido.toLowerCase().includes(searchTerm.toLowerCase())
+  const data = loans || MOCK_CLIENTS;
+
+  const filtered = data.filter(c =>
+    (c.nombre || c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.apellido || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -2533,12 +2552,13 @@ const AdvisorClients = () => {
 // ADVISOR - PIPELINE
 // ============================================================================
 
-const AdvisorPipeline = () => {
+const AdvisorPipeline = ({ loans }) => {
+  const data = loans || MOCK_CLIENTS;
   const stages = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'];
   const stageClients = {};
 
   stages.forEach(stage => {
-    stageClients[stage] = MOCK_CLIENTS.filter(c => c.stage === stage);
+    stageClients[stage] = data.filter(c => c.stage === stage);
   });
 
   return (
@@ -2568,13 +2588,14 @@ const AdvisorPipeline = () => {
 // ADMIN DASHBOARD
 // ============================================================================
 
-const AdminDashboard = () => {
-  const totalClients = MOCK_CLIENTS.length;
-  const totalVolume = MOCK_CLIENTS.reduce((sum, c) => sum + c.loanAmount, 0);
-  const approvedCount = MOCK_CLIENTS.filter(c => c.stage === 'Escritura').length;
+const AdminDashboard = ({ loans }) => {
+  const data = loans || MOCK_CLIENTS;
+  const totalClients = data.length;
+  const totalVolume = data.reduce((sum, c) => sum + c.loanAmount, 0);
+  const approvedCount = data.filter(c => c.stage === 'Escritura').length;
   const stageCount = {};
 
-  MOCK_CLIENTS.forEach(c => {
+  data.forEach(c => {
     stageCount[c.stage] = (stageCount[c.stage] || 0) + 1;
   });
 
@@ -2643,17 +2664,22 @@ const AdminDashboard = () => {
 // ADMIN - LEGAJOS MANAGEMENT
 // ============================================================================
 
-const AdminLegajos = () => {
+const AdminLegajos = ({ loans, onUpdateLoan }) => {
+  const data = loans || MOCK_CLIENTS;
   const [filters, setFilters] = useState({
     nombre: '',
     apellido: '',
     stage: '',
   });
   const [selectedClient, setSelectedClient] = useState(null);
+  const [newStage, setNewStage] = useState('');
+  const [newObservation, setNewObservation] = useState('');
 
-  const filtered = MOCK_CLIENTS.filter(c => {
-    if (filters.nombre && !c.nombre.toLowerCase().includes(filters.nombre.toLowerCase())) return false;
-    if (filters.apellido && !c.apellido.toLowerCase().includes(filters.apellido.toLowerCase())) return false;
+  const filtered = data.filter(c => {
+    const name = (c.nombre || c.name || '').toLowerCase();
+    const last = (c.apellido || '').toLowerCase();
+    if (filters.nombre && !name.includes(filters.nombre.toLowerCase())) return false;
+    if (filters.apellido && !last.includes(filters.apellido.toLowerCase())) return false;
     if (filters.stage && c.stage !== filters.stage) return false;
     return true;
   });
@@ -2739,9 +2765,9 @@ const AdminLegajos = () => {
       {/* Legajo Detail Modal */}
       {selectedClient && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-96 overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">{selectedClient.nombre} {selectedClient.apellido}</h2>
+          <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between z-10">
+              <h2 className="text-2xl font-bold">{selectedClient.nombre || selectedClient.name} {selectedClient.apellido || ''}</h2>
               <button onClick={() => setSelectedClient(null)} className="text-slate-400 hover:text-slate-600">
                 <X size={24} />
               </button>
@@ -2758,26 +2784,41 @@ const AdminLegajos = () => {
                   <div className="font-semibold">{selectedClient.phone}</div>
                 </div>
                 <div>
-                  <span className="text-slate-600">DNI:</span>
-                  <div className="font-semibold">{selectedClient.dni}</div>
+                  <span className="text-slate-600">Legajo:</span>
+                  <div className="font-semibold">{selectedClient.id}</div>
                 </div>
                 <div>
                   <span className="text-slate-600">Asesor:</span>
                   <div className="font-semibold">{selectedClient.advisor}</div>
                 </div>
+                <div>
+                  <span className="text-slate-600">Monto solicitado:</span>
+                  <div className="font-semibold">{formatCurrency(selectedClient.loanAmount)}</div>
+                </div>
+                <div>
+                  <span className="text-slate-600">Valor propiedad:</span>
+                  <div className="font-semibold">{formatCurrency(selectedClient.propertyValue)}</div>
+                </div>
               </div>
+
+              {selectedClient.propertyLink && (
+                <div className="text-sm">
+                  <span className="text-slate-600">Link propiedad: </span>
+                  <a href={selectedClient.propertyLink} target="_blank" rel="noopener" className="text-blue-600 hover:underline">{selectedClient.propertyLink}</a>
+                </div>
+              )}
 
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-3">Documentos</h3>
                 <div className="space-y-2">
-                  {selectedClient.documents.map((doc, idx) => (
+                  {(selectedClient.documents || []).map((doc, idx) => (
                     <div key={idx} className="flex items-center justify-between text-sm p-2 hover:bg-slate-50 rounded">
                       <span>{doc.name}</span>
-                      <select defaultValue={doc.status} className="text-xs border border-gray-300 rounded px-2 py-1">
-                        <option value="Aprobado">Aprobado</option>
-                        <option value="Observado">Observado</option>
-                        <option value="Pendiente">Pendiente</option>
-                      </select>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                        doc.status === 'Aprobado' ? 'bg-green-100 text-green-700' :
+                        doc.status === 'Observado' ? 'bg-amber-100 text-amber-700' :
+                        'bg-slate-100 text-slate-600'
+                      }`}>{doc.status}</span>
                     </div>
                   ))}
                 </div>
@@ -2785,7 +2826,11 @@ const AdminLegajos = () => {
 
               <div className="border-t pt-4">
                 <label className="block text-sm font-semibold mb-2">Cambiar Etapa</label>
-                <select defaultValue={selectedClient.stage} className="w-full border border-gray-300 rounded px-4 py-2">
+                <select
+                  value={newStage || selectedClient.stage}
+                  onChange={(e) => setNewStage(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-4 py-2"
+                >
                   {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
@@ -2793,23 +2838,60 @@ const AdminLegajos = () => {
               </div>
 
               <div className="border-t pt-4">
-                <label className="block text-sm font-semibold mb-2">Mensaje / Observaciones</label>
+                <label className="block text-sm font-semibold mb-2">Agregar Observación</label>
                 <textarea
-                  placeholder="Solicita información adicional aquí..."
+                  value={newObservation}
+                  onChange={(e) => setNewObservation(e.target.value)}
+                  placeholder="Solicitar información adicional, observar documento, etc."
                   className="w-full border border-gray-300 rounded px-4 py-2 text-sm resize-none"
                   rows="3"
                 ></textarea>
               </div>
+
+              {(selectedClient.observations || []).length > 0 && (
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold mb-3">Historial de Observaciones</h3>
+                  <div className="space-y-2">
+                    {selectedClient.observations.map((obs, idx) => (
+                      <div key={idx} className="text-sm bg-amber-50 border border-amber-200 rounded p-3">
+                        <div className="text-xs text-slate-500 mb-1">{obs.date}</div>
+                        <div>{obs.text}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="border-t p-6 flex justify-end gap-3 bg-slate-50">
+            <div className="border-t p-6 flex justify-end gap-3 bg-slate-50 sticky bottom-0">
               <button
-                onClick={() => setSelectedClient(null)}
+                onClick={() => { setSelectedClient(null); setNewStage(''); setNewObservation(''); }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-100 transition font-medium"
               >
                 Cerrar
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+              <button
+                onClick={() => {
+                  if (onUpdateLoan && selectedClient) {
+                    const updates = {};
+                    if (newStage && newStage !== selectedClient.stage) updates.stage = newStage;
+                    if (newObservation.trim()) {
+                      updates.observations = [...(selectedClient.observations || []), {
+                        date: new Date().toLocaleDateString('es-AR'),
+                        text: newObservation.trim(),
+                        by: 'Admin'
+                      }];
+                    }
+                    if (Object.keys(updates).length > 0) {
+                      onUpdateLoan(selectedClient.id, updates);
+                    }
+                  }
+                  setSelectedClient(null);
+                  setNewStage('');
+                  setNewObservation('');
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+              >
                 Guardar Cambios
               </button>
             </div>
@@ -2824,7 +2906,7 @@ const AdminLegajos = () => {
 // ADMIN - REPORTS
 // ============================================================================
 
-const AdminReports = () => {
+const AdminReports = ({ loans }) => {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8">Reportes</h1>
@@ -3053,6 +3135,10 @@ const App = () => {
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [simData, setSimData] = useState(null);
+
+  // SHARED STATE: all loans visible across roles
+  const [allLoans, setAllLoans] = useState(MOCK_CLIENTS);
 
   const handleLogin = (email, role, name) => {
     setUserEmail(email);
@@ -3069,16 +3155,15 @@ const App = () => {
     goBackToLanding();
   };
 
-  const [simData, setSimData] = useState(null);
-
   const handleRoleChange = (role) => {
     setUserRole(role);
-    const roleNames = {
-      'client': 'Cliente Demo',
-      'advisor': 'Asesor Demo',
-      'admin': 'Admin Demo'
-    };
+    setCurrentPage('dashboard');
+    const roleNames = { 'client': 'Cliente Demo', 'advisor': 'Asesor Demo', 'admin': 'Admin Demo' };
     setUserName(roleNames[role] || 'Usuario');
+  };
+
+  const handleNavigate = (page) => {
+    setCurrentPage(page);
   };
 
   const handleAdvanceFromSim = (data) => {
@@ -3086,53 +3171,92 @@ const App = () => {
     setCurrentPage('new-request');
   };
 
+  // When client submits a new request, add it to shared state
+  const handleNewLoanSubmit = (formData) => {
+    const nameParts = userName.split(' ');
+    const newLoan = {
+      id: 'TCMC-' + String(allLoans.length + 1).padStart(4, '0'),
+      nombre: nameParts[0] || userName,
+      apellido: nameParts.slice(1).join(' ') || '',
+      email: userEmail,
+      phone: '11-0000-0000',
+      advisor: formData.advisor || 'María Rodríguez',
+      stage: 'Solicitud Inicial',
+      status: 'Pendiente',
+      propertyLink: formData.propertyLink,
+      propertyValue: parseFloat(formData.propertyValue) || 0,
+      offeredValue: parseFloat(formData.propertyValue) || 0,
+      loanAmount: parseFloat(formData.loanAmount) || 0,
+      months: formData.months || 36,
+      startDate: new Date().toLocaleDateString('es-AR'),
+      lastUpdate: new Date().toLocaleDateString('es-AR'),
+      documents: [
+        { name: 'DNI Frente', status: 'Pendiente', date: new Date().toISOString().split('T')[0] },
+        { name: 'DNI Dorso', status: 'Pendiente', date: new Date().toISOString().split('T')[0] },
+        { name: 'Comprobante Domicilio', status: 'Pendiente', date: new Date().toISOString().split('T')[0] },
+        { name: 'Reserva ad Referéndum', status: 'Pendiente', date: new Date().toISOString().split('T')[0] },
+        { name: 'Declaración de Ingresos', status: 'Pendiente', date: new Date().toISOString().split('T')[0] },
+      ],
+      observations: [],
+      payments: [],
+    };
+    setAllLoans(prev => [...prev, newLoan]);
+    setCurrentPage('my-request');
+  };
+
+  // Admin/Advisor can update a loan (change stage, add observation, etc.)
+  const handleUpdateLoan = (loanId, updates) => {
+    setAllLoans(prev => prev.map(loan =>
+      loan.id === loanId ? { ...loan, ...updates, lastUpdate: new Date().toLocaleDateString('es-AR') } : loan
+    ));
+  };
+
   if (currentPage === 'login') {
     return <LoginPage onLogin={handleLogin} />;
   }
 
-  const handleNavigate = (page) => {
-    setCurrentPage(page);
-  };
-
   const renderContent = () => {
     if (userRole === 'client') {
+      // For client view, show their own loan (last one submitted by this email, or mock)
+      const myLoan = allLoans.find(l => l.email === userEmail) || allLoans[0];
       switch(currentPage) {
         case 'dashboard': return <ClientSimulator onAdvance={handleAdvanceFromSim} />;
-        case 'new-request': return <ClientNewRequest prefill={simData} />;
-        case 'my-request': return <ClientMyRequest />;
-        case 'payments': return <ClientPayments />;
+        case 'new-request': return <ClientNewRequest prefill={simData} onSubmit={handleNewLoanSubmit} />;
+        case 'my-request': return <ClientMyRequest loan={myLoan} />;
+        case 'payments': return <ClientPayments loan={myLoan} />;
         case 'support': return <ClientSupport />;
         default: return <ClientSimulator onAdvance={handleAdvanceFromSim} />;
       }
     } else if (userRole === 'advisor') {
       switch(currentPage) {
-        case 'dashboard': return <AdvisorDashboard />;
-        case 'clients': return <AdvisorClients />;
-        case 'pipeline': return <AdvisorPipeline />;
-        case 'support': return <ClientSupport />;
-        default: return <AdvisorDashboard />;
+        case 'dashboard': return <AdvisorDashboard loans={allLoans} />;
+        case 'clients': return <AdvisorClients loans={allLoans} onUpdateLoan={handleUpdateLoan} />;
+        case 'pipeline': return <AdvisorPipeline loans={allLoans} />;
+        default: return <AdvisorDashboard loans={allLoans} />;
       }
     } else if (userRole === 'admin') {
       switch(currentPage) {
-        case 'dashboard': return <AdminDashboard />;
-        case 'legajos': return <AdminLegajos />;
-        case 'reports': return <AdminReports />;
+        case 'dashboard': return <AdminDashboard loans={allLoans} />;
+        case 'legajos': return <AdminLegajos loans={allLoans} onUpdateLoan={handleUpdateLoan} />;
+        case 'reports': return <AdminReports loans={allLoans} />;
         case 'config': return <AdminConfig />;
-        default: return <AdminDashboard />;
+        default: return <AdminDashboard loans={allLoans} />;
       }
     }
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Sidebar 
+      <Sidebar
         userRole={userRole}
         userName={userName}
         userEmail={userEmail}
+        currentPage={currentPage}
+        onNavigate={handleNavigate}
         onLogout={handleLogout}
         onRoleChange={handleRoleChange}
       />
-      
+
       <main className="flex-1 overflow-auto ml-64">
         {renderContent()}
       </main>
