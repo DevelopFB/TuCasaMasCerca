@@ -423,9 +423,22 @@
         .tip:hover::before, .tip:focus::before{ opacity:1; }
     
 </style>
+
+    <!-- React, ReactDOM, Babel, and Tailwind CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        important: '#app-root',
+        corePlugins: { preflight: false }
+      }
+    </script>
 </head>
 <body>
-    <header>
+    <div id="landing-page">
+<header>
         <div class="header-container">
             <div class="logo"><img src="assets/logo.png" alt="TuCasaMasCerca Logo">
             </div>
@@ -923,10 +936,10 @@
             </div>
         </div>
     </div>
+    </div>
+    <div id="app-root" style="display:none;"></div>
 
-
-    
-    <script>
+<script>
         const DEFAULT_CONFIG = {
             tasasBase: { 12: 0.105, 24: 0.115, 36: 0.125, 48: 0.135, 60: 0.145 },
             maxLTV: 0.35,
@@ -1187,5 +1200,1966 @@
         updateCalculator();
         updateExamples();
     </script>
+
+
+<script type="text/babel">
+
+    const { useState, useMemo, useEffect } = React;
+
+// ============================================================================
+// LUCIDE ICON COMPONENTS (SVG-based)
+// ============================================================================
+
+const createIconComponent = (svgPath) => {
+    return (props) => (
+        React.createElement('svg', {
+            xmlns: "http://www.w3.org/2000/svg",
+            width: props.size || 24,
+            height: props.size || 24,
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: props.strokeWidth || 2,
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            className: props.className,
+            style: props.style,
+            dangerouslySetInnerHTML: { __html: svgPath }
+        })
+    );
+};
+
+const ChevronDown = createIconComponent('<polyline points="6 9 12 15 18 9"></polyline>');
+const Menu = createIconComponent('<line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line>');
+const X = createIconComponent('<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>');
+const LogOut = createIconComponent('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>');
+const Settings = createIconComponent('<circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24M19.78 19.78l-4.24-4.24m-3.08-3.08l-4.24-4.24"></path>');
+const Users = createIconComponent('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>');
+const FileText = createIconComponent('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="13" x2="8" y2="13"></line><line x1="12" y1="17" x2="8" y2="17"></line>');
+const BarChart3 = createIconComponent('<path d="M3 3v18h18"></path><rect x="7" y="11" width="4" height="9"></rect><rect x="15" y="5" width="4" height="15"></rect>');
+const Home = createIconComponent('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>');
+const DollarSign = createIconComponent('<line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>');
+const Clock = createIconComponent('<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>');
+const CheckCircle = createIconComponent('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>');
+const AlertCircle = createIconComponent('<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>');
+const Phone = createIconComponent('<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>');
+const Search = createIconComponent('<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>');
+const Plus = createIconComponent('<line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>');
+const Upload = createIconComponent('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line>');
+const Eye = createIconComponent('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>');
+const EyeOff = createIconComponent('<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>');
+const Mail = createIconComponent('<rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>');
+const MapPin = createIconComponent('<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>');
+const Smartphone = createIconComponent('<rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line>');
+const Lock = createIconComponent('<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>');
+const User = createIconComponent('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>');
+const ArrowRight = createIconComponent('<line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>');
+const TrendingUp = createIconComponent('<polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline><polyline points="17 6 23 6 23 12"></polyline>');
+const Zap = createIconComponent('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>');
+const Camera = createIconComponent('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>');
+const Download = createIconComponent('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>');
+const ChevronRight = createIconComponent('<polyline points="9 18 15 12 9 6"></polyline>');
+const ChevronLeft = createIconComponent('<polyline points="15 18 9 12 15 6"></polyline>');
+const ExternalLink = createIconComponent('<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line>');
+const Paperclip = createIconComponent('<path d="M21.5 2v6h-6M2.5 22.5a4.5 4.5 0 0 1 0-6.364l10.864-10.864a3 3 0 1 1 4.243 4.243L6.75 20.393a1.5 1.5 0 1 1-2.121-2.121l9.172-9.172"></path>');
+const Video = createIconComponent('<polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>');
+const CreditCard = createIconComponent('<rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line>');
+const Building = createIconComponent('<path d="M4 21v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7"></path><path d="M9 3h6v4H9z"></path><path d="M6 8h1v5H6zM17 8h1v5h-1z"></path><line x1="6" y1="13" x2="6" y2="17"></line><line x1="17" y1="13" x2="17" y2="17"></line>');
+const Filter = createIconComponent('<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>');
+
+// ============================================================================
+// SIMULATOR LOGIC (FROM INDEX.HTML)
+// ============================================================================
+
+const CONFIG_DEFAULTS = {
+  tasasBase: { 12: 0.105, 24: 0.115, 36: 0.125, 48: 0.135, 60: 0.145 },
+  maxLTV: 0.35,
+  maxLoan: 50000,
+};
+
+const calcularBruto = (loan) => {
+  const upfront = loan * 0.05;
+  const iva = upfront * 0.21;
+  return loan + upfront + iva;
+};
+
+const calcularCuota = (tasaAnual, meses, montoBruto) => {
+  const tm = tasaAnual / 12;
+  if (tm === 0) return montoBruto / meses;
+  return (montoBruto * (tm * Math.pow(1 + tm, meses))) / (Math.pow(1 + tm, meses) - 1);
+};
+
+const calcularTIR = (cuota, meses, prestamo) => {
+  const td = (cuota * meses) / prestamo - 1;
+  return Math.pow(1 + td, 12 / meses) - 1;
+};
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+const formatCurrency = (num) => `USD ${num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const goBackToLanding = () => {
+  document.getElementById('app-root').style.display = 'none';
+  document.getElementById('landing-page').style.display = 'block';
+};
+
+// ============================================================================
+// MOCK DATA
+// ============================================================================
+
+const MOCK_ADVISORS = [
+  { id: 'adv001', name: 'María Rodríguez', email: 'maria@asesores.com', phone: '+54 11 2345-6789' },
+  { id: 'adv002', name: 'Carlos Mendoza', email: 'carlos@asesores.com', phone: '+54 11 3456-7890' },
+  { id: 'adv003', name: 'Alejandra Gutiérrez', email: 'alejandra@asesores.com', phone: '+54 11 4567-8901' },
+];
+
+const MOCK_CLIENTS = [
+  {
+    id: 'cli001',
+    nombre: 'Juan',
+    apellido: 'García López',
+    email: 'juan.garcia@email.com',
+    phone: '+54 11 2345-6789',
+    dni: '35.123.456',
+    status: 'Activo',
+    stage: 'Escritura',
+    createdAt: '2025-10-15',
+    advisor: 'María Rodríguez',
+    propertyLink: 'https://example.com/property/001',
+    propertyValue: 150000,
+    offeredValue: 148000,
+    loanAmount: 45000,
+    months: 36,
+    documents: [
+      { name: 'DNI Frente', status: 'Aprobado', date: '2025-10-16' },
+      { name: 'DNI Dorso', status: 'Aprobado', date: '2025-10-16' },
+      { name: 'Comprobante de domicilio', status: 'Aprobado', date: '2025-10-17' },
+      { name: 'Declaración de ingresos', status: 'Aprobado', date: '2025-10-18' },
+      { name: 'Reserva de crédito', status: 'Aprobado', date: '2025-10-18' },
+    ],
+    observations: [],
+  },
+  {
+    id: 'cli002',
+    nombre: 'María',
+    apellido: 'Fernández Rossi',
+    email: 'maria.fernandez@email.com',
+    phone: '+54 11 3456-7890',
+    dni: '36.234.567',
+    status: 'Pendiente',
+    stage: 'Pre Aprobación',
+    createdAt: '2025-09-20',
+    advisor: 'Carlos Mendoza',
+    propertyLink: 'https://example.com/property/002',
+    propertyValue: 200000,
+    offeredValue: 195000,
+    loanAmount: 60000,
+    months: 48,
+    documents: [
+      { name: 'DNI Frente', status: 'Aprobado', date: '2025-09-21' },
+      { name: 'DNI Dorso', status: 'Aprobado', date: '2025-09-21' },
+      { name: 'Comprobante de domicilio', status: 'Observado', date: '2025-09-22' },
+      { name: 'Declaración de ingresos', status: 'Pendiente', date: null },
+    ],
+    observations: ['Se solicita comprobante de domicilio actualizado (no mayor a 30 días)'],
+  },
+  {
+    id: 'cli003',
+    nombre: 'Roberto',
+    apellido: 'Martínez Silva',
+    email: 'roberto.martinez@email.com',
+    phone: '+54 11 4567-8901',
+    dni: '37.345.678',
+    status: 'En proceso',
+    stage: 'Scoring',
+    createdAt: '2025-11-05',
+    advisor: 'Alejandra Gutiérrez',
+    propertyLink: 'https://example.com/property/003',
+    propertyValue: 120000,
+    offeredValue: 118000,
+    loanAmount: 35000,
+    months: 36,
+    documents: [
+      { name: 'DNI Frente', status: 'Aprobado', date: '2025-11-05' },
+      { name: 'DNI Dorso', status: 'Pendiente', date: null },
+      { name: 'Comprobante de domicilio', status: 'Pendiente', date: null },
+      { name: 'Declaración de ingresos', status: 'Pendiente', date: null },
+    ],
+    observations: [],
+  },
+  {
+    id: 'cli004',
+    nombre: 'Andrea',
+    apellido: 'López González',
+    email: 'andrea.lopez@email.com',
+    phone: '+54 11 5678-9012',
+    dni: '38.456.789',
+    status: 'Nueva',
+    stage: 'Solicitud Inicial',
+    createdAt: '2025-11-10',
+    advisor: 'María Rodríguez',
+    propertyLink: 'https://example.com/property/004',
+    propertyValue: 180000,
+    offeredValue: 175000,
+    loanAmount: 50000,
+    months: 60,
+    documents: [],
+    observations: [],
+  },
+];
+
+// ============================================================================
+// SIDEBAR COMPONENT
+// ============================================================================
+
+const Sidebar = ({ userRole, userName, userEmail, onLogout, onRoleChange }) => {
+  const [showRoleMenu, setShowRoleMenu] = useState(false);
+  
+  const navItems = {
+    client: [
+      { id: 'dashboard', label: 'Simulador', icon: DollarSign },
+      { id: 'new-request', label: 'Nueva Solicitud', icon: Plus },
+      { id: 'my-request', label: 'Mi Solicitud', icon: FileText },
+      { id: 'payments', label: 'Mis Pagos', icon: CreditCard },
+      { id: 'support', label: 'Soporte', icon: Phone },
+    ],
+    advisor: [
+      { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+      { id: 'clients', label: 'Clientes', icon: Users },
+      { id: 'pipeline', label: 'Pipeline', icon: TrendingUp },
+      { id: 'support', label: 'Soporte', icon: Phone },
+    ],
+    admin: [
+      { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+      { id: 'legajos', label: 'Gestión de Legajos', icon: FileText },
+      { id: 'reports', label: 'Reportes', icon: BarChart3 },
+      { id: 'config', label: 'Configuración', icon: Settings },
+    ],
+  };
+
+  const items = navItems[userRole] || [];
+
+  return (
+    <aside className="w-64 bg-slate-900 text-white flex flex-col h-screen fixed left-0 top-0">
+      <div className="p-6 border-b border-slate-700">
+        <div className="text-xl font-bold" style={{ fontFamily: 'Poppins' }}>Tu Casa +Cerca</div>
+      </div>
+
+      <div className="p-4 border-b border-slate-700">
+        <div className="text-sm font-semibold">{userName}</div>
+        <div className="text-xs text-slate-400 mt-1">{userEmail}</div>
+      </div>
+
+      <div className="p-4 border-b border-slate-700">
+        <div className="relative">
+          <button
+            onClick={() => setShowRoleMenu(!showRoleMenu)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded bg-slate-800 hover:bg-slate-700 text-sm transition"
+          >
+            <span>Demo: {userRole === 'client' ? 'Cliente' : userRole === 'advisor' ? 'Asesor' : 'Admin'}</span>
+            <ChevronDown size={16} />
+          </button>
+          {showRoleMenu && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 rounded border border-slate-600 z-50">
+              {['client', 'advisor', 'admin'].map(role => (
+                <button
+                  key={role}
+                  onClick={() => {
+                    onRoleChange(role);
+                    setShowRoleMenu(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 text-sm hover:bg-slate-700 transition first:rounded-t last:rounded-b"
+                >
+                  {role === 'client' ? 'Cliente' : role === 'advisor' ? 'Asesor' : 'Admin'}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <nav className="flex-1 p-4">
+        {items.map(item => {
+          const Icon = item.icon;
+          return (
+            <div key={item.id} className="mb-2">
+              <button className="w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-800 transition text-sm">
+                <Icon size={18} />
+                <span>{item.label}</span>
+              </button>
+            </div>
+          );
+        })}
+      </nav>
+
+      <div className="p-4 border-t border-slate-700">
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded bg-red-900 hover:bg-red-800 transition text-sm font-medium"
+        >
+          <LogOut size={16} />
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+
+      <div className="p-4 text-xs text-slate-400 border-t border-slate-700 text-center">
+        <button
+          onClick={goBackToLanding}
+          className="w-full hover:text-slate-300 transition"
+        >
+          Volver al sitio
+        </button>
+      </div>
+    </aside>
+  );
+};
+
+// ============================================================================
+// CLIENT DASHBOARD - SIMULATOR
+// ============================================================================
+
+const ClientSimulator = ({ onAdvance }) => {
+  const [propertyValue, setPropertyValue] = useState(150000);
+  const [loanAmount, setLoanAmount] = useState(30000);
+  const [months, setMonths] = useState(36);
+
+  const maxAllowed = Math.min(propertyValue * CONFIG_DEFAULTS.maxLTV, CONFIG_DEFAULTS.maxLoan);
+  const bruto = calcularBruto(loanAmount);
+  const tasa = CONFIG_DEFAULTS.tasasBase[months] || 0.125;
+  const cuota = calcularCuota(tasa, months, bruto);
+  const tir = calcularTIR(cuota, months, loanAmount);
+  const ltv = (loanAmount / propertyValue) * 100;
+  const isValidLTV = ltv <= 35;
+
+  // Clamp loan when property changes
+  useEffect(() => {
+    const max = Math.min(propertyValue * CONFIG_DEFAULTS.maxLTV, CONFIG_DEFAULTS.maxLoan);
+    if (loanAmount > max) setLoanAmount(Math.floor(max));
+  }, [propertyValue]);
+
+  const rateExamples = [12, 24, 36, 48, 60].map(m => {
+    const r = CONFIG_DEFAULTS.tasasBase[m];
+    const b = calcularBruto(30000);
+    const c = calcularCuota(r, m, b);
+    return { months: m, rate: r, cuota: c, total: c * m };
+  });
+
+  const handleAdvance = () => {
+    if (onAdvance && isValidLTV) {
+      onAdvance({ propertyValue, loanAmount, months });
+    }
+  };
+
+  return (
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-2">Simulador de Crédito</h1>
+      <p className="text-slate-500 mb-8">Calculá tu cuota mensual y avanzá con la solicitud</p>
+
+      <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Valor de la propiedad: {formatCurrency(propertyValue)}
+            </label>
+            <input type="range" min="50000" max="500000" step="5000" value={propertyValue}
+              onChange={(e) => setPropertyValue(Number(e.target.value))}
+              className="w-full accent-blue-600" />
+            <div className="flex justify-between text-xs text-slate-400 mt-1">
+              <span>USD 50.000</span><span>USD 500.000</span>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Monto a solicitar: {formatCurrency(loanAmount)}
+            </label>
+            <input type="range" min="5000" max={maxAllowed} step="1000" value={Math.min(loanAmount, maxAllowed)}
+              onChange={(e) => setLoanAmount(Number(e.target.value))}
+              className="w-full accent-blue-600" />
+            <div className="flex justify-between text-xs text-slate-400 mt-1">
+              <span>USD 5.000</span><span>{formatCurrency(maxAllowed)}</span>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Plazo</label>
+            <select value={months} onChange={(e) => setMonths(Number(e.target.value))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              {[12, 24, 36, 48, 60].map(m => <option key={m} value={m}>{m} meses</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Result card */}
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div>
+              <div className="text-xs text-slate-500 uppercase font-semibold mb-1">LTV</div>
+              <div className={`text-2xl font-bold ${isValidLTV ? 'text-green-600' : 'text-red-600'}`}>
+                {ltv.toFixed(1)}%
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 uppercase font-semibold mb-1">Cuota Mensual</div>
+              <div className="text-2xl font-bold text-blue-600">{formatCurrency(cuota)}</div>
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 uppercase font-semibold mb-1">Monto Bruto</div>
+              <div className="text-lg font-bold text-slate-800">{formatCurrency(bruto)}</div>
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 uppercase font-semibold mb-1">Total a Pagar</div>
+              <div className="text-lg font-bold text-slate-800">{formatCurrency(cuota * months)}</div>
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 uppercase font-semibold mb-1">TIR</div>
+              <div className="text-lg font-bold text-slate-800">{(tir * 100).toFixed(2)}%</div>
+            </div>
+          </div>
+        </div>
+
+        {!isValidLTV && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6 flex items-center gap-3">
+            <AlertCircle size={20} />
+            <span>El LTV máximo permitido es 35%. Reducí el monto o aumentá el valor de la propiedad.</span>
+          </div>
+        )}
+
+        {/* CTA Button */}
+        <button
+          onClick={handleAdvance}
+          disabled={!isValidLTV}
+          className={`w-full py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-3 transition ${
+            isValidLTV
+              ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          Avanzar con esta simulación
+          <ArrowRight size={20} />
+        </button>
+      </div>
+
+      {/* Rate examples table */}
+      <div className="bg-white rounded-xl shadow-md p-8">
+        <h2 className="text-xl font-bold mb-4">Tabla de tasas y cuotas</h2>
+        <p className="text-sm text-slate-500 mb-6">Ejemplo para un crédito de USD 30.000</p>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b-2 border-slate-200">
+              <th className="text-left py-3 text-sm font-semibold text-slate-600">Plazo</th>
+              <th className="text-right py-3 text-sm font-semibold text-slate-600">TNA</th>
+              <th className="text-right py-3 text-sm font-semibold text-slate-600">Cuota Mensual</th>
+              <th className="text-right py-3 text-sm font-semibold text-slate-600">Total a Pagar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rateExamples.map(ex => (
+              <tr key={ex.months} className="border-b border-slate-100 hover:bg-slate-50">
+                <td className="py-3 font-medium">{ex.months} meses</td>
+                <td className="py-3 text-right">{(ex.rate * 100).toFixed(2)}%</td>
+                <td className="py-3 text-right font-semibold text-blue-600">{formatCurrency(ex.cuota)}</td>
+                <td className="py-3 text-right text-slate-600">{formatCurrency(ex.total)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// CLIENT DASHBOARD - NEW REQUEST (MULTI-STEP WIZARD)
+// ============================================================================
+
+const ClientNewRequest = ({ prefill }) => {
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    // Step 1
+    dniFrente: null,
+    dniDorso: null,
+    domicilio: '',
+    comprobanteDomicilio: null,
+    // Step 2 - pre-filled from simulator if available
+    propertyLink: '',
+    propertyValue: prefill ? String(prefill.propertyValue) : '',
+    loanAmount: prefill ? String(prefill.loanAmount) : '',
+    months: prefill ? prefill.months : 36,
+    advisor: '',
+    reservaCredito: null,
+    // Step 3
+    ingresos: null,
+    hasCodeudor: false,
+    codeudorNombre: '',
+    codeudorApellido: '',
+    codeudorDni: '',
+    codeudorVinculo: '',
+    codeudorDocs: null,
+    // Step 4
+    termsAccepted: false,
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileChange = (field, file) => {
+    setFormData(prev => ({ ...prev, [field]: file }));
+  };
+
+  const handleNextStep = () => {
+    if (step < 4) setStep(step + 1);
+  };
+
+  const handlePreviousStep = () => {
+    if (step > 1) setStep(step - 1);
+  };
+
+  const handleSubmit = () => {
+    if (formData.termsAccepted) {
+      setSubmitted(true);
+      setTimeout(() => {
+        setStep(1);
+        setFormData({
+          dniFrente: null,
+          dniDorso: null,
+          domicilio: '',
+          comprobanteDomicilio: null,
+          propertyLink: '',
+          propertyValue: '',
+          loanAmount: '',
+          months: 36,
+          advisor: '',
+          reservaCredito: null,
+          ingresos: null,
+          hasCodeudor: false,
+          codeudorNombre: '',
+          codeudorApellido: '',
+          codeudorDni: '',
+          codeudorVinculo: '',
+          codeudorDocs: null,
+          termsAccepted: false,
+        });
+        setSubmitted(false);
+      }, 2000);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 text-center py-20">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-8">
+          <CheckCircle size={48} className="mx-auto text-green-600 mb-4" />
+          <h2 className="text-2xl font-bold text-green-700 mb-2">¡Solicitud Enviada!</h2>
+          <p className="text-slate-600 mb-6">Tu solicitud de crédito ha sido recibida correctamente. Podrás ver el estado en "Mi Solicitud".</p>
+          <p className="text-sm text-slate-500">Serás redirigido en breve...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Nueva Solicitud de Crédito</h1>
+
+      {/* Progress indicators */}
+      <div className="flex items-center justify-between mb-8">
+        {[1, 2, 3, 4].map(s => (
+          <div key={s} className="flex items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+              s === step ? 'bg-blue-600 text-white' : s < step ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'
+            }`}>
+              {s < step ? <CheckCircle size={20} /> : s}
+            </div>
+            {s < 4 && <div className={`h-1 w-20 ${s < step ? 'bg-green-600' : 'bg-gray-300'}`}></div>}
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-8">
+        {/* STEP 1 */}
+        {step === 1 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Verificación de Identidad</h2>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold mb-2">DNI Frente</label>
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:bg-blue-50">
+                  <Camera size={32} className="mx-auto text-blue-600 mb-2" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="dni-frente"
+                    onChange={(e) => handleFileChange('dniFrente', e.target.files?.[0])}
+                  />
+                  <label htmlFor="dni-frente" className="cursor-pointer">
+                    {formData.dniFrente ? (
+                      <div><p className="font-semibold">{formData.dniFrente.name}</p></div>
+                    ) : (
+                      <p className="text-slate-600">Click para subir imagen</p>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">DNI Dorso</label>
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:bg-blue-50">
+                  <Camera size={32} className="mx-auto text-blue-600 mb-2" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="dni-dorso"
+                    onChange={(e) => handleFileChange('dniDorso', e.target.files?.[0])}
+                  />
+                  <label htmlFor="dni-dorso" className="cursor-pointer">
+                    {formData.dniDorso ? (
+                      <div><p className="font-semibold">{formData.dniDorso.name}</p></div>
+                    ) : (
+                      <p className="text-slate-600">Click para subir imagen</p>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Verificación por video / Selfie</label>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                  <Video size={32} className="mx-auto text-blue-600 mb-2" />
+                  <p className="text-slate-600">Verificación por MetaMap - Próximamente</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Domicilio</label>
+                <input
+                  type="text"
+                  placeholder="Calle, número, departamento, localidad"
+                  value={formData.domicilio}
+                  onChange={(e) => handleInputChange('domicilio', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Comprobante de Domicilio</label>
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:bg-blue-50">
+                  <Upload size={32} className="mx-auto text-blue-600 mb-2" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="comprobante-domicilio"
+                    onChange={(e) => handleFileChange('comprobanteDomicilio', e.target.files?.[0])}
+                  />
+                  <label htmlFor="comprobante-domicilio" className="cursor-pointer">
+                    {formData.comprobanteDomicilio ? (
+                      <div><p className="font-semibold">{formData.comprobanteDomicilio.name}</p></div>
+                    ) : (
+                      <p className="text-slate-600">Click para subir archivo (Ej: factura de servicios)</p>
+                    )}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4 mt-8">
+              <button
+                onClick={handleNextStep}
+                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+              >
+                Siguiente
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2 */}
+        {step === 2 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Datos del Crédito</h2>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold mb-2">Link de Coldwell Banker de la propiedad</label>
+                <div className="flex items-center">
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={formData.propertyLink}
+                    onChange={(e) => handleInputChange('propertyLink', e.target.value)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {formData.propertyLink && (
+                    <a href={formData.propertyLink} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 hover:text-blue-800">
+                      <ExternalLink size={20} />
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Valor publicado de la propiedad (USD)</label>
+                <input
+                  type="number"
+                  value={formData.propertyValue}
+                  onChange={(e) => handleInputChange('propertyValue', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Importe del crédito a solicitar (USD)</label>
+                <input
+                  type="number"
+                  value={formData.loanAmount}
+                  onChange={(e) => handleInputChange('loanAmount', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {formData.propertyValue && formData.loanAmount && (
+                  <div className="text-sm mt-2">
+                    <span className="font-semibold">LTV: {((formData.loanAmount / formData.propertyValue) * 100).toFixed(1)}%</span>
+                    {((formData.loanAmount / formData.propertyValue) * 100) > 35 && (
+                      <div className="text-red-600 mt-1 flex items-center gap-2">
+                        <AlertCircle size={16} />
+                        LTV máximo permitido: 35%
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Plazo deseado</label>
+                <select
+                  value={formData.months}
+                  onChange={(e) => handleInputChange('months', Number(e.target.value))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {[12, 24, 36, 48, 60].map(m => (
+                    <option key={m} value={m}>{m} meses</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Asesor que gestiona la compra</label>
+                <select
+                  value={formData.advisor}
+                  onChange={(e) => handleInputChange('advisor', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Seleccionar asesor</option>
+                  {MOCK_ADVISORS.map(adv => (
+                    <option key={adv.id} value={adv.name}>{adv.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Reserva ad referéndum del crédito</label>
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:bg-blue-50">
+                  <Upload size={32} className="mx-auto text-blue-600 mb-2" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="reserva-credito"
+                    onChange={(e) => handleFileChange('reservaCredito', e.target.files?.[0])}
+                  />
+                  <label htmlFor="reserva-credito" className="cursor-pointer">
+                    {formData.reservaCredito ? (
+                      <div><p className="font-semibold">{formData.reservaCredito.name}</p></div>
+                    ) : (
+                      <p className="text-slate-600">Click para subir archivo</p>
+                    )}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between gap-4 mt-8">
+              <button
+                onClick={handlePreviousStep}
+                className="flex items-center gap-2 px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
+              >
+                <ChevronLeft size={18} />
+                Anterior
+              </button>
+              <button
+                onClick={handleNextStep}
+                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+              >
+                Siguiente
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3 */}
+        {step === 3 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Información Financiera</h2>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold mb-2">Declaración de Ingresos</label>
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:bg-blue-50">
+                  <Upload size={32} className="mx-auto text-blue-600 mb-2" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="ingresos"
+                    onChange={(e) => handleFileChange('ingresos', e.target.files?.[0])}
+                  />
+                  <label htmlFor="ingresos" className="cursor-pointer">
+                    {formData.ingresos ? (
+                      <div><p className="font-semibold">{formData.ingresos.name}</p></div>
+                    ) : (
+                      <p className="text-slate-600">Click para subir archivo (Ej: liquidación de sueldo, balance)</p>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.hasCodeudor}
+                    onChange={(e) => handleInputChange('hasCodeudor', e.target.checked)}
+                    className="w-5 h-5 text-blue-600 rounded"
+                  />
+                  <span className="text-sm font-semibold">¿Hay codeudor?</span>
+                </label>
+              </div>
+
+              {formData.hasCodeudor && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 space-y-4">
+                  <h3 className="font-semibold text-amber-900">Datos del Codeudor</h3>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Nombre"
+                      value={formData.codeudorNombre}
+                      onChange={(e) => handleInputChange('codeudorNombre', e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Apellido"
+                      value={formData.codeudorApellido}
+                      onChange={(e) => handleInputChange('codeudorApellido', e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="DNI"
+                    value={formData.codeudorDni}
+                    onChange={(e) => handleInputChange('codeudorDni', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+
+                  <select
+                    value={formData.codeudorVinculo}
+                    onChange={(e) => handleInputChange('codeudorVinculo', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Seleccionar vínculo</option>
+                    <option value="Cónyuge">Cónyuge</option>
+                    <option value="Pareja">Pareja</option>
+                    <option value="Familiar">Familiar</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Documentación del Codeudor</label>
+                    <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:bg-blue-50">
+                      <Upload size={32} className="mx-auto text-blue-600 mb-2" />
+                      <input
+                        type="file"
+                        className="hidden"
+                        id="codeudor-docs"
+                        onChange={(e) => handleFileChange('codeudorDocs', e.target.files?.[0])}
+                      />
+                      <label htmlFor="codeudor-docs" className="cursor-pointer">
+                        {formData.codeudorDocs ? (
+                          <div><p className="font-semibold">{formData.codeudorDocs.name}</p></div>
+                        ) : (
+                          <p className="text-slate-600">Click para subir documentación</p>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between gap-4 mt-8">
+              <button
+                onClick={handlePreviousStep}
+                className="flex items-center gap-2 px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
+              >
+                <ChevronLeft size={18} />
+                Anterior
+              </button>
+              <button
+                onClick={handleNextStep}
+                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+              >
+                Siguiente
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 4 - CONFIRMATION */}
+        {step === 4 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Confirmación</h2>
+
+            <div className="bg-gray-50 rounded-lg p-6 mb-6 space-y-3">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-slate-600">Propiedad (Link):</span>
+                  {formData.propertyLink && (
+                    <a href={formData.propertyLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline block">
+                      Ver enlace
+                    </a>
+                  )}
+                </div>
+                <div>
+                  <span className="text-slate-600">Valor publicado:</span>
+                  <div className="font-semibold">{formatCurrency(parseFloat(formData.propertyValue) || 0)}</div>
+                </div>
+                <div>
+                  <span className="text-slate-600">Monto solicitado:</span>
+                  <div className="font-semibold">{formatCurrency(parseFloat(formData.loanAmount) || 0)}</div>
+                </div>
+                <div>
+                  <span className="text-slate-600">Plazo:</span>
+                  <div className="font-semibold">{formData.months} meses</div>
+                </div>
+                <div>
+                  <span className="text-slate-600">Asesor:</span>
+                  <div className="font-semibold">{formData.advisor || '-'}</div>
+                </div>
+                <div>
+                  <span className="text-slate-600">Domicilio:</span>
+                  <div className="font-semibold text-xs">{formData.domicilio}</div>
+                </div>
+              </div>
+
+              {formData.hasCodeudor && (
+                <div className="border-t pt-3 mt-3">
+                  <div className="text-sm font-semibold text-slate-700 mb-2">Codeudor</div>
+                  <div className="text-xs space-y-1">
+                    <div><span className="text-slate-600">Nombre:</span> {formData.codeudorNombre} {formData.codeudorApellido}</div>
+                    <div><span className="text-slate-600">DNI:</span> {formData.codeudorDni}</div>
+                    <div><span className="text-slate-600">Vínculo:</span> {formData.codeudorVinculo}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.termsAccepted}
+                  onChange={(e) => handleInputChange('termsAccepted', e.target.checked)}
+                  className="w-5 h-5 text-blue-600 rounded mt-1 flex-shrink-0"
+                />
+                <span className="text-sm">
+                  Acepto los términos y condiciones del proceso de solicitud de crédito
+                </span>
+              </label>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <p className="text-xs text-amber-900">
+                Se le podrá solicitar información adicional en cualquier etapa del proceso de aprobación.
+              </p>
+            </div>
+
+            <div className="flex justify-between gap-4">
+              <button
+                onClick={handlePreviousStep}
+                className="flex items-center gap-2 px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
+              >
+                <ChevronLeft size={18} />
+                Anterior
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={!formData.termsAccepted}
+                className={`flex items-center gap-2 px-6 py-2 rounded-lg transition font-medium ${
+                  formData.termsAccepted
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                }`}
+              >
+                Enviar Solicitud
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// CLIENT DASHBOARD - MY REQUEST (Status tracking)
+// ============================================================================
+
+const ClientMyRequest = () => {
+  const [currentClient] = useState(MOCK_CLIENTS[0]); // Juan García López - Activo
+
+  const stages = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'];
+  const stageIndex = stages.indexOf(currentClient.stage);
+
+  const getDocumentStatusColor = (status) => {
+    switch(status) {
+      case 'Aprobado': return 'text-green-600';
+      case 'Observado': return 'text-amber-600';
+      case 'Pendiente': return 'text-slate-400';
+      default: return 'text-slate-600';
+    }
+  };
+
+  const getDocumentStatusBg = (status) => {
+    switch(status) {
+      case 'Aprobado': return 'bg-green-50';
+      case 'Observado': return 'bg-amber-50';
+      case 'Pendiente': return 'bg-slate-50';
+      default: return 'bg-white';
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Mi Solicitud</h1>
+
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-6">Progreso de la Solicitud</h2>
+
+        <div className="relative">
+          <div className="flex items-center justify-between mb-8">
+            {stages.map((stage, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white ${
+                  idx <= stageIndex ? 'bg-green-600' : 'bg-gray-300'
+                }`}>
+                  {idx < stageIndex ? <CheckCircle size={24} /> : idx + 1}
+                </div>
+                <div className="text-xs text-center mt-2 max-w-24 font-semibold text-slate-600">{stage}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="absolute top-6 left-0 right-0 h-1 bg-gray-300 -z-10">
+            <div 
+              className="h-full bg-green-600"
+              style={{ width: `${(stageIndex / (stages.length - 1)) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Documentación</h2>
+
+        <div className="space-y-3">
+          {currentClient.documents.map((doc, idx) => (
+            <div key={idx} className={`${getDocumentStatusBg(doc.status)} rounded-lg p-4 flex items-center justify-between`}>
+              <div className="flex items-center gap-3">
+                <FileText size={20} className={getDocumentStatusColor(doc.status)} />
+                <div>
+                  <div className="font-semibold text-sm">{doc.name}</div>
+                  {doc.date && <div className="text-xs text-slate-500">{doc.date}</div>}
+                </div>
+              </div>
+              <div className={`text-sm font-semibold ${getDocumentStatusColor(doc.status)}`}>
+                {doc.status}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {currentClient.observations.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-8">
+          <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
+            <AlertCircle size={20} />
+            Observaciones
+          </h3>
+          <ul className="space-y-2">
+            {currentClient.observations.map((obs, idx) => (
+              <li key={idx} className="text-sm text-amber-900">• {obs}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// CLIENT DASHBOARD - PAYMENTS
+// ============================================================================
+
+const ClientPayments = () => {
+  const [selectedLoan] = useState(MOCK_CLIENTS[0]);
+
+  if (!selectedLoan.payments || selectedLoan.payments.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-8">Mis Pagos</h1>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
+          <CreditCard size={48} className="mx-auto text-blue-600 mb-4" />
+          <p className="text-slate-600">No hay créditos activos con pagos en este momento.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Mis Pagos</h1>
+
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-slate-100">
+            <tr>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Cuota</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Fecha de Vencimiento</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">Monto</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {selectedLoan.payments.map((payment, idx) => (
+              <tr key={idx} className="border-t hover:bg-slate-50">
+                <td className="px-6 py-4 text-sm">{payment.number}</td>
+                <td className="px-6 py-4 text-sm">{payment.dueDate}</td>
+                <td className="px-6 py-4 text-sm text-right font-semibold">{formatCurrency(payment.amount)}</td>
+                <td className="px-6 py-4 text-sm">
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                    payment.status === 'Pagado' ? 'bg-green-100 text-green-800' :
+                    payment.status === 'Próximo' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {payment.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// CLIENT DASHBOARD - SUPPORT
+// ============================================================================
+
+const ClientSupport = () => {
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Soporte</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <Phone size={48} className="mx-auto text-blue-600 mb-4" />
+          <h3 className="font-semibold text-lg mb-2">Teléfono</h3>
+          <p className="text-slate-600 mb-4">Llamanos</p>
+          <a href="tel:+541144445555" className="text-blue-600 hover:underline font-semibold">+54 11 4444-5555</a>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <Mail size={48} className="mx-auto text-blue-600 mb-4" />
+          <h3 className="font-semibold text-lg mb-2">Email</h3>
+          <p className="text-slate-600 mb-4">Escribinos</p>
+          <a href="mailto:soporte@tcmc.local" className="text-blue-600 hover:underline font-semibold">soporte@tcmc.local</a>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <Clock size={48} className="mx-auto text-blue-600 mb-4" />
+          <h3 className="font-semibold text-lg mb-2">Horario</h3>
+          <p className="text-slate-600">Lunes a Viernes</p>
+          <p className="text-slate-600">9:00 - 18:00 hs</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// ADVISOR DASHBOARD
+// ============================================================================
+
+const AdvisorDashboard = () => {
+  const totalClients = MOCK_CLIENTS.length;
+  const totalVolume = MOCK_CLIENTS.reduce((sum, c) => sum + c.loanAmount, 0);
+  const stageCount = {};
+  MOCK_CLIENTS.forEach(c => {
+    stageCount[c.stage] = (stageCount[c.stage] || 0) + 1;
+  });
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Dashboard - Asesor</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-4">
+            <Users size={32} className="text-blue-600" />
+            <div>
+              <div className="text-sm text-slate-600">Clientes Activos</div>
+              <div className="text-3xl font-bold">{totalClients}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-4">
+            <DollarSign size={32} className="text-green-600" />
+            <div>
+              <div className="text-sm text-slate-600">Volumen Total</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalVolume)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-4">
+            <BarChart3 size={32} className="text-amber-600" />
+            <div>
+              <div className="text-sm text-slate-600">Créditos Aprobados</div>
+              <div className="text-3xl font-bold">{stageCount['Escritura'] || 0}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold mb-4">Por Etapa</h2>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(stage => (
+            <div key={stage} className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-blue-600">{stageCount[stage] || 0}</div>
+              <div className="text-xs text-slate-600 mt-2">{stage}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// ADVISOR - CLIENTS LIST
+// ============================================================================
+
+const AdvisorClients = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const filtered = MOCK_CLIENTS.filter(c =>
+    c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.apellido.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Mis Clientes</h1>
+
+      <div className="mb-6">
+        <div className="relative">
+          <Search size={20} className="absolute left-3 top-3 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar cliente..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-slate-100">
+            <tr>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Nombre</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Propiedad</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">Monto</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Etapa</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Última Actualización</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(client => (
+              <tr key={client.id} className="border-t hover:bg-slate-50 cursor-pointer">
+                <td className="px-6 py-4 text-sm font-semibold">{client.nombre} {client.apellido}</td>
+                <td className="px-6 py-4 text-sm text-slate-600">${client.propertyValue.toLocaleString()}</td>
+                <td className="px-6 py-4 text-sm text-right font-semibold">{formatCurrency(client.loanAmount)}</td>
+                <td className="px-6 py-4 text-sm">
+                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                    {client.stage}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-sm text-slate-600">{client.createdAt}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// ADVISOR - PIPELINE
+// ============================================================================
+
+const AdvisorPipeline = () => {
+  const stages = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'];
+  const stageClients = {};
+
+  stages.forEach(stage => {
+    stageClients[stage] = MOCK_CLIENTS.filter(c => c.stage === stage);
+  });
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Pipeline</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        {stages.map(stage => (
+          <div key={stage} className="bg-white rounded-lg shadow-md p-4">
+            <div className="font-semibold text-sm mb-4 pb-2 border-b">{stage}</div>
+            <div className="space-y-3">
+              {stageClients[stage].map(client => (
+                <div key={client.id} className="bg-blue-50 rounded p-3 text-sm cursor-pointer hover:bg-blue-100 transition">
+                  <div className="font-semibold">{client.nombre} {client.apellido}</div>
+                  <div className="text-xs text-slate-600 mt-1">{formatCurrency(client.loanAmount)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// ADMIN DASHBOARD
+// ============================================================================
+
+const AdminDashboard = () => {
+  const totalClients = MOCK_CLIENTS.length;
+  const totalVolume = MOCK_CLIENTS.reduce((sum, c) => sum + c.loanAmount, 0);
+  const approvedCount = MOCK_CLIENTS.filter(c => c.stage === 'Escritura').length;
+  const stageCount = {};
+
+  MOCK_CLIENTS.forEach(c => {
+    stageCount[c.stage] = (stageCount[c.stage] || 0) + 1;
+  });
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Dashboard - Administración</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-4">
+            <Users size={32} className="text-blue-600" />
+            <div>
+              <div className="text-sm text-slate-600">Total Clientes</div>
+              <div className="text-3xl font-bold">{totalClients}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-4">
+            <DollarSign size={32} className="text-green-600" />
+            <div>
+              <div className="text-sm text-slate-600">Volumen Total</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalVolume)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-4">
+            <CheckCircle size={32} className="text-green-600" />
+            <div>
+              <div className="text-sm text-slate-600">Aprobados</div>
+              <div className="text-3xl font-bold">{approvedCount}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-4">
+            <TrendingUp size={32} className="text-amber-600" />
+            <div>
+              <div className="text-sm text-slate-600">En Proceso</div>
+              <div className="text-3xl font-bold">{totalClients - approvedCount}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold mb-4">Distribución por Etapa</h2>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(stage => (
+            <div key={stage} className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-blue-600">{stageCount[stage] || 0}</div>
+              <div className="text-xs text-slate-600 mt-2">{stage}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// ADMIN - LEGAJOS MANAGEMENT
+// ============================================================================
+
+const AdminLegajos = () => {
+  const [filters, setFilters] = useState({
+    nombre: '',
+    apellido: '',
+    stage: '',
+  });
+  const [selectedClient, setSelectedClient] = useState(null);
+
+  const filtered = MOCK_CLIENTS.filter(c => {
+    if (filters.nombre && !c.nombre.toLowerCase().includes(filters.nombre.toLowerCase())) return false;
+    if (filters.apellido && !c.apellido.toLowerCase().includes(filters.apellido.toLowerCase())) return false;
+    if (filters.stage && c.stage !== filters.stage) return false;
+    return true;
+  });
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Gestión de Legajos</h1>
+
+      <div className="flex justify-end mb-6">
+        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+          <Download size={18} />
+          Descargar CSV
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Filtrar por nombre..."
+          value={filters.nombre}
+          onChange={(e) => setFilters({...filters, nombre: e.target.value})}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="text"
+          placeholder="Filtrar por apellido..."
+          value={filters.apellido}
+          onChange={(e) => setFilters({...filters, apellido: e.target.value})}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <select
+          value={filters.stage}
+          onChange={(e) => setFilters({...filters, stage: e.target.value})}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Todos los stages</option>
+          {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(s => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-slate-100">
+            <tr>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Nombre</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Inmueble</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">V. Publicado</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">V. Ofertado</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">Monto Solicitado</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Etapa</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Asesor</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Fecha Inicio</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(client => (
+              <tr 
+                key={client.id} 
+                className="border-t hover:bg-slate-50 cursor-pointer"
+                onClick={() => setSelectedClient(client)}
+              >
+                <td className="px-6 py-4 text-sm font-semibold">{client.nombre} {client.apellido}</td>
+                <td className="px-6 py-4 text-sm text-slate-600">${client.propertyValue.toLocaleString()}</td>
+                <td className="px-6 py-4 text-sm text-right">${client.propertyValue.toLocaleString()}</td>
+                <td className="px-6 py-4 text-sm text-right">${client.offeredValue.toLocaleString()}</td>
+                <td className="px-6 py-4 text-sm text-right font-semibold">{formatCurrency(client.loanAmount)}</td>
+                <td className="px-6 py-4 text-sm">
+                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                    {client.stage}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-sm">{client.advisor}</td>
+                <td className="px-6 py-4 text-sm text-slate-600">{client.createdAt}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Legajo Detail Modal */}
+      {selectedClient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-96 overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold">{selectedClient.nombre} {selectedClient.apellido}</h2>
+              <button onClick={() => setSelectedClient(null)} className="text-slate-400 hover:text-slate-600">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-slate-600">Email:</span>
+                  <div className="font-semibold">{selectedClient.email}</div>
+                </div>
+                <div>
+                  <span className="text-slate-600">Teléfono:</span>
+                  <div className="font-semibold">{selectedClient.phone}</div>
+                </div>
+                <div>
+                  <span className="text-slate-600">DNI:</span>
+                  <div className="font-semibold">{selectedClient.dni}</div>
+                </div>
+                <div>
+                  <span className="text-slate-600">Asesor:</span>
+                  <div className="font-semibold">{selectedClient.advisor}</div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">Documentos</h3>
+                <div className="space-y-2">
+                  {selectedClient.documents.map((doc, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-sm p-2 hover:bg-slate-50 rounded">
+                      <span>{doc.name}</span>
+                      <select defaultValue={doc.status} className="text-xs border border-gray-300 rounded px-2 py-1">
+                        <option value="Aprobado">Aprobado</option>
+                        <option value="Observado">Observado</option>
+                        <option value="Pendiente">Pendiente</option>
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="block text-sm font-semibold mb-2">Cambiar Etapa</label>
+                <select defaultValue={selectedClient.stage} className="w-full border border-gray-300 rounded px-4 py-2">
+                  {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="block text-sm font-semibold mb-2">Mensaje / Observaciones</label>
+                <textarea
+                  placeholder="Solicita información adicional aquí..."
+                  className="w-full border border-gray-300 rounded px-4 py-2 text-sm resize-none"
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+
+            <div className="border-t p-6 flex justify-end gap-3 bg-slate-50">
+              <button
+                onClick={() => setSelectedClient(null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-100 transition font-medium"
+              >
+                Cerrar
+              </button>
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// ADMIN - REPORTS
+// ============================================================================
+
+const AdminReports = () => {
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Reportes</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <BarChart3 size={24} className="text-blue-600" />
+            Reporte por Etapa
+          </h2>
+          <div className="space-y-3">
+            {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(stage => {
+              const count = MOCK_CLIENTS.filter(c => c.stage === stage).length;
+              const volume = MOCK_CLIENTS.filter(c => c.stage === stage).reduce((sum, c) => sum + c.loanAmount, 0);
+              return (
+                <div key={stage} className="border-b pb-3">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-semibold">{stage}</span>
+                    <span className="text-slate-600">{count} solicitudes</span>
+                  </div>
+                  <div className="text-xs text-slate-600">{formatCurrency(volume)}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <TrendingUp size={24} className="text-green-600" />
+            Resumen Financiero
+          </h2>
+          <div className="space-y-4">
+            <div className="bg-green-50 rounded p-4">
+              <div className="text-sm text-slate-600">Volumen Total</div>
+              <div className="text-2xl font-bold text-green-600">{formatCurrency(MOCK_CLIENTS.reduce((sum, c) => sum + c.loanAmount, 0))}</div>
+            </div>
+            <div className="bg-blue-50 rounded p-4">
+              <div className="text-sm text-slate-600">Solicitudes Activas</div>
+              <div className="text-2xl font-bold text-blue-600">{MOCK_CLIENTS.length}</div>
+            </div>
+            <div className="bg-amber-50 rounded p-4">
+              <div className="text-sm text-slate-600">Promedio por Solicitud</div>
+              <div className="text-2xl font-bold text-amber-600">{formatCurrency(MOCK_CLIENTS.reduce((sum, c) => sum + c.loanAmount, 0) / MOCK_CLIENTS.length)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// ADMIN - CONFIG
+// ============================================================================
+
+const AdminConfig = () => {
+  const [config, setConfig] = useState(CONFIG_DEFAULTS);
+
+  const handleConfigChange = (field, value) => {
+    setConfig(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleRateChange = (month, value) => {
+    setConfig(prev => ({
+      ...prev,
+      tasasBase: {
+        ...prev.tasasBase,
+        [month]: value / 100
+      }
+    }));
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Configuración</h1>
+
+      <div className="bg-white rounded-lg shadow-md p-8">
+        <h2 className="text-2xl font-semibold mb-6">Parámetros de Crédito</h2>
+
+        <div className="space-y-6 mb-8">
+          <div>
+            <label className="block text-sm font-semibold mb-2">LTV Máximo (%)</label>
+            <input
+              type="number"
+              value={(config.maxLTV * 100).toFixed(1)}
+              onChange={(e) => handleConfigChange('maxLTV', parseFloat(e.target.value) / 100)}
+              step="0.1"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2">Monto Máximo (USD)</label>
+            <input
+              type="number"
+              value={config.maxLoan}
+              onChange={(e) => handleConfigChange('maxLoan', parseFloat(e.target.value))}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <h3 className="text-lg font-semibold mb-4">Tasas Base por Plazo (anual %)</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          {[12, 24, 36, 48, 60].map(month => (
+            <div key={month}>
+              <label className="block text-sm font-semibold mb-2">{month} meses</label>
+              <input
+                type="number"
+                value={(config.tasasBase[month] * 100).toFixed(2)}
+                onChange={(e) => handleRateChange(month, parseFloat(e.target.value))}
+                step="0.01"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-4">
+          <button className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium">
+            Restaurar Valores por Defecto
+          </button>
+          <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+            Guardar Cambios
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// LOGIN PAGE
+// ============================================================================
+
+const LoginPage = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const users = {
+      'client@tcmc.local': { password: 'Client123!', role: 'client', name: 'Cliente Demo' },
+      'advisor@tcmc.local': { password: 'Advisor123!', role: 'advisor', name: 'Asesor Demo' },
+      'admin@tcmc.local': { password: 'Admin123!', role: 'admin', name: 'Admin Demo' },
+    };
+
+    const user = users[email];
+    if (user && user.password === password) {
+      onLogin(email, user.role, user.name);
+      setError('');
+    } else {
+      setError('Email o contraseña incorrectos');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-blue-600" style={{ fontFamily: 'Poppins' }}>Tu Casa +Cerca</h1>
+          <p className="text-slate-600 mt-2">Plataforma de Gestión de Créditos</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-semibold mb-2">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="usuario@tcmc.local"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2">Contraseña</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="••••••••"
+            />
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+          >
+            Iniciar Sesión
+          </button>
+        </form>
+
+        <div className="mt-8 pt-8 border-t">
+          <p className="text-xs text-slate-600 text-center mb-4">Cuentas demo para pruebas:</p>
+          <div className="space-y-2 text-xs text-slate-600">
+            <div><strong>Cliente:</strong> client@tcmc.local / Client123!</div>
+            <div><strong>Asesor:</strong> advisor@tcmc.local / Advisor123!</div>
+            <div><strong>Admin:</strong> admin@tcmc.local / Admin123!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// MAIN APP COMPONENT
+// ============================================================================
+
+const App = () => {
+  const [currentPage, setCurrentPage] = useState('login');
+  const [userRole, setUserRole] = useState(null);
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+
+  const handleLogin = (email, role, name) => {
+    setUserEmail(email);
+    setUserRole(role);
+    setUserName(name);
+    setCurrentPage('dashboard');
+  };
+
+  const handleLogout = () => {
+    setCurrentPage('login');
+    setUserRole(null);
+    setUserName('');
+    setUserEmail('');
+    goBackToLanding();
+  };
+
+  const [simData, setSimData] = useState(null);
+
+  const handleRoleChange = (role) => {
+    setUserRole(role);
+    const roleNames = {
+      'client': 'Cliente Demo',
+      'advisor': 'Asesor Demo',
+      'admin': 'Admin Demo'
+    };
+    setUserName(roleNames[role] || 'Usuario');
+  };
+
+  const handleAdvanceFromSim = (data) => {
+    setSimData(data);
+    setCurrentPage('new-request');
+  };
+
+  if (currentPage === 'login') {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  const handleNavigate = (page) => {
+    setCurrentPage(page);
+  };
+
+  const renderContent = () => {
+    if (userRole === 'client') {
+      switch(currentPage) {
+        case 'dashboard': return <ClientSimulator onAdvance={handleAdvanceFromSim} />;
+        case 'new-request': return <ClientNewRequest prefill={simData} />;
+        case 'my-request': return <ClientMyRequest />;
+        case 'payments': return <ClientPayments />;
+        case 'support': return <ClientSupport />;
+        default: return <ClientSimulator onAdvance={handleAdvanceFromSim} />;
+      }
+    } else if (userRole === 'advisor') {
+      switch(currentPage) {
+        case 'dashboard': return <AdvisorDashboard />;
+        case 'clients': return <AdvisorClients />;
+        case 'pipeline': return <AdvisorPipeline />;
+        case 'support': return <ClientSupport />;
+        default: return <AdvisorDashboard />;
+      }
+    } else if (userRole === 'admin') {
+      switch(currentPage) {
+        case 'dashboard': return <AdminDashboard />;
+        case 'legajos': return <AdminLegajos />;
+        case 'reports': return <AdminReports />;
+        case 'config': return <AdminConfig />;
+        default: return <AdminDashboard />;
+      }
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-100">
+      <Sidebar 
+        userRole={userRole}
+        userName={userName}
+        userEmail={userEmail}
+        onLogout={handleLogout}
+        onRoleChange={handleRoleChange}
+      />
+      
+      <main className="flex-1 overflow-auto ml-64">
+        {renderContent()}
+      </main>
+    </div>
+  );
+};
+
+// ============================================================================
+// RENDER
+// ============================================================================
+
+let _appRendered = false;
+function renderApp() {
+    if (!_appRendered) {
+        const root = ReactDOM.createRoot(document.getElementById('app-root'));
+        root.render(<App />);
+        _appRendered = true;
+    }
+}
+
+window.openModal = function() {
+    document.getElementById('landing-page').style.display = 'none';
+    document.getElementById('app-root').style.display = 'block';
+    renderApp();
+};
+
+</script>
+
 </body>
 </html>
