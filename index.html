@@ -541,7 +541,7 @@
             <div class="flujo-grid">
                 <div class="flujo-item"><h4>Simulador</h4><p>Probás tu capacidad según la propiedad.</p></div>
                 <div class="flujo-item"><h4>Link propiedad</h4><p>Compartís el link de inmuebles o CB.</p></div>
-                <div class="flujo-item"><h4>Reserva</h4><p>Cargás la reserva ad referéndum del crédito u oferta de compra.</p></div>
+                <div class="flujo-item"><h4>Boleto</h4><p>Cargás boleto u oferta de compra.</p></div>
                 <div class="flujo-item"><h4>KYC</h4><p>Datos personales e identidad.</p></div>
                 <div class="flujo-item"><h4>Capacidad</h4><p>Documentación de ingresos.</p></div>
                 <div class="flujo-item"><h4>Dashboard</h4><p>Seguís todo en tiempo real.</p></div>
@@ -1277,6 +1277,41 @@ const Video = createIconComponent('<polygon points="23 7 16 12 23 17 23 7"></pol
 const CreditCard = createIconComponent('<rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line>');
 const Building = createIconComponent('<path d="M4 21v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7"></path><path d="M9 3h6v4H9z"></path><path d="M6 8h1v5H6zM17 8h1v5h-1z"></path><line x1="6" y1="13" x2="6" y2="17"></line><line x1="17" y1="13" x2="17" y2="17"></line>');
 const Filter = createIconComponent('<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>');
+const Calendar = createIconComponent('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>');
+const XCircle = createIconComponent('<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>');
+const ChevronUp = createIconComponent('<polyline points="18 15 12 9 6 15"></polyline>');
+const Banknote = createIconComponent('<rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path>');
+
+// Payment schedule generator
+const STAGES_ALL = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura', 'Finalizado', 'Rechazado'];
+const STAGES_FLOW = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'];
+
+function generatePaymentSchedule(loanAmount, months, fechaEscritura, tasaAnual) {
+  const bruto = loanAmount + (loanAmount * 0.05) + (loanAmount * 0.05 * 0.21);
+  const tm = tasaAnual / 12;
+  const cuota = bruto * (tm * Math.pow(1 + tm, months)) / (Math.pow(1 + tm, months) - 1);
+  const payments = [];
+  const startDate = new Date(fechaEscritura);
+  for (let i = 1; i <= months; i++) {
+    const dueDate = new Date(startDate);
+    dueDate.setMonth(dueDate.getMonth() + i);
+    payments.push({
+      number: i,
+      dueDate: dueDate.toISOString().split('T')[0],
+      amount: Math.round(cuota * 100) / 100,
+      status: 'Pendiente',
+      comprobante: null,
+      comprobanteDate: null,
+      pagoInfo: null
+    });
+  }
+  return payments;
+}
+
+function getTasaForMonths(months) {
+  const tasas = { 12: 0.105, 24: 0.115, 36: 0.125, 48: 0.135, 60: 0.145 };
+  return tasas[months] || tasas[36];
+}
 
 // ============================================================================
 // SIMULATOR LOGIC (FROM INDEX.HTML)
@@ -1335,8 +1370,9 @@ const MOCK_CLIENTS = [
     phone: '+54 11 2345-6789',
     dni: '35.123.456',
     status: 'Activo',
-    stage: 'Escritura',
+    stage: 'Finalizado',
     createdAt: '2025-10-15',
+    fechaEscritura: '2025-12-01',
     advisor: 'María Rodríguez',
     propertyLink: 'https://example.com/property/001',
     propertyValue: 150000,
@@ -1351,6 +1387,12 @@ const MOCK_CLIENTS = [
       { name: 'Reserva de crédito', status: 'Aprobado', date: '2025-10-18' },
     ],
     observations: [],
+    payments: (() => {
+      const ps = generatePaymentSchedule(45000, 36, '2025-12-01', 0.125);
+      ps[0].status = 'Pagado'; ps[0].pagoInfo = { fecha: '2026-01-03', monto: ps[0].amount, banco: 'Banco Nación', comprobante: 'comp_001.pdf' };
+      ps[1].status = 'Informado'; ps[1].comprobante = 'transferencia_feb.pdf'; ps[1].comprobanteDate = '2026-02-04';
+      return ps;
+    })(),
   },
   {
     id: 'cli002',
@@ -1444,6 +1486,7 @@ const Sidebar = ({ userRole, userName, userEmail, currentPage, onNavigate, onLog
     admin: [
       { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
       { id: 'legajos', label: 'Gestión de Legajos', icon: FileText },
+      { id: 'cobranzas', label: 'Cobranzas', icon: Banknote },
       { id: 'reports', label: 'Reportes', icon: BarChart3 },
       { id: 'config', label: 'Configuración', icon: Settings },
     ],
@@ -1699,18 +1742,23 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
     comprobanteDomicilio: null,
     // Step 2 - pre-filled from simulator if available
     propertyLink: '',
+    propertyCode: '',
     propertyValue: prefill ? String(prefill.propertyValue) : '',
+    offeredValue: '',
     loanAmount: prefill ? String(prefill.loanAmount) : '',
     months: prefill ? prefill.months : 36,
     advisor: '',
     reservaCredito: null,
     // Step 3
+    ingresosAnuales: '',
     ingresos: null,
+    rentaPresunta: null,
     hasCodeudor: false,
     codeudorNombre: '',
     codeudorApellido: '',
     codeudorDni: '',
     codeudorVinculo: '',
+    codeudorIngresosAnuales: '',
     codeudorDocs: null,
     // Step 4
     termsAccepted: false,
@@ -1745,18 +1793,23 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
           domicilio: '',
           comprobanteDomicilio: null,
           propertyLink: '',
+          propertyCode: '',
           propertyValue: '',
+          offeredValue: '',
           loanAmount: '',
           months: 36,
           advisor: '',
           reservaCredito: null,
+          ingresosAnuales: '',
           ingresos: null,
           hasCodeudor: false,
           codeudorNombre: '',
           codeudorApellido: '',
           codeudorDni: '',
           codeudorVinculo: '',
+          codeudorIngresosAnuales: '',
           codeudorDocs: null,
+          rentaPresunta: null,
           termsAccepted: false,
         });
         setSubmitted(false);
@@ -1900,32 +1953,78 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
             <h2 className="text-2xl font-bold mb-6">Datos del Crédito</h2>
 
             <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold mb-2">Link de Coldwell Banker de la propiedad</label>
-                <div className="flex items-center">
-                  <input
-                    type="url"
-                    placeholder="https://..."
-                    value={formData.propertyLink}
-                    onChange={(e) => handleInputChange('propertyLink', e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  {formData.propertyLink && (
-                    <a href={formData.propertyLink} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 hover:text-blue-800">
-                      <ExternalLink size={20} />
-                    </a>
-                  )}
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 space-y-4">
+                <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">Identificación de la propiedad — completá uno y el otro se vincula automáticamente</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Link de Coldwell Banker</label>
+                    <div className="flex items-center">
+                      <input
+                        type="url"
+                        placeholder="https://coldwellbanker.com.ar/propiedad/..."
+                        value={formData.propertyLink}
+                        onChange={(e) => {
+                          handleInputChange('propertyLink', e.target.value);
+                          const match = e.target.value.match(/--(\d+)\/?$/);
+                          if (match) handleInputChange('propertyCode', 'IAP' + match[1]);
+                        }}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                      {formData.propertyLink && (
+                        <a href={formData.propertyLink} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 hover:text-blue-800">
+                          <ExternalLink size={18} />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Código de propiedad CB</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: IAP2257755"
+                      value={formData.propertyCode}
+                      onChange={(e) => {
+                        handleInputChange('propertyCode', e.target.value);
+                        const code = e.target.value.replace(/^IAP/i, '');
+                        if (code && /^\d{5,}$/.test(code) && !formData.propertyLink) {
+                          handleInputChange('propertyLink', 'https://coldwellbanker.com.ar/propiedad/propiedad--' + code);
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
                 </div>
+                {formData.propertyCode && (
+                  <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded">
+                    <CheckCircle size={16} />
+                    <span>Propiedad vinculada: <strong>{formData.propertyCode}</strong></span>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold mb-2">Valor publicado de la propiedad (USD)</label>
-                <input
-                  type="number"
-                  value={formData.propertyValue}
-                  onChange={(e) => handleInputChange('propertyValue', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Precio de venta CB (USD)</label>
+                  <input
+                    type="number"
+                    value={formData.propertyValue}
+                    onChange={(e) => handleInputChange('propertyValue', e.target.value)}
+                    placeholder="Se precarga de CB — corregí si es necesario"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">Dato de CB — podés corregirlo si no coincide</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Valor ofertado / precio de compra (USD) *</label>
+                  <input
+                    type="number"
+                    value={formData.offeredValue}
+                    onChange={(e) => handleInputChange('offeredValue', e.target.value)}
+                    placeholder="Ingresá el valor de compra acordado"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">Base para el cálculo del crédito (LTV)</p>
+                </div>
               </div>
 
               <div>
@@ -1936,10 +2035,10 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
                   onChange={(e) => handleInputChange('loanAmount', e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                {formData.propertyValue && formData.loanAmount && (
+                {formData.offeredValue && formData.loanAmount && (
                   <div className="text-sm mt-2">
-                    <span className="font-semibold">LTV: {((formData.loanAmount / formData.propertyValue) * 100).toFixed(1)}%</span>
-                    {((formData.loanAmount / formData.propertyValue) * 100) > 35 && (
+                    <span className="font-semibold">LTV: {((formData.loanAmount / formData.offeredValue) * 100).toFixed(1)}%</span>
+                    {((formData.loanAmount / formData.offeredValue) * 100) > 35 && (
                       <div className="text-red-600 mt-1 flex items-center gap-2">
                         <AlertCircle size={16} />
                         LTV máximo permitido: 35%
@@ -2023,7 +2122,18 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
 
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold mb-2">Declaración de Ingresos</label>
+                <label className="block text-sm font-semibold mb-2">Ingresos anuales declarados (USD)</label>
+                <input
+                  type="number"
+                  placeholder="Ej: 36000"
+                  value={formData.ingresosAnuales}
+                  onChange={(e) => handleInputChange('ingresosAnuales', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Documentación de ingresos</label>
                 <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:bg-blue-50">
                   <Upload size={32} className="mx-auto text-blue-600 mb-2" />
                   <input
@@ -2036,7 +2146,28 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
                     {formData.ingresos ? (
                       <div><p className="font-semibold">{formData.ingresos.name}</p></div>
                     ) : (
-                      <p className="text-slate-600">Click para subir archivo (Ej: liquidación de sueldo, balance)</p>
+                      <p className="text-slate-600">Liquidación de sueldo, balance, certificación contable, DDJJ de Ganancias</p>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Renta presunta (opcional)</label>
+                <p className="text-xs text-slate-500 mb-2">Documentación complementaria que acredite capacidad de pago</p>
+                <div className="border-2 border-dashed border-green-300 rounded-lg p-6 text-center cursor-pointer hover:bg-green-50">
+                  <Upload size={32} className="mx-auto text-green-600 mb-2" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="renta-presunta"
+                    onChange={(e) => handleFileChange('rentaPresunta', e.target.files?.[0])}
+                  />
+                  <label htmlFor="renta-presunta" className="cursor-pointer">
+                    {formData.rentaPresunta ? (
+                      <div><p className="font-semibold">{formData.rentaPresunta.name}</p></div>
+                    ) : (
+                      <p className="text-slate-600">Cuota colegio privado, obra social prepaga, contrato de alquiler vigente, tarjeta de crédito</p>
                     )}
                   </label>
                 </div>
@@ -2096,6 +2227,17 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
                   </select>
 
                   <div>
+                    <label className="block text-sm font-semibold mb-2">Ingresos anuales del codeudor (USD)</label>
+                    <input
+                      type="number"
+                      placeholder="Ej: 24000"
+                      value={formData.codeudorIngresosAnuales}
+                      onChange={(e) => handleInputChange('codeudorIngresosAnuales', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-sm font-semibold mb-2">Documentación del Codeudor</label>
                     <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:bg-blue-50">
                       <Upload size={32} className="mx-auto text-blue-600 mb-2" />
@@ -2145,16 +2287,21 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
             <div className="bg-gray-50 rounded-lg p-6 mb-6 space-y-3">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-slate-600">Propiedad (Link):</span>
+                  <span className="text-slate-600">Propiedad:</span>
+                  <div className="font-semibold text-xs">{formData.propertyCode || 'Sin código'}</div>
                   {formData.propertyLink && (
-                    <a href={formData.propertyLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline block">
-                      Ver enlace
+                    <a href={formData.propertyLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs">
+                      Ver en CB
                     </a>
                   )}
                 </div>
                 <div>
-                  <span className="text-slate-600">Valor publicado:</span>
-                  <div className="font-semibold">{formatCurrency(parseFloat(formData.propertyValue) || 0)}</div>
+                  <span className="text-slate-600">Valor publicado CB:</span>
+                  <div className="font-semibold text-slate-500">{formData.propertyValue ? formatCurrency(parseFloat(formData.propertyValue)) : '—'}</div>
+                </div>
+                <div>
+                  <span className="text-slate-600">Valor ofertado (compra):</span>
+                  <div className="font-semibold">{formatCurrency(parseFloat(formData.offeredValue) || 0)}</div>
                 </div>
                 <div>
                   <span className="text-slate-600">Monto solicitado:</span>
@@ -2241,8 +2388,9 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
 const ClientMyRequest = ({ loan }) => {
   const currentClient = loan || MOCK_CLIENTS[0]; // Juan García López - Activo
 
-  const stages = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'];
-  const stageIndex = stages.indexOf(currentClient.stage);
+  const isRejected = currentClient.stage === 'Rechazado';
+  const isFinalized = currentClient.stage === 'Finalizado';
+  const stageIndex = isRejected || isFinalized ? STAGES_FLOW.length - 1 : STAGES_FLOW.indexOf(currentClient.stage);
 
   const getDocumentStatusColor = (status) => {
     switch(status) {
@@ -2266,31 +2414,61 @@ const ClientMyRequest = ({ loan }) => {
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8">Mi Solicitud</h1>
 
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-6">Progreso de la Solicitud</h2>
-
-        <div className="relative">
-          <div className="flex items-center justify-between mb-8">
-            {stages.map((stage, idx) => (
-              <div key={idx} className="flex flex-col items-center">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white ${
-                  idx <= stageIndex ? 'bg-green-600' : 'bg-gray-300'
-                }`}>
-                  {idx < stageIndex ? <CheckCircle size={24} /> : idx + 1}
-                </div>
-                <div className="text-xs text-center mt-2 max-w-24 font-semibold text-slate-600">{stage}</div>
-              </div>
-            ))}
+      {isRejected && (
+        <div className="bg-red-50 border border-red-300 rounded-lg p-6 mb-8">
+          <div className="flex items-center gap-3 mb-3">
+            <XCircle size={28} className="text-red-600" />
+            <h2 className="text-xl font-bold text-red-700">Solicitud Rechazada</h2>
           </div>
+          {currentClient.rejectionMessage && (
+            <p className="text-red-700 text-sm">{currentClient.rejectionMessage}</p>
+          )}
+          {currentClient.rejectionDate && (
+            <p className="text-red-400 text-xs mt-2">Fecha: {currentClient.rejectionDate}</p>
+          )}
+        </div>
+      )}
 
-          <div className="absolute top-6 left-0 right-0 h-1 bg-gray-300 -z-10">
-            <div 
-              className="h-full bg-green-600"
-              style={{ width: `${(stageIndex / (stages.length - 1)) * 100}%` }}
-            ></div>
+      {isFinalized && (
+        <div className="bg-green-50 border border-green-300 rounded-lg p-6 mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <CheckCircle size={28} className="text-green-600" />
+            <h2 className="text-xl font-bold text-green-700">Crédito Finalizado</h2>
+          </div>
+          <p className="text-green-700 text-sm">Tu crédito ha sido formalizado. Consultá la sección "Mis Pagos" para ver el cronograma de cuotas.</p>
+          {currentClient.fechaEscritura && (
+            <p className="text-green-600 text-xs mt-1">Fecha de escritura: {currentClient.fechaEscritura}</p>
+          )}
+        </div>
+      )}
+
+      {!isRejected && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-6">Progreso de la Solicitud</h2>
+
+          <div className="relative">
+            <div className="flex items-center justify-between mb-8">
+              {STAGES_FLOW.map((stage, idx) => (
+                <div key={idx} className="flex flex-col items-center">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white ${
+                    isFinalized ? 'bg-green-600' : idx <= stageIndex ? 'bg-green-600' : 'bg-gray-300'
+                  }`}>
+                    {isFinalized || idx < stageIndex ? <CheckCircle size={24} /> : idx + 1}
+                  </div>
+                  <div className="text-xs text-center mt-2 max-w-24 font-semibold text-slate-600">{stage}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="absolute top-6 left-0 right-0 h-1 bg-gray-300 -z-10">
+              <div
+                className={`h-full ${isFinalized ? 'bg-green-600' : 'bg-green-600'}`}
+                style={{ width: isFinalized ? '100%' : `${(stageIndex / (STAGES_FLOW.length - 1)) * 100}%` }}
+              ></div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">Documentación</h2>
@@ -2334,8 +2512,9 @@ const ClientMyRequest = ({ loan }) => {
 // CLIENT DASHBOARD - PAYMENTS
 // ============================================================================
 
-const ClientPayments = ({ loan }) => {
+const ClientPayments = ({ loan, onUpdateLoan }) => {
   const selectedLoan = loan || MOCK_CLIENTS[0];
+  const [uploadingCuota, setUploadingCuota] = useState(null);
 
   if (!selectedLoan.payments || selectedLoan.payments.length === 0) {
     return (
@@ -2343,42 +2522,132 @@ const ClientPayments = ({ loan }) => {
         <h1 className="text-3xl font-bold mb-8">Mis Pagos</h1>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
           <CreditCard size={48} className="mx-auto text-blue-600 mb-4" />
-          <p className="text-slate-600">No hay créditos activos con pagos en este momento.</p>
+          <p className="text-slate-600">Tu crédito aún no está en etapa de pagos. Cuando pase a Finalizado, aquí verás el cronograma completo de cuotas.</p>
         </div>
       </div>
     );
   }
 
+  const totalAmount = selectedLoan.payments.reduce((s, p) => s + p.amount, 0);
+  const paidCount = selectedLoan.payments.filter(p => p.status === 'Pagado').length;
+  const informedCount = selectedLoan.payments.filter(p => p.status === 'Informado').length;
+  const pendingCount = selectedLoan.payments.length - paidCount - informedCount;
+
+  const handleUploadComprobante = (cuotaNumber) => {
+    if (onUpdateLoan && selectedLoan) {
+      const updatedPayments = selectedLoan.payments.map(p => {
+        if (p.number === cuotaNumber) {
+          return { ...p, status: 'Informado', comprobante: 'comprobante_cuota_' + cuotaNumber + '.pdf', comprobanteDate: new Date().toISOString().split('T')[0] };
+        }
+        return p;
+      });
+      onUpdateLoan(selectedLoan.id, { payments: updatedPayments });
+    }
+    setUploadingCuota(null);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8">Mis Pagos</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4 text-center">
+          <div className="text-xs text-slate-500 uppercase tracking-wide">Total cuotas</div>
+          <div className="text-2xl font-bold text-slate-800">{selectedLoan.payments.length}</div>
+        </div>
+        <div className="bg-green-50 rounded-lg shadow-md p-4 text-center">
+          <div className="text-xs text-green-600 uppercase tracking-wide">Pagadas</div>
+          <div className="text-2xl font-bold text-green-700">{paidCount}</div>
+        </div>
+        <div className="bg-blue-50 rounded-lg shadow-md p-4 text-center">
+          <div className="text-xs text-blue-600 uppercase tracking-wide">Informadas</div>
+          <div className="text-2xl font-bold text-blue-700">{informedCount}</div>
+        </div>
+        <div className="bg-slate-50 rounded-lg shadow-md p-4 text-center">
+          <div className="text-xs text-slate-500 uppercase tracking-wide">Pendientes</div>
+          <div className="text-2xl font-bold text-slate-700">{pendingCount}</div>
+        </div>
+      </div>
+
+      {selectedLoan.fechaEscritura && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-sm flex items-center gap-2">
+          <Calendar size={16} className="text-green-600" />
+          <span>Fecha de escritura: <strong>{selectedLoan.fechaEscritura}</strong></span>
+          <span className="text-slate-400 mx-2">|</span>
+          <span>Monto total del crédito: <strong>{formatCurrency(totalAmount)}</strong></span>
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <table className="w-full">
           <thead className="bg-slate-100">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Cuota</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Fecha de Vencimiento</th>
-              <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">Monto</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Estado</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Cuota</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">Vencimiento</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">Monto</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-slate-700">Estado</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-slate-700">Comprobante</th>
             </tr>
           </thead>
           <tbody>
             {selectedLoan.payments.map((payment, idx) => (
-              <tr key={idx} className="border-t hover:bg-slate-50">
-                <td className="px-6 py-4 text-sm">{payment.number}</td>
-                <td className="px-6 py-4 text-sm">{payment.dueDate}</td>
-                <td className="px-6 py-4 text-sm text-right font-semibold">{formatCurrency(payment.amount)}</td>
-                <td className="px-6 py-4 text-sm">
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                    payment.status === 'Pagado' ? 'bg-green-100 text-green-800' :
-                    payment.status === 'Próximo' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {payment.status}
-                  </span>
-                </td>
-              </tr>
+              <React.Fragment key={idx}>
+                <tr className={`border-t hover:bg-slate-50 ${payment.status === 'Pagado' ? 'bg-green-50/50' : ''}`}>
+                  <td className="px-4 py-3 text-sm font-medium">{payment.number}/{selectedLoan.payments.length}</td>
+                  <td className="px-4 py-3 text-sm">{payment.dueDate}</td>
+                  <td className="px-4 py-3 text-sm text-right font-semibold">{formatCurrency(payment.amount)}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                      payment.status === 'Pagado' ? 'bg-green-100 text-green-800' :
+                      payment.status === 'Informado' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {payment.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {payment.status === 'Pagado' ? (
+                      <span className="text-xs text-green-600 flex items-center justify-center gap-1"><CheckCircle size={14} /> Confirmado</span>
+                    ) : payment.status === 'Informado' ? (
+                      <span className="text-xs text-blue-600 flex items-center justify-center gap-1"><Clock size={14} /> En revisión</span>
+                    ) : (
+                      <button
+                        onClick={() => setUploadingCuota(uploadingCuota === payment.number ? null : payment.number)}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center gap-1 mx-auto"
+                      >
+                        <Upload size={14} /> Subir comprobante
+                      </button>
+                    )}
+                  </td>
+                </tr>
+                {uploadingCuota === payment.number && (
+                  <tr className="bg-blue-50 border-t border-blue-200">
+                    <td colSpan="5" className="px-4 py-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <label className="block text-xs font-semibold text-blue-700 mb-1">Seleccionar comprobante de pago</label>
+                          <div className="text-xs text-slate-500 mb-2">Transferencia bancaria, captura de pago, recibo, etc.</div>
+                          <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="text-xs" onChange={() => {}} />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleUploadComprobante(payment.number)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700"
+                          >
+                            Enviar
+                          </button>
+                          <button
+                            onClick={() => setUploadingCuota(null)}
+                            className="px-4 py-2 border border-gray-300 rounded-lg text-xs font-medium hover:bg-slate-100"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
@@ -2473,10 +2742,16 @@ const AdvisorDashboard = ({ loans }) => {
 
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4">Por Etapa</h2>
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(stage => (
-            <div key={stage} className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{stageCount[stage] || 0}</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          {STAGES_ALL.map(stage => (
+            <div key={stage} className={`rounded-lg p-4 text-center ${
+              stage === 'Finalizado' ? 'bg-gradient-to-br from-green-50 to-green-100' :
+              stage === 'Rechazado' ? 'bg-gradient-to-br from-red-50 to-red-100' :
+              'bg-gradient-to-br from-blue-50 to-blue-100'
+            }`}>
+              <div className={`text-2xl font-bold ${
+                stage === 'Finalizado' ? 'text-green-600' : stage === 'Rechazado' ? 'text-red-600' : 'text-blue-600'
+              }`}>{stageCount[stage] || 0}</div>
               <div className="text-xs text-slate-600 mt-2">{stage}</div>
             </div>
           ))}
@@ -2531,7 +2806,7 @@ const AdvisorClients = ({ loans, onUpdateLoan }) => {
             {filtered.map(client => (
               <tr key={client.id} className="border-t hover:bg-slate-50 cursor-pointer">
                 <td className="px-6 py-4 text-sm font-semibold">{client.nombre} {client.apellido}</td>
-                <td className="px-6 py-4 text-sm text-slate-600">${client.propertyValue.toLocaleString()}</td>
+                <td className="px-6 py-4 text-sm text-slate-600">${(client.offeredValue || client.propertyValue || 0).toLocaleString()}</td>
                 <td className="px-6 py-4 text-sm text-right font-semibold">{formatCurrency(client.loanAmount)}</td>
                 <td className="px-6 py-4 text-sm">
                   <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
@@ -2554,26 +2829,39 @@ const AdvisorClients = ({ loans, onUpdateLoan }) => {
 
 const AdvisorPipeline = ({ loans }) => {
   const data = loans || MOCK_CLIENTS;
-  const stages = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'];
   const stageClients = {};
 
-  stages.forEach(stage => {
+  STAGES_ALL.forEach(stage => {
     stageClients[stage] = data.filter(c => c.stage === stage);
   });
 
+  const stageColor = (stage) => {
+    if (stage === 'Finalizado') return 'border-green-500 bg-green-50';
+    if (stage === 'Rechazado') return 'border-red-500 bg-red-50';
+    return '';
+  };
+  const cardColor = (stage) => {
+    if (stage === 'Finalizado') return 'bg-green-100 hover:bg-green-200';
+    if (stage === 'Rechazado') return 'bg-red-100 hover:bg-red-200';
+    return 'bg-blue-50 hover:bg-blue-100';
+  };
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8">Pipeline</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-        {stages.map(stage => (
-          <div key={stage} className="bg-white rounded-lg shadow-md p-4">
-            <div className="font-semibold text-sm mb-4 pb-2 border-b">{stage}</div>
-            <div className="space-y-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+        {STAGES_ALL.map(stage => (
+          <div key={stage} className={`bg-white rounded-lg shadow-md p-3 border-t-4 ${stage === 'Finalizado' ? 'border-green-500' : stage === 'Rechazado' ? 'border-red-500' : 'border-blue-400'}`}>
+            <div className="font-semibold text-xs mb-3 pb-2 border-b flex items-center justify-between">
+              <span>{stage}</span>
+              <span className="bg-slate-200 text-slate-600 rounded-full px-2 py-0.5 text-xs">{stageClients[stage].length}</span>
+            </div>
+            <div className="space-y-2">
               {stageClients[stage].map(client => (
-                <div key={client.id} className="bg-blue-50 rounded p-3 text-sm cursor-pointer hover:bg-blue-100 transition">
+                <div key={client.id} className={`rounded p-2 text-xs cursor-pointer transition ${cardColor(stage)}`}>
                   <div className="font-semibold">{client.nombre} {client.apellido}</div>
-                  <div className="text-xs text-slate-600 mt-1">{formatCurrency(client.loanAmount)}</div>
+                  <div className="text-slate-600 mt-0.5">{formatCurrency(client.loanAmount)}</div>
                 </div>
               ))}
             </div>
@@ -2647,10 +2935,16 @@ const AdminDashboard = ({ loans }) => {
 
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4">Distribución por Etapa</h2>
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(stage => (
-            <div key={stage} className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{stageCount[stage] || 0}</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          {STAGES_ALL.map(stage => (
+            <div key={stage} className={`rounded-lg p-4 text-center ${
+              stage === 'Finalizado' ? 'bg-gradient-to-br from-green-50 to-green-100' :
+              stage === 'Rechazado' ? 'bg-gradient-to-br from-red-50 to-red-100' :
+              'bg-gradient-to-br from-blue-50 to-blue-100'
+            }`}>
+              <div className={`text-2xl font-bold ${
+                stage === 'Finalizado' ? 'text-green-600' : stage === 'Rechazado' ? 'text-red-600' : 'text-blue-600'
+              }`}>{stageCount[stage] || 0}</div>
               <div className="text-xs text-slate-600 mt-2">{stage}</div>
             </div>
           ))}
@@ -2674,6 +2968,8 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
   const [selectedClient, setSelectedClient] = useState(null);
   const [newStage, setNewStage] = useState('');
   const [newObservation, setNewObservation] = useState('');
+  const [rejectionMessage, setRejectionMessage] = useState('');
+  const [fechaEscritura, setFechaEscritura] = useState('');
 
   const filtered = data.filter(c => {
     const name = (c.nombre || c.name || '').toLowerCase();
@@ -2717,7 +3013,7 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
           className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Todos los stages</option>
-          {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(s => (
+          {STAGES_ALL.map(s => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
@@ -2796,15 +3092,54 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
                   <div className="font-semibold">{formatCurrency(selectedClient.loanAmount)}</div>
                 </div>
                 <div>
-                  <span className="text-slate-600">Valor propiedad:</span>
-                  <div className="font-semibold">{formatCurrency(selectedClient.propertyValue)}</div>
+                  <span className="text-slate-600">Valor publicado CB:</span>
+                  <div className="font-semibold text-slate-400">{selectedClient.propertyValue ? formatCurrency(selectedClient.propertyValue) : '—'}</div>
+                </div>
+                <div>
+                  <span className="text-slate-600">Valor ofertado (compra):</span>
+                  <div className="font-semibold">{formatCurrency(selectedClient.offeredValue)}</div>
                 </div>
               </div>
 
-              {selectedClient.propertyLink && (
-                <div className="text-sm">
-                  <span className="text-slate-600">Link propiedad: </span>
-                  <a href={selectedClient.propertyLink} target="_blank" rel="noopener" className="text-blue-600 hover:underline">{selectedClient.propertyLink}</a>
+              {(selectedClient.propertyLink || selectedClient.propertyCode) && (
+                <div className="text-sm space-y-1">
+                  {selectedClient.propertyCode && (
+                    <div>
+                      <span className="text-slate-600">Código propiedad CB: </span>
+                      <span className="font-semibold">{selectedClient.propertyCode}</span>
+                    </div>
+                  )}
+                  {selectedClient.propertyLink && (
+                    <div>
+                      <span className="text-slate-600">Link propiedad: </span>
+                      <a href={selectedClient.propertyLink} target="_blank" rel="noopener" className="text-blue-600 hover:underline">{selectedClient.propertyLink}</a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(selectedClient.ingresosAnuales > 0 || (selectedClient.hasCodeudor && selectedClient.codeudorIngresosAnuales > 0)) && (
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold mb-3">Información Financiera</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    {selectedClient.ingresosAnuales > 0 && (
+                      <div>
+                        <span className="text-slate-600">Ingresos anuales declarados:</span>
+                        <div className="font-semibold">{formatCurrency(selectedClient.ingresosAnuales)}</div>
+                      </div>
+                    )}
+                    {selectedClient.hasCodeudor && selectedClient.codeudorIngresosAnuales > 0 && (
+                      <div>
+                        <span className="text-slate-600">Ingresos anuales codeudor:</span>
+                        <div className="font-semibold">{formatCurrency(selectedClient.codeudorIngresosAnuales)}</div>
+                      </div>
+                    )}
+                  </div>
+                  {selectedClient.hasCodeudor && (
+                    <div className="mt-2 text-sm text-slate-600">
+                      Codeudor: {selectedClient.codeudorNombre} {selectedClient.codeudorApellido} — DNI: {selectedClient.codeudorDni} ({selectedClient.codeudorVinculo})
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -2828,13 +3163,43 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
                 <label className="block text-sm font-semibold mb-2">Cambiar Etapa</label>
                 <select
                   value={newStage || selectedClient.stage}
-                  onChange={(e) => setNewStage(e.target.value)}
+                  onChange={(e) => { setNewStage(e.target.value); setRejectionMessage(''); setFechaEscritura(''); }}
                   className="w-full border border-gray-300 rounded px-4 py-2"
                 >
-                  {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(s => (
+                  {STAGES_ALL.map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
+
+                {(newStage === 'Rechazado') && (
+                  <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-4">
+                    <label className="block text-sm font-semibold text-red-700 mb-2">Motivo del rechazo *</label>
+                    <textarea
+                      value={rejectionMessage}
+                      onChange={(e) => setRejectionMessage(e.target.value)}
+                      placeholder="Ej: No cumple requisitos de scoring mínimo, documentación inconsistente, etc."
+                      className="w-full border border-red-300 rounded px-4 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-400"
+                      rows="3"
+                    ></textarea>
+                  </div>
+                )}
+
+                {(newStage === 'Finalizado') && (
+                  <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+                    <label className="block text-sm font-semibold text-green-700 mb-1">Fecha de escritura *</label>
+                    <input
+                      type="date"
+                      value={fechaEscritura}
+                      onChange={(e) => setFechaEscritura(e.target.value)}
+                      className="w-full border border-green-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                    {fechaEscritura && (
+                      <div className="text-xs text-green-700 bg-green-100 rounded p-2">
+                        Se generará automáticamente el cronograma de {selectedClient.months || 36} cuotas mensuales a partir de esta fecha, usando la tasa correspondiente al plazo.
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="border-t pt-4">
@@ -2865,16 +3230,39 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
 
             <div className="border-t p-6 flex justify-end gap-3 bg-slate-50 sticky bottom-0">
               <button
-                onClick={() => { setSelectedClient(null); setNewStage(''); setNewObservation(''); }}
+                onClick={() => { setSelectedClient(null); setNewStage(''); setNewObservation(''); setRejectionMessage(''); setFechaEscritura(''); }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-100 transition font-medium"
               >
                 Cerrar
               </button>
               <button
                 onClick={() => {
+                  if (newStage === 'Rechazado' && !rejectionMessage.trim()) {
+                    alert('Debe ingresar el motivo del rechazo');
+                    return;
+                  }
+                  if (newStage === 'Finalizado' && !fechaEscritura) {
+                    alert('Debe ingresar la fecha de escritura');
+                    return;
+                  }
                   if (onUpdateLoan && selectedClient) {
                     const updates = {};
-                    if (newStage && newStage !== selectedClient.stage) updates.stage = newStage;
+                    if (newStage && newStage !== selectedClient.stage) {
+                      updates.stage = newStage;
+                      if (newStage === 'Rechazado') {
+                        updates.rejectionMessage = rejectionMessage.trim();
+                        updates.rejectionDate = new Date().toLocaleDateString('es-AR');
+                        updates.status = 'Rechazado';
+                      }
+                      if (newStage === 'Finalizado') {
+                        updates.fechaEscritura = fechaEscritura;
+                        updates.status = 'Finalizado';
+                        const tasa = getTasaForMonths(selectedClient.months || 36);
+                        updates.payments = generatePaymentSchedule(
+                          selectedClient.loanAmount, selectedClient.months || 36, fechaEscritura, tasa
+                        );
+                      }
+                    }
                     if (newObservation.trim()) {
                       updates.observations = [...(selectedClient.observations || []), {
                         date: new Date().toLocaleDateString('es-AR'),
@@ -2889,6 +3277,8 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
                   setSelectedClient(null);
                   setNewStage('');
                   setNewObservation('');
+                  setRejectionMessage('');
+                  setFechaEscritura('');
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
               >
@@ -2896,6 +3286,270 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// ADMIN - COBRANZAS (Collections drill-down)
+// ============================================================================
+
+const AdminCobranzas = ({ loans, onUpdateLoan }) => {
+  const [viewLevel, setViewLevel] = useState('months');
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [pagoForm, setPagoForm] = useState({ fecha: '', monto: '', banco: '', comprobante: '' });
+  const [showPagoForm, setShowPagoForm] = useState(null);
+
+  const finalized = (loans || MOCK_CLIENTS).filter(l => l.stage === 'Finalizado' && l.payments && l.payments.length > 0);
+
+  // Flatten all payments with loan reference
+  const allPayments = [];
+  finalized.forEach(loan => {
+    loan.payments.forEach(p => {
+      allPayments.push({ ...p, loanId: loan.id, clientName: (loan.nombre || '') + ' ' + (loan.apellido || ''), loanAmount: loan.loanAmount });
+    });
+  });
+
+  // Group by month
+  const byMonth = {};
+  allPayments.forEach(p => {
+    const month = p.dueDate.substring(0, 7);
+    if (!byMonth[month]) byMonth[month] = [];
+    byMonth[month].push(p);
+  });
+  const sortedMonths = Object.keys(byMonth).sort();
+
+  // Group by day within selected month
+  const byDay = {};
+  if (selectedMonth && byMonth[selectedMonth]) {
+    byMonth[selectedMonth].forEach(p => {
+      const day = p.dueDate;
+      if (!byDay[day]) byDay[day] = [];
+      byDay[day].push(p);
+    });
+  }
+  const sortedDays = Object.keys(byDay).sort();
+
+  const paymentsForDay = selectedDay ? (byDay[selectedDay] || []) : [];
+
+  const getMonthLabel = (m) => {
+    const [y, mo] = m.split('-');
+    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    return months[parseInt(mo) - 1] + ' ' + y;
+  };
+
+  const getStatusSummary = (payments) => {
+    const paid = payments.filter(p => p.status === 'Pagado').length;
+    const informed = payments.filter(p => p.status === 'Informado').length;
+    const pending = payments.length - paid - informed;
+    const totalAmt = payments.reduce((s, p) => s + p.amount, 0);
+    const paidAmt = payments.filter(p => p.status === 'Pagado').reduce((s, p) => s + (p.pagoInfo ? p.pagoInfo.monto : p.amount), 0);
+    return { paid, informed, pending, total: payments.length, totalAmt, paidAmt };
+  };
+
+  const handleMarkPaid = (loanId, cuotaNumber) => {
+    if (!pagoForm.fecha || !pagoForm.monto || !pagoForm.banco) {
+      alert('Completar fecha, monto y banco');
+      return;
+    }
+    const loan = finalized.find(l => l.id === loanId);
+    if (!loan || !onUpdateLoan) return;
+    const updatedPayments = loan.payments.map(p => {
+      if (p.number === cuotaNumber) {
+        return { ...p, status: 'Pagado', pagoInfo: { fecha: pagoForm.fecha, monto: parseFloat(pagoForm.monto), banco: pagoForm.banco, comprobante: pagoForm.comprobante || null } };
+      }
+      return p;
+    });
+    onUpdateLoan(loanId, { payments: updatedPayments });
+    setShowPagoForm(null);
+    setPagoForm({ fecha: '', monto: '', banco: '', comprobante: '' });
+  };
+
+  const breadcrumb = (
+    <div className="flex items-center gap-2 text-sm mb-6">
+      <button onClick={() => { setViewLevel('months'); setSelectedMonth(null); setSelectedDay(null); }} className={`font-medium ${viewLevel === 'months' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-600'}`}>
+        Cobranzas
+      </button>
+      {selectedMonth && (
+        <>
+          <ChevronRight size={14} className="text-slate-400" />
+          <button onClick={() => { setViewLevel('days'); setSelectedDay(null); }} className={`font-medium ${viewLevel === 'days' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-600'}`}>
+            {getMonthLabel(selectedMonth)}
+          </button>
+        </>
+      )}
+      {selectedDay && (
+        <>
+          <ChevronRight size={14} className="text-slate-400" />
+          <span className="font-medium text-blue-600">{selectedDay}</span>
+        </>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-2">Cobranzas</h1>
+      <p className="text-slate-500 text-sm mb-6">Seguimiento de cuotas de créditos finalizados — {finalized.length} créditos activos, {allPayments.length} cuotas totales</p>
+
+      {breadcrumb}
+
+      {viewLevel === 'months' && (
+        <div className="space-y-3">
+          {sortedMonths.length === 0 ? (
+            <div className="bg-slate-50 rounded-lg p-8 text-center text-slate-500">No hay cuotas generadas aún. Pase un crédito a estado Finalizado para generar el cronograma.</div>
+          ) : sortedMonths.map(month => {
+            const summary = getStatusSummary(byMonth[month]);
+            return (
+              <div key={month}
+                onClick={() => { setSelectedMonth(month); setViewLevel('days'); }}
+                className="bg-white rounded-lg shadow-md p-5 cursor-pointer hover:shadow-lg transition border-l-4 border-blue-500"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-lg font-bold">{getMonthLabel(month)}</div>
+                    <div className="text-xs text-slate-500 mt-1">{summary.total} cuotas — {formatCurrency(summary.totalAmt)}</div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-green-600">{summary.paid}</div>
+                      <div className="text-xs text-slate-500">Pagadas</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-blue-600">{summary.informed}</div>
+                      <div className="text-xs text-slate-500">Informadas</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-slate-600">{summary.pending}</div>
+                      <div className="text-xs text-slate-500">Pendientes</div>
+                    </div>
+                    <ChevronRight size={20} className="text-slate-400" />
+                  </div>
+                </div>
+                <div className="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full flex">
+                    <div className="bg-green-500 h-full" style={{ width: `${(summary.paid / summary.total) * 100}%` }}></div>
+                    <div className="bg-blue-400 h-full" style={{ width: `${(summary.informed / summary.total) * 100}%` }}></div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {viewLevel === 'days' && (
+        <div className="space-y-3">
+          {sortedDays.map(day => {
+            const summary = getStatusSummary(byDay[day]);
+            return (
+              <div key={day}
+                onClick={() => { setSelectedDay(day); setViewLevel('detail'); }}
+                className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg transition"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold">{day}</div>
+                    <div className="text-xs text-slate-500">{summary.total} cuotas — {formatCurrency(summary.totalAmt)}</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {summary.paid > 0 && <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-1 rounded">{summary.paid} pagadas</span>}
+                    {summary.informed > 0 && <span className="text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-1 rounded">{summary.informed} informadas</span>}
+                    {summary.pending > 0 && <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded">{summary.pending} pendientes</span>}
+                    <ChevronRight size={18} className="text-slate-400" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {viewLevel === 'detail' && (
+        <div className="space-y-3">
+          {paymentsForDay.map((p, idx) => (
+            <div key={idx} className="bg-white rounded-lg shadow-md p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <div className="font-semibold">{p.clientName}</div>
+                  <div className="text-xs text-slate-500">Cuota {p.number} — Crédito {formatCurrency(p.loanAmount)}</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-bold">{formatCurrency(p.amount)}</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    p.status === 'Pagado' ? 'bg-green-100 text-green-800' :
+                    p.status === 'Informado' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>{p.status}</span>
+                </div>
+              </div>
+
+              {p.comprobante && p.status === 'Informado' && (
+                <div className="bg-blue-50 rounded p-3 text-sm mb-3 flex items-center gap-2">
+                  <Paperclip size={14} className="text-blue-600" />
+                  <span>Comprobante del cliente: <strong>{p.comprobante}</strong></span>
+                  <span className="text-xs text-slate-400">({p.comprobanteDate})</span>
+                </div>
+              )}
+
+              {p.status === 'Pagado' && p.pagoInfo && (
+                <div className="bg-green-50 rounded p-3 text-sm flex items-center gap-4">
+                  <CheckCircle size={14} className="text-green-600" />
+                  <span>Pagado el {p.pagoInfo.fecha}</span>
+                  <span>{formatCurrency(p.pagoInfo.monto)}</span>
+                  <span>Banco: {p.pagoInfo.banco}</span>
+                  {p.pagoInfo.comprobante && <span className="text-xs text-slate-500">({p.pagoInfo.comprobante})</span>}
+                </div>
+              )}
+
+              {p.status !== 'Pagado' && (
+                <>
+                  {showPagoForm === (p.loanId + '-' + p.number) ? (
+                    <div className="border border-green-200 rounded-lg p-4 mt-2 bg-green-50 space-y-3">
+                      <div className="text-sm font-semibold text-green-700">Registrar pago</div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Fecha de pago *</label>
+                          <input type="date" value={pagoForm.fecha} onChange={(e) => setPagoForm({...pagoForm, fecha: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Monto USD *</label>
+                          <input type="number" step="0.01" value={pagoForm.monto} onChange={(e) => setPagoForm({...pagoForm, monto: e.target.value})} placeholder={String(p.amount)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Banco *</label>
+                          <input type="text" value={pagoForm.banco} onChange={(e) => setPagoForm({...pagoForm, banco: e.target.value})} placeholder="Ej: Banco Nación" className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">Comprobante (opcional)</label>
+                        <input type="file" className="text-xs" onChange={(e) => setPagoForm({...pagoForm, comprobante: e.target.files?.[0]?.name || ''})} />
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => handleMarkPaid(p.loanId, p.number)} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
+                          Guardar pago
+                        </button>
+                        <button onClick={() => { setShowPagoForm(null); setPagoForm({ fecha: '', monto: '', banco: '', comprobante: '' }); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-slate-100">
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => { setShowPagoForm(p.loanId + '-' + p.number); setPagoForm({ fecha: new Date().toISOString().split('T')[0], monto: String(p.amount), banco: '', comprobante: '' }); }}
+                      className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-2"
+                    >
+                      <Banknote size={16} /> Marcar como Pagado
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -2918,7 +3572,7 @@ const AdminReports = ({ loans }) => {
             Reporte por Etapa
           </h2>
           <div className="space-y-3">
-            {['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'].map(stage => {
+            {STAGES_ALL.map(stage => {
               const count = MOCK_CLIENTS.filter(c => c.stage === stage).length;
               const volume = MOCK_CLIENTS.filter(c => c.stage === stage).reduce((sum, c) => sum + c.loanAmount, 0);
               return (
@@ -3184,10 +3838,18 @@ const App = () => {
       stage: 'Solicitud Inicial',
       status: 'Pendiente',
       propertyLink: formData.propertyLink,
+      propertyCode: formData.propertyCode || '',
       propertyValue: parseFloat(formData.propertyValue) || 0,
-      offeredValue: parseFloat(formData.propertyValue) || 0,
+      offeredValue: parseFloat(formData.offeredValue) || 0,
       loanAmount: parseFloat(formData.loanAmount) || 0,
       months: formData.months || 36,
+      ingresosAnuales: parseFloat(formData.ingresosAnuales) || 0,
+      codeudorIngresosAnuales: formData.hasCodeudor ? (parseFloat(formData.codeudorIngresosAnuales) || 0) : 0,
+      hasCodeudor: formData.hasCodeudor || false,
+      codeudorNombre: formData.codeudorNombre || '',
+      codeudorApellido: formData.codeudorApellido || '',
+      codeudorDni: formData.codeudorDni || '',
+      codeudorVinculo: formData.codeudorVinculo || '',
       startDate: new Date().toLocaleDateString('es-AR'),
       lastUpdate: new Date().toLocaleDateString('es-AR'),
       documents: [
@@ -3196,6 +3858,7 @@ const App = () => {
         { name: 'Comprobante Domicilio', status: 'Pendiente', date: new Date().toISOString().split('T')[0] },
         { name: 'Reserva ad Referéndum', status: 'Pendiente', date: new Date().toISOString().split('T')[0] },
         { name: 'Declaración de Ingresos', status: 'Pendiente', date: new Date().toISOString().split('T')[0] },
+        { name: 'Renta Presunta', status: formData.rentaPresunta ? 'Pendiente' : 'No aplica', date: new Date().toISOString().split('T')[0] },
       ],
       observations: [],
       payments: [],
@@ -3223,7 +3886,7 @@ const App = () => {
         case 'dashboard': return <ClientSimulator onAdvance={handleAdvanceFromSim} />;
         case 'new-request': return <ClientNewRequest prefill={simData} onSubmit={handleNewLoanSubmit} />;
         case 'my-request': return <ClientMyRequest loan={myLoan} />;
-        case 'payments': return <ClientPayments loan={myLoan} />;
+        case 'payments': return <ClientPayments loan={myLoan} onUpdateLoan={handleUpdateLoan} />;
         case 'support': return <ClientSupport />;
         default: return <ClientSimulator onAdvance={handleAdvanceFromSim} />;
       }
@@ -3238,6 +3901,7 @@ const App = () => {
       switch(currentPage) {
         case 'dashboard': return <AdminDashboard loans={allLoans} />;
         case 'legajos': return <AdminLegajos loans={allLoans} onUpdateLoan={handleUpdateLoan} />;
+        case 'cobranzas': return <AdminCobranzas loans={allLoans} onUpdateLoan={handleUpdateLoan} />;
         case 'reports': return <AdminReports loans={allLoans} />;
         case 'config': return <AdminConfig />;
         default: return <AdminDashboard loans={allLoans} />;
