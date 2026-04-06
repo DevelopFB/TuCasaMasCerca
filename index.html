@@ -440,6 +440,7 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script>
       tailwind.config = {
         important: '#app-root',
@@ -1352,14 +1353,36 @@ const goBackToLanding = () => {
 };
 
 // ============================================================================
-// MOCK DATA
+// MOCK DATA — JERARQUÍA COMPLETA
 // ============================================================================
 
-const MOCK_ADVISORS = [
-  { id: 'adv001', name: 'María Rodríguez', email: 'maria@asesores.com', phone: '+54 11 2345-6789' },
-  { id: 'adv002', name: 'Carlos Mendoza', email: 'carlos@asesores.com', phone: '+54 11 3456-7890' },
-  { id: 'adv003', name: 'Alejandra Gutiérrez', email: 'alejandra@asesores.com', phone: '+54 11 4567-8901' },
+const MOCK_REDES = [
+  { id: 'red001', nombre: 'Coldwell Bankers', codigo: 'coldwell_bankers', activa: true },
 ];
+
+const MOCK_OFICINAS = [
+  { id: 'ofi001', redId: 'red001', nombre: 'CB Palermo', codigo: 'cb_palermo', direccion: 'Av. Santa Fe 3200', activa: true },
+  { id: 'ofi002', redId: 'red001', nombre: 'CB Belgrano', codigo: 'cb_belgrano', direccion: 'Av. Cabildo 1800', activa: true },
+  { id: 'ofi003', redId: 'red001', nombre: 'CB Recoleta', codigo: 'cb_recoleta', direccion: 'Av. Alvear 1500', activa: true },
+];
+
+const MOCK_PROFILES = [
+  { id: 'usr001', email: 'panchobenegas@gmail.com', nombre: 'Pancho', apellido: 'Benegas', rol: 'super_admin', redId: null, oficinaId: null, estado: 'activo' },
+  { id: 'usr002', email: 'director@coldwell.com', nombre: 'Alejandro', apellido: 'Ruiz', rol: 'red_admin', redId: 'red001', oficinaId: null, estado: 'activo' },
+  { id: 'usr003', email: 'jefe.palermo@coldwell.com', nombre: 'Laura', apellido: 'Méndez', rol: 'oficina_admin', redId: 'red001', oficinaId: 'ofi001', estado: 'activo' },
+  { id: 'usr004', email: 'jefe.belgrano@coldwell.com', nombre: 'Diego', apellido: 'Sánchez', rol: 'oficina_admin', redId: 'red001', oficinaId: 'ofi002', estado: 'activo' },
+  { id: 'usr005', email: 'maria@coldwell.com', nombre: 'María', apellido: 'Rodríguez', rol: 'agente', redId: 'red001', oficinaId: 'ofi001', estado: 'activo' },
+  { id: 'usr006', email: 'carlos@coldwell.com', nombre: 'Carlos', apellido: 'Mendoza', rol: 'agente', redId: 'red001', oficinaId: 'ofi001', estado: 'activo' },
+  { id: 'usr007', email: 'alejandra@coldwell.com', nombre: 'Alejandra', apellido: 'Gutiérrez', rol: 'agente', redId: 'red001', oficinaId: 'ofi002', estado: 'activo' },
+  { id: 'usr008', email: 'pablo@coldwell.com', nombre: 'Pablo', apellido: 'Fernández', rol: 'agente', redId: 'red001', oficinaId: 'ofi003', estado: 'activo' },
+  { id: 'usr009', email: 'nuevo@email.com', nombre: 'Registro', apellido: 'Nuevo', rol: 'cliente', redId: null, oficinaId: null, estado: 'pendiente' },
+  { id: 'usr010', email: 'solicitante@email.com', nombre: 'Solicita', apellido: 'Aprobación', rol: 'agente', redId: 'red001', oficinaId: 'ofi002', estado: 'pendiente' },
+];
+
+// Legacy compatibility
+const MOCK_ADVISORS = MOCK_PROFILES.filter(p => p.rol === 'agente').map(p => ({
+  id: p.id, name: p.nombre + ' ' + p.apellido, email: p.email, phone: '+54 11 0000-0000', oficinaId: p.oficinaId
+}));
 
 const MOCK_CLIENTS = [
   {
@@ -1374,6 +1397,8 @@ const MOCK_CLIENTS = [
     createdAt: '2025-10-15',
     fechaEscritura: '2025-12-01',
     advisor: 'María Rodríguez',
+    agenteId: 'usr005',
+    oficinaId: 'ofi001',
     propertyLink: 'https://example.com/property/001',
     propertyValue: 150000,
     offeredValue: 148000,
@@ -1405,6 +1430,8 @@ const MOCK_CLIENTS = [
     stage: 'Pre Aprobación',
     createdAt: '2025-09-20',
     advisor: 'Carlos Mendoza',
+    agenteId: 'usr006',
+    oficinaId: 'ofi001',
     propertyLink: 'https://example.com/property/002',
     propertyValue: 200000,
     offeredValue: 195000,
@@ -1429,6 +1456,8 @@ const MOCK_CLIENTS = [
     stage: 'Scoring',
     createdAt: '2025-11-05',
     advisor: 'Alejandra Gutiérrez',
+    agenteId: 'usr007',
+    oficinaId: 'ofi002',
     propertyLink: 'https://example.com/property/003',
     propertyValue: 120000,
     offeredValue: 118000,
@@ -1453,6 +1482,8 @@ const MOCK_CLIENTS = [
     stage: 'Solicitud Inicial',
     createdAt: '2025-11-10',
     advisor: 'María Rodríguez',
+    agenteId: 'usr005',
+    oficinaId: 'ofi001',
     propertyLink: 'https://example.com/property/004',
     propertyValue: 180000,
     offeredValue: 175000,
@@ -1467,32 +1498,54 @@ const MOCK_CLIENTS = [
 // SIDEBAR COMPONENT
 // ============================================================================
 
-const Sidebar = ({ userRole, userName, userEmail, currentPage, onNavigate, onLogout, onRoleChange }) => {
-  const [showRoleMenu, setShowRoleMenu] = useState(false);
+const ROLE_LABELS = { super_admin: 'Super Admin', red_admin: 'Admin Red', oficina_admin: 'Jefe Oficina', agente: 'Agente', cliente: 'Cliente' };
+const ROLE_COLORS = {
+  super_admin: 'bg-red-500', red_admin: 'bg-purple-500', oficina_admin: 'bg-amber-500', agente: 'bg-green-500', cliente: 'bg-blue-500',
+};
+
+const Sidebar = ({ userRole, userName, userEmail, currentPage, onNavigate, onLogout, userProfile }) => {
 
   const navItems = {
-    client: [
+    cliente: [
       { id: 'dashboard', label: 'Simulador', icon: DollarSign },
       { id: 'new-request', label: 'Nueva Solicitud', icon: Plus },
       { id: 'my-request', label: 'Mi Solicitud', icon: FileText },
       { id: 'payments', label: 'Mis Pagos', icon: CreditCard },
       { id: 'support', label: 'Soporte', icon: Phone },
     ],
-    advisor: [
+    agente: [
       { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-      { id: 'clients', label: 'Clientes', icon: Users },
+      { id: 'clients', label: 'Mis Clientes', icon: Users },
       { id: 'pipeline', label: 'Pipeline', icon: TrendingUp },
     ],
-    admin: [
+    oficina_admin: [
+      { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+      { id: 'clients', label: 'Clientes Oficina', icon: Users },
+      { id: 'pipeline', label: 'Pipeline', icon: TrendingUp },
+      { id: 'reports', label: 'Reportes', icon: BarChart3 },
+    ],
+    red_admin: [
       { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
       { id: 'legajos', label: 'Gestión de Legajos', icon: FileText },
+      { id: 'pipeline', label: 'Pipeline', icon: TrendingUp },
+      { id: 'cobranzas', label: 'Cobranzas', icon: Banknote },
+      { id: 'reports', label: 'Reportes', icon: BarChart3 },
+    ],
+    super_admin: [
+      { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+      { id: 'usuarios', label: 'Usuarios', icon: Users },
+      { id: 'oficinas', label: 'Oficinas', icon: Building },
+      { id: 'legajos', label: 'Gestión de Legajos', icon: FileText },
+      { id: 'pipeline', label: 'Pipeline', icon: TrendingUp },
       { id: 'cobranzas', label: 'Cobranzas', icon: Banknote },
       { id: 'reports', label: 'Reportes', icon: BarChart3 },
       { id: 'config', label: 'Configuración', icon: Settings },
     ],
   };
 
-  const items = navItems[userRole] || [];
+  const items = navItems[userRole] || navItems.cliente;
+  const oficina = userProfile?.oficinaId ? MOCK_OFICINAS.find(o => o.id === userProfile.oficinaId) : null;
+  const red = userProfile?.redId ? MOCK_REDES.find(r => r.id === userProfile.redId) : null;
 
   return (
     <aside className="w-64 bg-slate-900 text-white flex flex-col h-screen fixed left-0 top-0">
@@ -1503,37 +1556,15 @@ const Sidebar = ({ userRole, userName, userEmail, currentPage, onNavigate, onLog
       <div className="p-4 border-b border-slate-700">
         <div className="text-sm font-semibold">{userName}</div>
         <div className="text-xs text-slate-400 mt-1">{userEmail}</div>
-      </div>
-
-      <div className="p-4 border-b border-slate-700">
-        <div className="relative">
-          <button
-            onClick={() => setShowRoleMenu(!showRoleMenu)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded bg-slate-800 hover:bg-slate-700 text-sm transition"
-          >
-            <span>Demo: {userRole === 'client' ? 'Cliente' : userRole === 'advisor' ? 'Asesor' : 'Admin'}</span>
-            <ChevronDown size={16} />
-          </button>
-          {showRoleMenu && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 rounded border border-slate-600 z-50">
-              {['client', 'advisor', 'admin'].map(role => (
-                <button
-                  key={role}
-                  onClick={() => {
-                    onRoleChange(role);
-                    setShowRoleMenu(false);
-                  }}
-                  className="block w-full text-left px-3 py-2 text-sm hover:bg-slate-700 transition first:rounded-t last:rounded-b"
-                >
-                  {role === 'client' ? 'Cliente' : role === 'advisor' ? 'Asesor' : 'Admin'}
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="flex items-center gap-2 mt-2">
+          <span className={`w-2 h-2 rounded-full ${ROLE_COLORS[userRole] || 'bg-gray-500'}`}></span>
+          <span className="text-xs text-slate-300">{ROLE_LABELS[userRole] || userRole}</span>
         </div>
+        {oficina && <div className="text-xs text-slate-500 mt-1">{oficina.nombre}</div>}
+        {red && !oficina && <div className="text-xs text-slate-500 mt-1">{red.nombre}</div>}
       </div>
 
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 overflow-y-auto">
         {items.map(item => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
@@ -1542,9 +1573,7 @@ const Sidebar = ({ userRole, userName, userEmail, currentPage, onNavigate, onLog
               <button
                 onClick={() => onNavigate(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium transition ${
-                  isActive
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  isActive ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                 }`}
               >
                 <Icon size={18} />
@@ -1556,19 +1585,13 @@ const Sidebar = ({ userRole, userName, userEmail, currentPage, onNavigate, onLog
       </nav>
 
       <div className="p-4 border-t border-slate-700 space-y-2">
-        <button
-          onClick={goBackToLanding}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition text-sm"
-        >
-          <Home size={16} />
-          <span>Volver al sitio</span>
+        <button onClick={goBackToLanding}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition text-sm">
+          <Home size={16} /><span>Volver al sitio</span>
         </button>
-        <button
-          onClick={onLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-400 hover:bg-red-900 hover:text-white transition text-sm"
-        >
-          <LogOut size={16} />
-          <span>Cerrar sesión</span>
+        <button onClick={onLogout}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-400 hover:bg-red-900 hover:text-white transition text-sm">
+          <LogOut size={16} /><span>Cerrar sesión</span>
         </button>
       </div>
     </aside>
@@ -2958,6 +2981,366 @@ const AdminDashboard = ({ loans }) => {
 // ADMIN - LEGAJOS MANAGEMENT
 // ============================================================================
 
+// ============================================================================
+// ADMIN - USUARIOS (ABM + Pendientes + Carga masiva)
+// ============================================================================
+
+const AdminUsuarios = ({ profiles, onUpdateProfiles, oficinas }) => {
+  const [tab, setTab] = useState('pendientes');
+  const [editingUser, setEditingUser] = useState(null);
+  const [bulkData, setBulkData] = useState(null);
+  const [bulkErrors, setBulkErrors] = useState([]);
+  const [filterOficina, setFilterOficina] = useState('');
+  const [filterRol, setFilterRol] = useState('');
+
+  const pendientes = profiles.filter(p => p.estado === 'pendiente');
+  const activos = profiles.filter(p => p.estado === 'activo');
+  const filtered = activos.filter(p => {
+    if (filterOficina && p.oficinaId !== filterOficina) return false;
+    if (filterRol && p.rol !== filterRol) return false;
+    return true;
+  });
+
+  const handleApprove = (userId, rol, oficinaId, redId) => {
+    onUpdateProfiles(profiles.map(p => p.id === userId ? { ...p, estado: 'activo', rol, oficinaId, redId: redId || 'red001' } : p));
+  };
+
+  const handleReject = (userId) => {
+    onUpdateProfiles(profiles.map(p => p.id === userId ? { ...p, estado: 'suspendido' } : p));
+  };
+
+  const handleBulkUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const wb = XLSX.read(evt.target.result, { type: 'binary' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws);
+        const errors = [];
+        const valid = data.map((row, i) => {
+          const r = { nombre: row.Nombre || row.nombre || '', apellido: row.Apellido || row.apellido || '', email: row.Email || row.email || '', oficinaCodigo: row.Oficina || row.oficina || '', rol: 'agente' };
+          if (!r.nombre) errors.push(`Fila ${i+2}: Nombre vacío`);
+          if (!r.apellido) errors.push(`Fila ${i+2}: Apellido vacío`);
+          if (!r.email) errors.push(`Fila ${i+2}: Email vacío`);
+          const ofi = oficinas.find(o => o.codigo === r.oficinaCodigo || o.nombre === r.oficinaCodigo);
+          r.oficinaId = ofi ? ofi.id : null;
+          r.oficinaNombre = ofi ? ofi.nombre : r.oficinaCodigo;
+          if (!ofi) errors.push(`Fila ${i+2}: Oficina "${r.oficinaCodigo}" no encontrada`);
+          return r;
+        });
+        setBulkData(valid);
+        setBulkErrors(errors);
+      } catch (err) {
+        setBulkErrors(['Error al leer el archivo: ' + err.message]);
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const handleBulkConfirm = () => {
+    if (!bulkData) return;
+    const newProfiles = bulkData.filter(r => r.oficinaId).map((r, i) => ({
+      id: 'bulk_' + Date.now() + '_' + i,
+      email: r.email, nombre: r.nombre, apellido: r.apellido,
+      rol: 'agente', redId: 'red001', oficinaId: r.oficinaId,
+      estado: 'activo', telefono: '',
+    }));
+    onUpdateProfiles([...profiles, ...newProfiles]);
+    setBulkData(null);
+    setBulkErrors([]);
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-2">Gestión de Usuarios</h1>
+      <p className="text-slate-500 text-sm mb-6">{profiles.length} usuarios totales — {pendientes.length} pendientes de aprobación</p>
+
+      <div className="flex gap-2 mb-6">
+        {[{id:'pendientes',label:`Pendientes (${pendientes.length})`},{id:'activos',label:'Directorio'},{id:'masiva',label:'Carga Masiva'}].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === t.id ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-slate-600 hover:bg-slate-50'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'pendientes' && (
+        <div className="space-y-3">
+          {pendientes.length === 0 ? (
+            <div className="bg-green-50 rounded-lg p-8 text-center text-green-700">No hay usuarios pendientes de aprobación.</div>
+          ) : pendientes.map(user => (
+            <div key={user.id} className="bg-white rounded-lg shadow-md p-5 border-l-4 border-amber-400">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-semibold">{user.nombre} {user.apellido}</div>
+                  <div className="text-sm text-slate-500">{user.email}</div>
+                  <div className="text-xs text-slate-400 mt-1">Solicitó: {ROLE_LABELS[user.rol] || user.rol}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <select defaultValue="" onChange={(e) => {
+                    if (e.target.value) {
+                      const [rol, ofiId] = e.target.value.split('|');
+                      handleApprove(user.id, rol, ofiId || null, 'red001');
+                    }
+                  }} className="border border-gray-300 rounded px-3 py-2 text-sm">
+                    <option value="">Aprobar como...</option>
+                    <option value="agente|ofi001">Agente — CB Palermo</option>
+                    <option value="agente|ofi002">Agente — CB Belgrano</option>
+                    <option value="agente|ofi003">Agente — CB Recoleta</option>
+                    <option value="oficina_admin|ofi001">Jefe Oficina — CB Palermo</option>
+                    <option value="oficina_admin|ofi002">Jefe Oficina — CB Belgrano</option>
+                    <option value="red_admin|">Admin Red</option>
+                  </select>
+                  <button onClick={() => handleReject(user.id)}
+                    className="px-3 py-2 bg-red-100 text-red-700 rounded text-sm font-medium hover:bg-red-200">
+                    Rechazar
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'activos' && (
+        <div>
+          <div className="flex gap-3 mb-4">
+            <select value={filterOficina} onChange={e => setFilterOficina(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-2 text-sm">
+              <option value="">Todas las oficinas</option>
+              {oficinas.map(o => <option key={o.id} value={o.id}>{o.nombre}</option>)}
+            </select>
+            <select value={filterRol} onChange={e => setFilterRol(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-2 text-sm">
+              <option value="">Todos los roles</option>
+              {Object.entries(ROLE_LABELS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </div>
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Nombre</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Email</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Rol</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Oficina</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(p => {
+                  const ofi = oficinas.find(o => o.id === p.oficinaId);
+                  return (
+                    <tr key={p.id} className="border-t border-gray-100 hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium">{p.nombre} {p.apellido}</td>
+                      <td className="px-4 py-3 text-slate-500">{p.email}</td>
+                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                        p.rol === 'super_admin' ? 'bg-red-100 text-red-700' :
+                        p.rol === 'red_admin' ? 'bg-purple-100 text-purple-700' :
+                        p.rol === 'oficina_admin' ? 'bg-amber-100 text-amber-700' :
+                        p.rol === 'agente' ? 'bg-green-100 text-green-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>{ROLE_LABELS[p.rol]}</span></td>
+                      <td className="px-4 py-3 text-slate-500">{ofi ? ofi.nombre : '—'}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${p.estado === 'activo' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{p.estado}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {tab === 'masiva' && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-lg font-semibold mb-4">Carga Masiva de Agentes desde Excel</h2>
+          <p className="text-sm text-slate-500 mb-4">
+            Subí un archivo .xlsx con las columnas: <strong>Nombre</strong>, <strong>Apellido</strong>, <strong>Email</strong>, <strong>Oficina</strong> (código o nombre).
+          </p>
+
+          <div className="mb-4">
+            <button onClick={() => {
+              const ws = XLSX.utils.aoa_to_sheet([
+                ['Nombre', 'Apellido', 'Email', 'Oficina'],
+                ['Juan', 'Pérez', 'juan@email.com', 'cb_palermo'],
+                ['Ana', 'López', 'ana@email.com', 'cb_belgrano'],
+              ]);
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, 'Agentes');
+              XLSX.writeFile(wb, 'template_agentes_tcmc.xlsx');
+            }} className="text-sm text-blue-600 hover:underline flex items-center gap-1">
+              <Download size={14} /> Descargar template
+            </button>
+          </div>
+
+          <input type="file" accept=".xlsx,.xls,.csv" onChange={handleBulkUpload}
+            className="block w-full text-sm border border-gray-300 rounded-lg p-2 mb-4" />
+
+          {bulkErrors.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div className="text-sm font-semibold text-red-700 mb-2">Errores encontrados:</div>
+              {bulkErrors.map((e, i) => <div key={i} className="text-xs text-red-600">{e}</div>)}
+            </div>
+          )}
+
+          {bulkData && (
+            <div>
+              <div className="text-sm font-semibold mb-2">Preview: {bulkData.length} registros</div>
+              <div className="bg-slate-50 rounded-lg overflow-hidden mb-4">
+                <table className="w-full text-sm">
+                  <thead><tr className="bg-slate-100">
+                    <th className="text-left px-3 py-2">Nombre</th>
+                    <th className="text-left px-3 py-2">Apellido</th>
+                    <th className="text-left px-3 py-2">Email</th>
+                    <th className="text-left px-3 py-2">Oficina</th>
+                    <th className="text-left px-3 py-2">Estado</th>
+                  </tr></thead>
+                  <tbody>
+                    {bulkData.map((r, i) => (
+                      <tr key={i} className={`border-t ${r.oficinaId ? '' : 'bg-red-50'}`}>
+                        <td className="px-3 py-2">{r.nombre}</td>
+                        <td className="px-3 py-2">{r.apellido}</td>
+                        <td className="px-3 py-2">{r.email}</td>
+                        <td className="px-3 py-2">{r.oficinaNombre}</td>
+                        <td className="px-3 py-2">{r.oficinaId ? <span className="text-green-600 text-xs font-semibold">OK</span> : <span className="text-red-600 text-xs font-semibold">Error</span>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={handleBulkConfirm}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+                  Confirmar carga ({bulkData.filter(r => r.oficinaId).length} válidos)
+                </button>
+                <button onClick={() => { setBulkData(null); setBulkErrors([]); }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-slate-50">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// ADMIN - OFICINAS (ABM)
+// ============================================================================
+
+const AdminOficinas = ({ oficinas, onUpdateOficinas, profiles }) => {
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState({ nombre: '', codigo: '', direccion: '', telefono: '' });
+
+  const handleSave = () => {
+    if (!form.nombre || !form.codigo) return alert('Nombre y código son obligatorios');
+    if (editId) {
+      onUpdateOficinas(oficinas.map(o => o.id === editId ? { ...o, ...form } : o));
+    } else {
+      onUpdateOficinas([...oficinas, { id: 'ofi_' + Date.now(), redId: 'red001', activa: true, ...form }]);
+    }
+    setShowForm(false);
+    setEditId(null);
+    setForm({ nombre: '', codigo: '', direccion: '', telefono: '' });
+  };
+
+  const handleEdit = (ofi) => {
+    setForm({ nombre: ofi.nombre, codigo: ofi.codigo, direccion: ofi.direccion || '', telefono: ofi.telefono || '' });
+    setEditId(ofi.id);
+    setShowForm(true);
+  };
+
+  const handleToggle = (id) => {
+    onUpdateOficinas(oficinas.map(o => o.id === id ? { ...o, activa: !o.activa } : o));
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Oficinas</h1>
+          <p className="text-slate-500 text-sm mt-1">{oficinas.length} oficinas en la red — {oficinas.filter(o => o.activa).length} activas</p>
+        </div>
+        <button onClick={() => { setShowForm(true); setEditId(null); setForm({ nombre: '', codigo: '', direccion: '', telefono: '' }); }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 flex items-center gap-2">
+          <Plus size={16} /> Nueva Oficina
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-l-4 border-blue-500">
+          <h2 className="text-lg font-semibold mb-4">{editId ? 'Editar Oficina' : 'Nueva Oficina'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-xs font-medium mb-1">Nombre *</label>
+              <input type="text" value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="CB Palermo" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Código *</label>
+              <input type="text" value={form.codigo} onChange={e => setForm({...form, codigo: e.target.value})}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="cb_palermo" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Dirección</label>
+              <input type="text" value={form.direccion} onChange={e => setForm({...form, direccion: e.target.value})}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Av. Santa Fe 3200" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Teléfono</label>
+              <input type="text" value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="+54 11 0000-0000" />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Guardar</button>
+            <button onClick={() => { setShowForm(false); setEditId(null); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-slate-50">Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {oficinas.map(ofi => {
+          const agentes = profiles.filter(p => p.oficinaId === ofi.id && p.rol === 'agente' && p.estado === 'activo');
+          const jefe = profiles.find(p => p.oficinaId === ofi.id && p.rol === 'oficina_admin' && p.estado === 'activo');
+          return (
+            <div key={ofi.id} className={`bg-white rounded-lg shadow-md p-5 border-l-4 ${ofi.activa ? 'border-green-500' : 'border-gray-300 opacity-60'}`}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-lg">{ofi.nombre}</h3>
+                <span className={`px-2 py-0.5 rounded text-xs font-semibold ${ofi.activa ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {ofi.activa ? 'Activa' : 'Inactiva'}
+                </span>
+              </div>
+              <div className="text-sm text-slate-500 mb-1">Código: <span className="font-mono text-xs">{ofi.codigo}</span></div>
+              {ofi.direccion && <div className="text-sm text-slate-500 mb-1">{ofi.direccion}</div>}
+              {jefe && <div className="text-sm text-slate-600 mt-2">Jefe: <strong>{jefe.nombre} {jefe.apellido}</strong></div>}
+              <div className="text-sm text-slate-600">Agentes: <strong>{agentes.length}</strong></div>
+              <div className="flex gap-2 mt-4">
+                <button onClick={() => handleEdit(ofi)} className="text-xs text-blue-600 hover:underline">Editar</button>
+                <button onClick={() => handleToggle(ofi.id)} className="text-xs text-slate-500 hover:underline">
+                  {ofi.activa ? 'Desactivar' : 'Activar'}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// ADMIN - LEGAJOS
+// ============================================================================
+
 const AdminLegajos = ({ loans, onUpdateLoan }) => {
   const data = loans || MOCK_CLIENTS;
   const [filters, setFilters] = useState({
@@ -3297,16 +3680,14 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
 // ============================================================================
 
 const AdminCobranzas = ({ loans, onUpdateLoan }) => {
-  const [viewLevel, setViewLevel] = useState('months');
-  const [selectedMonth, setSelectedMonth] = useState(null);
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [selectedPayment, setSelectedPayment] = useState(null);
-  const [pagoForm, setPagoForm] = useState({ fecha: '', monto: '', banco: '', comprobante: '' });
+  const [expandedRow, setExpandedRow] = useState(null);
+  const [filterYear, setFilterYear] = useState('');
   const [showPagoForm, setShowPagoForm] = useState(null);
+  const [pagoForm, setPagoForm] = useState({ fecha: '', monto: '', banco: '', comprobante: '' });
 
   const finalized = (loans || MOCK_CLIENTS).filter(l => l.stage === 'Finalizado' && l.payments && l.payments.length > 0);
 
-  // Flatten all payments with loan reference
+  // Flatten all payments
   const allPayments = [];
   finalized.forEach(loan => {
     loan.payments.forEach(p => {
@@ -3314,242 +3695,222 @@ const AdminCobranzas = ({ loans, onUpdateLoan }) => {
     });
   });
 
-  // Group by month
-  const byMonth = {};
+  // Build matrix data grouped by year-month
+  const matrixMap = {};
   allPayments.forEach(p => {
-    const month = p.dueDate.substring(0, 7);
-    if (!byMonth[month]) byMonth[month] = [];
-    byMonth[month].push(p);
+    const d = new Date(p.dueDate);
+    const anio = d.getFullYear();
+    const mes = d.getMonth() + 1;
+    const key = `${anio}-${String(mes).padStart(2,'0')}`;
+    if (!matrixMap[key]) matrixMap[key] = { anio, mes, key, payments: [] };
+    matrixMap[key].payments.push(p);
   });
-  const sortedMonths = Object.keys(byMonth).sort();
 
-  // Group by day within selected month
-  const byDay = {};
-  if (selectedMonth && byMonth[selectedMonth]) {
-    byMonth[selectedMonth].forEach(p => {
-      const day = p.dueDate;
-      if (!byDay[day]) byDay[day] = [];
-      byDay[day].push(p);
+  const MONTH_NAMES = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const matrixRows = Object.values(matrixMap).sort((a,b) => a.key.localeCompare(b.key))
+    .filter(r => !filterYear || String(r.anio) === filterYear)
+    .map(r => {
+      const ps = r.payments;
+      return {
+        ...r,
+        cantTotal: ps.length,
+        montoTotal: ps.reduce((s,p) => s + p.amount, 0),
+        pagadas: ps.filter(p => p.status === 'Pagado').length,
+        montoPagado: ps.filter(p => p.status === 'Pagado').reduce((s,p) => s + (p.pagoInfo?.monto || p.amount), 0),
+        informadas: ps.filter(p => p.status === 'Informado').length,
+        pendientes: ps.filter(p => p.status === 'Pendiente').length,
+        vencidas: ps.filter(p => p.status === 'Vencido').length,
+        pctCobro: ps.length > 0 ? Math.round(ps.filter(p => p.status === 'Pagado').length / ps.length * 100) : 0,
+      };
     });
-  }
-  const sortedDays = Object.keys(byDay).sort();
 
-  const paymentsForDay = selectedDay ? (byDay[selectedDay] || []) : [];
+  const totals = matrixRows.reduce((t, r) => ({
+    cantTotal: t.cantTotal + r.cantTotal,
+    montoTotal: t.montoTotal + r.montoTotal,
+    pagadas: t.pagadas + r.pagadas,
+    montoPagado: t.montoPagado + r.montoPagado,
+    informadas: t.informadas + r.informadas,
+    pendientes: t.pendientes + r.pendientes,
+    vencidas: t.vencidas + r.vencidas,
+  }), { cantTotal:0, montoTotal:0, pagadas:0, montoPagado:0, informadas:0, pendientes:0, vencidas:0 });
+  totals.pctCobro = totals.cantTotal > 0 ? Math.round(totals.pagadas / totals.cantTotal * 100) : 0;
 
-  const getMonthLabel = (m) => {
-    const [y, mo] = m.split('-');
-    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    return months[parseInt(mo) - 1] + ' ' + y;
+  const years = [...new Set(Object.values(matrixMap).map(r => r.anio))].sort();
+
+  const exportCSV = () => {
+    const headers = ['Año','Mes','Cant. Total','Monto Total','Pagadas','Monto Pagado','Informadas','Pendientes','Vencidas','% Cobro'];
+    const rows = matrixRows.map(r => [r.anio, MONTH_NAMES[r.mes], r.cantTotal, r.montoTotal.toFixed(2), r.pagadas, r.montoPagado.toFixed(2), r.informadas, r.pendientes, r.vencidas, r.pctCobro + '%']);
+    rows.push(['TOTAL','', totals.cantTotal, totals.montoTotal.toFixed(2), totals.pagadas, totals.montoPagado.toFixed(2), totals.informadas, totals.pendientes, totals.vencidas, totals.pctCobro + '%']);
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'cobranzas_tcmc.csv'; a.click();
   };
 
-  const getStatusSummary = (payments) => {
-    const paid = payments.filter(p => p.status === 'Pagado').length;
-    const informed = payments.filter(p => p.status === 'Informado').length;
-    const pending = payments.length - paid - informed;
-    const totalAmt = payments.reduce((s, p) => s + p.amount, 0);
-    const paidAmt = payments.filter(p => p.status === 'Pagado').reduce((s, p) => s + (p.pagoInfo ? p.pagoInfo.monto : p.amount), 0);
-    return { paid, informed, pending, total: payments.length, totalAmt, paidAmt };
+  const exportExcel = () => {
+    const data = matrixRows.map(r => ({
+      'Año': r.anio, 'Mes': MONTH_NAMES[r.mes], 'Cant. Total': r.cantTotal, 'Monto Total': r.montoTotal,
+      'Pagadas': r.pagadas, 'Monto Pagado': r.montoPagado, 'Informadas': r.informadas,
+      'Pendientes': r.pendientes, 'Vencidas': r.vencidas, '% Cobro': r.pctCobro / 100,
+    }));
+    data.push({ 'Año': 'TOTAL', 'Mes': '', 'Cant. Total': totals.cantTotal, 'Monto Total': totals.montoTotal,
+      'Pagadas': totals.pagadas, 'Monto Pagado': totals.montoPagado, 'Informadas': totals.informadas,
+      'Pendientes': totals.pendientes, 'Vencidas': totals.vencidas, '% Cobro': totals.pctCobro / 100 });
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Cobranzas');
+    XLSX.writeFile(wb, 'cobranzas_tcmc.xlsx');
   };
 
   const handleMarkPaid = (loanId, cuotaNumber) => {
-    if (!pagoForm.fecha || !pagoForm.monto || !pagoForm.banco) {
-      alert('Completar fecha, monto y banco');
-      return;
-    }
+    if (!pagoForm.fecha || !pagoForm.monto || !pagoForm.banco) return alert('Completar fecha, monto y banco');
     const loan = finalized.find(l => l.id === loanId);
     if (!loan || !onUpdateLoan) return;
-    const updatedPayments = loan.payments.map(p => {
-      if (p.number === cuotaNumber) {
-        return { ...p, status: 'Pagado', pagoInfo: { fecha: pagoForm.fecha, monto: parseFloat(pagoForm.monto), banco: pagoForm.banco, comprobante: pagoForm.comprobante || null } };
-      }
-      return p;
-    });
+    const updatedPayments = loan.payments.map(p =>
+      p.number === cuotaNumber ? { ...p, status: 'Pagado', pagoInfo: { fecha: pagoForm.fecha, monto: parseFloat(pagoForm.monto), banco: pagoForm.banco, comprobante: pagoForm.comprobante || null } } : p
+    );
     onUpdateLoan(loanId, { payments: updatedPayments });
     setShowPagoForm(null);
     setPagoForm({ fecha: '', monto: '', banco: '', comprobante: '' });
   };
 
-  const breadcrumb = (
-    <div className="flex items-center gap-2 text-sm mb-6">
-      <button onClick={() => { setViewLevel('months'); setSelectedMonth(null); setSelectedDay(null); }} className={`font-medium ${viewLevel === 'months' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-600'}`}>
-        Cobranzas
-      </button>
-      {selectedMonth && (
-        <>
-          <ChevronRight size={14} className="text-slate-400" />
-          <button onClick={() => { setViewLevel('days'); setSelectedDay(null); }} className={`font-medium ${viewLevel === 'days' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-600'}`}>
-            {getMonthLabel(selectedMonth)}
-          </button>
-        </>
-      )}
-      {selectedDay && (
-        <>
-          <ChevronRight size={14} className="text-slate-400" />
-          <span className="font-medium text-blue-600">{selectedDay}</span>
-        </>
-      )}
-    </div>
-  );
+  const cellClass = "px-3 py-2.5 text-sm";
+  const headerClass = "px-3 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide";
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-2">Cobranzas</h1>
-      <p className="text-slate-500 text-sm mb-6">Seguimiento de cuotas de créditos finalizados — {finalized.length} créditos activos, {allPayments.length} cuotas totales</p>
-
-      {breadcrumb}
-
-      {viewLevel === 'months' && (
-        <div className="space-y-3">
-          {sortedMonths.length === 0 ? (
-            <div className="bg-slate-50 rounded-lg p-8 text-center text-slate-500">No hay cuotas generadas aún. Pase un crédito a estado Finalizado para generar el cronograma.</div>
-          ) : sortedMonths.map(month => {
-            const summary = getStatusSummary(byMonth[month]);
-            return (
-              <div key={month}
-                onClick={() => { setSelectedMonth(month); setViewLevel('days'); }}
-                className="bg-white rounded-lg shadow-md p-5 cursor-pointer hover:shadow-lg transition border-l-4 border-blue-500"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-lg font-bold">{getMonthLabel(month)}</div>
-                    <div className="text-xs text-slate-500 mt-1">{summary.total} cuotas — {formatCurrency(summary.totalAmt)}</div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-green-600">{summary.paid}</div>
-                      <div className="text-xs text-slate-500">Pagadas</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-blue-600">{summary.informed}</div>
-                      <div className="text-xs text-slate-500">Informadas</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-slate-600">{summary.pending}</div>
-                      <div className="text-xs text-slate-500">Pendientes</div>
-                    </div>
-                    <ChevronRight size={20} className="text-slate-400" />
-                  </div>
-                </div>
-                <div className="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full flex">
-                    <div className="bg-green-500 h-full" style={{ width: `${(summary.paid / summary.total) * 100}%` }}></div>
-                    <div className="bg-blue-400 h-full" style={{ width: `${(summary.informed / summary.total) * 100}%` }}></div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-3xl font-bold">Cobranzas</h1>
+        <div className="flex gap-2">
+          <button onClick={exportCSV} className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center gap-1">
+            <Download size={14} /> CSV
+          </button>
+          <button onClick={exportExcel} className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1">
+            <Download size={14} /> Excel
+          </button>
         </div>
-      )}
+      </div>
+      <p className="text-slate-500 text-sm mb-4">{finalized.length} créditos finalizados — {allPayments.length} cuotas totales</p>
 
-      {viewLevel === 'days' && (
-        <div className="space-y-3">
-          {sortedDays.map(day => {
-            const summary = getStatusSummary(byDay[day]);
-            return (
-              <div key={day}
-                onClick={() => { setSelectedDay(day); setViewLevel('detail'); }}
-                className="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg transition"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-semibold">{day}</div>
-                    <div className="text-xs text-slate-500">{summary.total} cuotas — {formatCurrency(summary.totalAmt)}</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {summary.paid > 0 && <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-1 rounded">{summary.paid} pagadas</span>}
-                    {summary.informed > 0 && <span className="text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-1 rounded">{summary.informed} informadas</span>}
-                    {summary.pending > 0 && <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded">{summary.pending} pendientes</span>}
-                    <ChevronRight size={18} className="text-slate-400" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <div className="flex gap-3 mb-4">
+        <select value={filterYear} onChange={e => setFilterYear(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm">
+          <option value="">Todos los años</option>
+          {years.map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+      </div>
 
-      {viewLevel === 'detail' && (
-        <div className="space-y-3">
-          {paymentsForDay.map((p, idx) => (
-            <div key={idx} className="bg-white rounded-lg shadow-md p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <div className="font-semibold">{p.clientName}</div>
-                  <div className="text-xs text-slate-500">Cuota {p.number} — Crédito {formatCurrency(p.loanAmount)}</div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold">{formatCurrency(p.amount)}</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    p.status === 'Pagado' ? 'bg-green-100 text-green-800' :
-                    p.status === 'Informado' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-600'
-                  }`}>{p.status}</span>
-                </div>
-              </div>
-
-              {p.comprobante && p.status === 'Informado' && (
-                <div className="bg-blue-50 rounded p-3 text-sm mb-3 flex items-center gap-2">
-                  <Paperclip size={14} className="text-blue-600" />
-                  <span>Comprobante del cliente: <strong>{p.comprobante}</strong></span>
-                  <span className="text-xs text-slate-400">({p.comprobanteDate})</span>
-                </div>
-              )}
-
-              {p.status === 'Pagado' && p.pagoInfo && (
-                <div className="bg-green-50 rounded p-3 text-sm flex items-center gap-4">
-                  <CheckCircle size={14} className="text-green-600" />
-                  <span>Pagado el {p.pagoInfo.fecha}</span>
-                  <span>{formatCurrency(p.pagoInfo.monto)}</span>
-                  <span>Banco: {p.pagoInfo.banco}</span>
-                  {p.pagoInfo.comprobante && <span className="text-xs text-slate-500">({p.pagoInfo.comprobante})</span>}
-                </div>
-              )}
-
-              {p.status !== 'Pagado' && (
-                <>
-                  {showPagoForm === (p.loanId + '-' + p.number) ? (
-                    <div className="border border-green-200 rounded-lg p-4 mt-2 bg-green-50 space-y-3">
-                      <div className="text-sm font-semibold text-green-700">Registrar pago</div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-xs font-medium mb-1">Fecha de pago *</label>
-                          <input type="date" value={pagoForm.fecha} onChange={(e) => setPagoForm({...pagoForm, fecha: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium mb-1">Monto USD *</label>
-                          <input type="number" step="0.01" value={pagoForm.monto} onChange={(e) => setPagoForm({...pagoForm, monto: e.target.value})} placeholder={String(p.amount)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium mb-1">Banco *</label>
-                          <input type="text" value={pagoForm.banco} onChange={(e) => setPagoForm({...pagoForm, banco: e.target.value})} placeholder="Ej: Banco Nación" className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Comprobante (opcional)</label>
-                        <input type="file" className="text-xs" onChange={(e) => setPagoForm({...pagoForm, comprobante: e.target.files?.[0]?.name || ''})} />
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => handleMarkPaid(p.loanId, p.number)} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
-                          Guardar pago
-                        </button>
-                        <button onClick={() => { setShowPagoForm(null); setPagoForm({ fecha: '', monto: '', banco: '', comprobante: '' }); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-slate-100">
-                          Cancelar
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => { setShowPagoForm(p.loanId + '-' + p.number); setPagoForm({ fecha: new Date().toISOString().split('T')[0], monto: String(p.amount), banco: '', comprobante: '' }); }}
-                      className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-2"
-                    >
-                      <Banknote size={16} /> Marcar como Pagado
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
+      {matrixRows.length === 0 ? (
+        <div className="bg-slate-50 rounded-lg p-8 text-center text-slate-500">No hay cuotas generadas. Pase un crédito a estado "Finalizado" para generar el cronograma de pagos.</div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b">
+                <tr>
+                  <th className={headerClass + " text-left"}>Año</th>
+                  <th className={headerClass + " text-left"}>Mes</th>
+                  <th className={headerClass + " text-right"}>Cant. Total</th>
+                  <th className={headerClass + " text-right"}>Monto Total</th>
+                  <th className={headerClass + " text-right text-green-700"}>Pagadas</th>
+                  <th className={headerClass + " text-right text-green-700"}>Monto Pagado</th>
+                  <th className={headerClass + " text-right text-blue-700"}>Informadas</th>
+                  <th className={headerClass + " text-right text-slate-700"}>Pendientes</th>
+                  <th className={headerClass + " text-right text-red-700"}>Vencidas</th>
+                  <th className={headerClass + " text-right"}>% Cobro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {matrixRows.map(r => (
+                  <React.Fragment key={r.key}>
+                    <tr onClick={() => setExpandedRow(expandedRow === r.key ? null : r.key)}
+                      className="border-t border-gray-100 hover:bg-blue-50 cursor-pointer transition">
+                      <td className={cellClass + " font-semibold"}>{r.anio}</td>
+                      <td className={cellClass + " font-medium"}>{MONTH_NAMES[r.mes]}</td>
+                      <td className={cellClass + " text-right font-medium"}>{r.cantTotal}</td>
+                      <td className={cellClass + " text-right font-medium"}>{formatCurrency(r.montoTotal)}</td>
+                      <td className={cellClass + " text-right text-green-600 font-semibold"}>{r.pagadas}</td>
+                      <td className={cellClass + " text-right text-green-600"}>{formatCurrency(r.montoPagado)}</td>
+                      <td className={cellClass + " text-right text-blue-600 font-semibold"}>{r.informadas}</td>
+                      <td className={cellClass + " text-right text-slate-600"}>{r.pendientes}</td>
+                      <td className={cellClass + " text-right text-red-600 font-semibold"}>{r.vencidas}</td>
+                      <td className={cellClass + " text-right"}>
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${r.pctCobro >= 80 ? 'bg-green-100 text-green-700' : r.pctCobro >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                          {r.pctCobro}%
+                        </span>
+                      </td>
+                    </tr>
+                    {expandedRow === r.key && (
+                      <tr>
+                        <td colSpan="10" className="bg-slate-50 px-4 py-3">
+                          <div className="text-xs font-semibold text-slate-500 mb-2 uppercase">Detalle cuotas — {MONTH_NAMES[r.mes]} {r.anio}</div>
+                          <table className="w-full text-xs">
+                            <thead><tr className="text-slate-500">
+                              <th className="text-left py-1 px-2">Cliente</th>
+                              <th className="text-left py-1 px-2">Cuota</th>
+                              <th className="text-left py-1 px-2">Vencimiento</th>
+                              <th className="text-right py-1 px-2">Monto</th>
+                              <th className="text-left py-1 px-2">Estado</th>
+                              <th className="text-left py-1 px-2">Acción</th>
+                            </tr></thead>
+                            <tbody>
+                              {r.payments.map((p, i) => (
+                                <tr key={i} className="border-t border-gray-200">
+                                  <td className="py-1.5 px-2 font-medium">{p.clientName}</td>
+                                  <td className="py-1.5 px-2">#{p.number}</td>
+                                  <td className="py-1.5 px-2">{p.dueDate}</td>
+                                  <td className="py-1.5 px-2 text-right font-medium">{formatCurrency(p.amount)}</td>
+                                  <td className="py-1.5 px-2">
+                                    <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
+                                      p.status === 'Pagado' ? 'bg-green-100 text-green-700' :
+                                      p.status === 'Informado' ? 'bg-blue-100 text-blue-700' :
+                                      'bg-gray-100 text-gray-600'
+                                    }`}>{p.status}</span>
+                                  </td>
+                                  <td className="py-1.5 px-2">
+                                    {p.status !== 'Pagado' && (
+                                      showPagoForm === (p.loanId+'-'+p.number) ? (
+                                        <div className="flex items-center gap-1">
+                                          <input type="date" value={pagoForm.fecha} onChange={e => setPagoForm({...pagoForm, fecha: e.target.value})} className="border rounded px-1 py-0.5 text-xs w-28" />
+                                          <input type="number" step="0.01" value={pagoForm.monto} onChange={e => setPagoForm({...pagoForm, monto: e.target.value})} className="border rounded px-1 py-0.5 text-xs w-20" placeholder="Monto" />
+                                          <input type="text" value={pagoForm.banco} onChange={e => setPagoForm({...pagoForm, banco: e.target.value})} className="border rounded px-1 py-0.5 text-xs w-24" placeholder="Banco" />
+                                          <button onClick={() => handleMarkPaid(p.loanId, p.number)} className="bg-green-600 text-white px-2 py-0.5 rounded text-xs hover:bg-green-700">OK</button>
+                                          <button onClick={() => setShowPagoForm(null)} className="text-slate-400 hover:text-slate-600"><X size={12}/></button>
+                                        </div>
+                                      ) : (
+                                        <button onClick={() => { setShowPagoForm(p.loanId+'-'+p.number); setPagoForm({ fecha: new Date().toISOString().split('T')[0], monto: String(p.amount), banco: '', comprobante: '' }); }}
+                                          className="text-green-600 hover:underline text-xs font-medium">Registrar pago</button>
+                                      )
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+              <tfoot className="bg-slate-100 border-t-2 border-slate-300">
+                <tr className="font-bold text-sm">
+                  <td className="px-3 py-3" colSpan="2">TOTAL</td>
+                  <td className="px-3 py-3 text-right">{totals.cantTotal}</td>
+                  <td className="px-3 py-3 text-right">{formatCurrency(totals.montoTotal)}</td>
+                  <td className="px-3 py-3 text-right text-green-600">{totals.pagadas}</td>
+                  <td className="px-3 py-3 text-right text-green-600">{formatCurrency(totals.montoPagado)}</td>
+                  <td className="px-3 py-3 text-right text-blue-600">{totals.informadas}</td>
+                  <td className="px-3 py-3 text-right">{totals.pendientes}</td>
+                  <td className="px-3 py-3 text-right text-red-600">{totals.vencidas}</td>
+                  <td className="px-3 py-3 text-right">
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${totals.pctCobro >= 80 ? 'bg-green-100 text-green-700' : totals.pctCobro >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                      {totals.pctCobro}%
+                    </span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -3560,55 +3921,234 @@ const AdminCobranzas = ({ loans, onUpdateLoan }) => {
 // ADMIN - REPORTS
 // ============================================================================
 
-const AdminReports = ({ loans }) => {
+const AdminReports = ({ loans, profiles }) => {
+  const [tab, setTab] = useState('pipeline');
+  const data = loans || MOCK_CLIENTS;
+  const agents = (profiles || MOCK_PROFILES).filter(p => p.rol === 'agente' && p.estado === 'activo');
+
+  // ---- Pipeline by stage ----
+  const STAGE_BENCHMARKS = { 'Solicitud Inicial': 7, 'Scoring': 14, 'Pre Aprobación': 21, 'Escribanía': 30, 'Aprobación': 14, 'Escritura': 7 };
+  const pipelineData = STAGES_FLOW.map(stage => {
+    const inStage = data.filter(l => l.stage === stage);
+    const volume = inStage.reduce((s,l) => s + l.loanAmount, 0);
+    const avgDays = inStage.length > 0 ? Math.round(inStage.reduce((s,l) => s + Math.floor((Date.now() - new Date(l.createdAt).getTime()) / 86400000), 0) / inStage.length) : 0;
+    const benchmark = STAGE_BENCHMARKS[stage] || 14;
+    const semaforo = avgDays <= benchmark ? 'green' : avgDays <= benchmark * 1.5 ? 'amber' : 'red';
+    const recent30 = inStage.filter(l => (Date.now() - new Date(l.createdAt).getTime()) < 30 * 86400000).length;
+    return { stage, count: inStage.length, volume, avgTicket: inStage.length > 0 ? volume / inStage.length : 0, avgDays, benchmark, semaforo, recent30 };
+  });
+  const finalizados = data.filter(l => l.stage === 'Finalizado');
+  const rechazados = data.filter(l => l.stage === 'Rechazado');
+
+  // ---- Agent performance ----
+  const agentData = agents.map(ag => {
+    const agLoans = data.filter(l => l.agenteId === ag.id);
+    const ofi = MOCK_OFICINAS.find(o => o.id === ag.oficinaId);
+    return {
+      nombre: ag.nombre + ' ' + ag.apellido, oficina: ofi ? ofi.nombre : '—',
+      total: agLoans.length, volume: agLoans.reduce((s,l) => s + l.loanAmount, 0),
+      finalizados: agLoans.filter(l => l.stage === 'Finalizado').length,
+      rechazados: agLoans.filter(l => l.stage === 'Rechazado').length,
+      conversion: agLoans.length > 0 ? Math.round(agLoans.filter(l => l.stage === 'Finalizado').length / agLoans.length * 100) : 0,
+    };
+  }).sort((a,b) => b.volume - a.volume);
+
+  // ---- Financial summary ----
+  const allPayments = [];
+  data.filter(l => l.payments && l.payments.length > 0).forEach(l => l.payments.forEach(p => allPayments.push(p)));
+  const totalOriginated = data.reduce((s,l) => s + l.loanAmount, 0);
+  const activePortfolio = finalizados.reduce((s,l) => s + l.loanAmount, 0);
+  const totalCollected = allPayments.filter(p => p.status === 'Pagado').reduce((s,p) => s + (p.pagoInfo?.monto || p.amount), 0);
+  const pending90d = allPayments.filter(p => p.status === 'Pendiente' && new Date(p.dueDate) < new Date(Date.now() + 90*86400000)).reduce((s,p) => s + p.amount, 0);
+  const overdue = allPayments.filter(p => (p.status === 'Pendiente' || p.status === 'Vencido') && new Date(p.dueDate) < new Date());
+  const morosidad = allPayments.length > 0 ? (overdue.length / allPayments.length * 100).toFixed(1) : '0.0';
+  const conversionGlobal = data.length > 0 ? Math.round(finalizados.length / data.length * 100) : 0;
+  const avgTicket = data.length > 0 ? totalOriginated / data.length : 0;
+
+  const exportReport = (name, rows, headers) => {
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, name);
+    XLSX.writeFile(wb, `reporte_${name.toLowerCase()}_tcmc.xlsx`);
+  };
+
+  const semaforoIcon = (s) => s === 'green' ? '🟢' : s === 'amber' ? '🟡' : '🔴';
+  const cellClass = "px-3 py-2.5 text-sm";
+  const headerClass = "px-3 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide";
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">Reportes</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <BarChart3 size={24} className="text-blue-600" />
-            Reporte por Etapa
-          </h2>
-          <div className="space-y-3">
-            {STAGES_ALL.map(stage => {
-              const count = MOCK_CLIENTS.filter(c => c.stage === stage).length;
-              const volume = MOCK_CLIENTS.filter(c => c.stage === stage).reduce((sum, c) => sum + c.loanAmount, 0);
-              return (
-                <div key={stage} className="border-b pb-3">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="font-semibold">{stage}</span>
-                    <span className="text-slate-600">{count} solicitudes</span>
-                  </div>
-                  <div className="text-xs text-slate-600">{formatCurrency(volume)}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <TrendingUp size={24} className="text-green-600" />
-            Resumen Financiero
-          </h2>
-          <div className="space-y-4">
-            <div className="bg-green-50 rounded p-4">
-              <div className="text-sm text-slate-600">Volumen Total</div>
-              <div className="text-2xl font-bold text-green-600">{formatCurrency(MOCK_CLIENTS.reduce((sum, c) => sum + c.loanAmount, 0))}</div>
-            </div>
-            <div className="bg-blue-50 rounded p-4">
-              <div className="text-sm text-slate-600">Solicitudes Activas</div>
-              <div className="text-2xl font-bold text-blue-600">{MOCK_CLIENTS.length}</div>
-            </div>
-            <div className="bg-amber-50 rounded p-4">
-              <div className="text-sm text-slate-600">Promedio por Solicitud</div>
-              <div className="text-2xl font-bold text-amber-600">{formatCurrency(MOCK_CLIENTS.reduce((sum, c) => sum + c.loanAmount, 0) / MOCK_CLIENTS.length)}</div>
-            </div>
-          </div>
-        </div>
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-3xl font-bold">Reportes</h1>
       </div>
+      <p className="text-slate-500 text-sm mb-6">Análisis y métricas para toma de decisiones</p>
+
+      <div className="flex gap-2 mb-6">
+        {[{id:'pipeline',label:'Pipeline por Etapa'},{id:'agentes',label:'Performance Agentes'},{id:'financiero',label:'Resumen Financiero'}].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tab === t.id ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-slate-600 hover:bg-slate-50'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'pipeline' && (
+        <div>
+          <div className="flex justify-end mb-3">
+            <button onClick={() => exportReport('Pipeline', pipelineData.map(r => [r.stage, r.count, r.volume.toFixed(2), r.avgTicket.toFixed(2), r.avgDays, r.benchmark, r.recent30]),
+              ['Etapa','Legajos','Volumen USD','Ticket Prom.','Días Prom.','Benchmark','Ingreso 30d'])}
+              className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1">
+              <Download size={14} /> Excel
+            </button>
+          </div>
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b">
+                <tr>
+                  <th className={headerClass + " text-left"}>Etapa</th>
+                  <th className={headerClass + " text-right"}>Legajos</th>
+                  <th className={headerClass + " text-right"}>Volumen USD</th>
+                  <th className={headerClass + " text-right"}>Ticket Prom.</th>
+                  <th className={headerClass + " text-right"}>Días Prom.</th>
+                  <th className={headerClass + " text-right"}>Benchmark</th>
+                  <th className={headerClass + " text-right"}>Ingreso 30d</th>
+                  <th className={headerClass + " text-center"}>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pipelineData.map(r => (
+                  <tr key={r.stage} className="border-t border-gray-100 hover:bg-slate-50">
+                    <td className={cellClass + " font-semibold"}>{r.stage}</td>
+                    <td className={cellClass + " text-right font-medium"}>{r.count}</td>
+                    <td className={cellClass + " text-right"}>{formatCurrency(r.volume)}</td>
+                    <td className={cellClass + " text-right"}>{formatCurrency(r.avgTicket)}</td>
+                    <td className={cellClass + " text-right font-medium"}>{r.avgDays}d</td>
+                    <td className={cellClass + " text-right text-slate-400"}>{r.benchmark}d</td>
+                    <td className={cellClass + " text-right"}>{r.recent30}</td>
+                    <td className={cellClass + " text-center text-lg"}>{semaforoIcon(r.semaforo)}</td>
+                  </tr>
+                ))}
+                <tr className="border-t-2 border-slate-300 bg-green-50">
+                  <td className={cellClass + " font-bold text-green-700"}>Finalizado</td>
+                  <td className={cellClass + " text-right font-bold text-green-700"}>{finalizados.length}</td>
+                  <td className={cellClass + " text-right font-bold text-green-700"}>{formatCurrency(finalizados.reduce((s,l) => s + l.loanAmount, 0))}</td>
+                  <td colSpan="5"></td>
+                </tr>
+                <tr className="bg-red-50">
+                  <td className={cellClass + " font-bold text-red-600"}>Rechazado</td>
+                  <td className={cellClass + " text-right font-bold text-red-600"}>{rechazados.length}</td>
+                  <td className={cellClass + " text-right font-bold text-red-600"}>{formatCurrency(rechazados.reduce((s,l) => s + l.loanAmount, 0))}</td>
+                  <td colSpan="5"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {tab === 'agentes' && (
+        <div>
+          <div className="flex justify-end mb-3">
+            <button onClick={() => exportReport('Agentes', agentData.map(r => [r.nombre, r.oficina, r.total, r.volume.toFixed(2), r.finalizados, r.rechazados, r.conversion + '%']),
+              ['Agente','Oficina','Legajos','Volumen USD','Finalizados','Rechazados','Conversión'])}
+              className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1">
+              <Download size={14} /> Excel
+            </button>
+          </div>
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b">
+                <tr>
+                  <th className={headerClass + " text-left"}>Agente</th>
+                  <th className={headerClass + " text-left"}>Oficina</th>
+                  <th className={headerClass + " text-right"}>Legajos</th>
+                  <th className={headerClass + " text-right"}>Volumen USD</th>
+                  <th className={headerClass + " text-right"}>Finalizados</th>
+                  <th className={headerClass + " text-right"}>Rechazados</th>
+                  <th className={headerClass + " text-right"}>Conversión</th>
+                </tr>
+              </thead>
+              <tbody>
+                {agentData.length === 0 ? (
+                  <tr><td colSpan="7" className="text-center py-8 text-slate-400">No hay datos de agentes</td></tr>
+                ) : agentData.map((r, i) => (
+                  <tr key={i} className="border-t border-gray-100 hover:bg-slate-50">
+                    <td className={cellClass + " font-semibold"}>{r.nombre}</td>
+                    <td className={cellClass + " text-slate-500"}>{r.oficina}</td>
+                    <td className={cellClass + " text-right font-medium"}>{r.total}</td>
+                    <td className={cellClass + " text-right"}>{formatCurrency(r.volume)}</td>
+                    <td className={cellClass + " text-right text-green-600 font-semibold"}>{r.finalizados}</td>
+                    <td className={cellClass + " text-right text-red-600"}>{r.rechazados}</td>
+                    <td className={cellClass + " text-right"}>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${r.conversion >= 60 ? 'bg-green-100 text-green-700' : r.conversion >= 30 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                        {r.conversion}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {tab === 'financiero' && (
+        <div>
+          <div className="flex justify-end mb-3">
+            <button onClick={() => exportReport('Financiero', [
+              ['Cartera Total Originada', totalOriginated.toFixed(2)], ['Cartera Activa (Finalizados)', activePortfolio.toFixed(2)],
+              ['Cuotas Cobradas (Acum.)', totalCollected.toFixed(2)], ['Pendiente Próx. 90d', pending90d.toFixed(2)],
+              ['Morosidad %', morosidad + '%'], ['Conversión Global', conversionGlobal + '%'], ['Ticket Promedio', avgTicket.toFixed(2)]
+            ], ['Métrica','Valor'])}
+              className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1">
+              <Download size={14} /> Excel
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {[
+              { label: 'Cartera Originada', value: formatCurrency(totalOriginated), color: 'blue', sub: `${data.length} legajos totales` },
+              { label: 'Cartera Activa', value: formatCurrency(activePortfolio), color: 'green', sub: `${finalizados.length} créditos finalizados` },
+              { label: 'Cuotas Cobradas', value: formatCurrency(totalCollected), color: 'emerald', sub: `${allPayments.filter(p=>p.status==='Pagado').length} cuotas pagadas` },
+              { label: 'Conversión Global', value: conversionGlobal + '%', color: 'purple', sub: `${finalizados.length} de ${data.length} legajos` },
+            ].map((card, i) => (
+              <div key={i} className="bg-white rounded-lg shadow-md p-5">
+                <div className="text-sm text-slate-500 mb-1">{card.label}</div>
+                <div className={`text-2xl font-bold text-${card.color}-600`}>{card.value}</div>
+                <div className="text-xs text-slate-400 mt-1">{card.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b">
+                <tr>
+                  <th className={headerClass + " text-left"}>Métrica</th>
+                  <th className={headerClass + " text-right"}>Valor</th>
+                  <th className={headerClass + " text-left"}>Observación</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { metric: 'Cartera total originada', value: formatCurrency(totalOriginated), obs: `Suma de todos los montos solicitados (${data.length} legajos)` },
+                  { metric: 'Cartera activa (finalizados)', value: formatCurrency(activePortfolio), obs: `Créditos que llegaron a escritura y generan cuotas` },
+                  { metric: 'Cuotas cobradas (acumulado)', value: formatCurrency(totalCollected), obs: `Total efectivamente cobrado` },
+                  { metric: 'Cuotas pendientes (próx. 90 días)', value: formatCurrency(pending90d), obs: `Flujo esperado a cobrar en 3 meses` },
+                  { metric: 'Morosidad', value: morosidad + '%', obs: `Cuotas vencidas / total cuotas (${overdue.length} vencidas)`, alert: parseFloat(morosidad) > 5 },
+                  { metric: 'Tasa de conversión global', value: conversionGlobal + '%', obs: `Finalizados / Total legajos` },
+                  { metric: 'Ticket promedio', value: formatCurrency(avgTicket), obs: `Monto promedio por legajo` },
+                ].map((r, i) => (
+                  <tr key={i} className="border-t border-gray-100">
+                    <td className={cellClass + " font-semibold"}>{r.metric}</td>
+                    <td className={cellClass + " text-right font-bold " + (r.alert ? 'text-red-600' : '')}>{r.value}</td>
+                    <td className={cellClass + " text-slate-500 text-xs"}>{r.obs}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -3705,74 +4245,110 @@ const LoginPage = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  // Mock user database — maps to MOCK_PROFILES
+  const DEMO_USERS = {
+    'panchobenegas@gmail.com':     { password: 'Admin123!', profileId: 'usr001' },
+    'director@coldwell.com':       { password: 'Red123!', profileId: 'usr002' },
+    'jefe.palermo@coldwell.com':   { password: 'Oficina123!', profileId: 'usr003' },
+    'jefe.belgrano@coldwell.com':  { password: 'Oficina123!', profileId: 'usr004' },
+    'maria@coldwell.com':          { password: 'Agente123!', profileId: 'usr005' },
+    'carlos@coldwell.com':         { password: 'Agente123!', profileId: 'usr006' },
+    'alejandra@coldwell.com':      { password: 'Agente123!', profileId: 'usr007' },
+    'pablo@coldwell.com':          { password: 'Agente123!', profileId: 'usr008' },
+    'client@tcmc.local':           { password: 'Client123!', profileId: null, legacyRole: 'cliente', legacyName: 'Cliente Demo' },
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const users = {
-      'client@tcmc.local': { password: 'Client123!', role: 'client', name: 'Cliente Demo' },
-      'advisor@tcmc.local': { password: 'Advisor123!', role: 'advisor', name: 'Asesor Demo' },
-      'admin@tcmc.local': { password: 'Admin123!', role: 'admin', name: 'Admin Demo' },
-    };
-
-    const user = users[email];
-    if (user && user.password === password) {
-      onLogin(email, user.role, user.name);
-      setError('');
-    } else {
+    const user = DEMO_USERS[email];
+    if (!user || user.password !== password) {
       setError('Email o contraseña incorrectos');
+      return;
+    }
+    if (user.profileId) {
+      const profile = MOCK_PROFILES.find(p => p.id === user.profileId);
+      if (profile && profile.estado === 'pendiente') {
+        setError('Tu cuenta está pendiente de aprobación por el administrador.');
+        return;
+      }
+      if (profile) {
+        onLogin(profile.email, profile.rol, profile.nombre + ' ' + profile.apellido, profile);
+        setError('');
+        return;
+      }
+    }
+    // Legacy client login
+    onLogin(email, user.legacyRole || 'cliente', user.legacyName || 'Cliente', null);
+    setError('');
+  };
+
+  const quickLogin = (email) => {
+    const user = DEMO_USERS[email];
+    if (user && user.profileId) {
+      const profile = MOCK_PROFILES.find(p => p.id === user.profileId);
+      if (profile) onLogin(profile.email, profile.rol, profile.nombre + ' ' + profile.apellido, profile);
+    } else if (user) {
+      onLogin(email, user.legacyRole || 'cliente', user.legacyName || 'Cliente', null);
     }
   };
 
+  const roleColors = {
+    super_admin: 'bg-red-100 text-red-700 border-red-200',
+    red_admin: 'bg-purple-100 text-purple-700 border-purple-200',
+    oficina_admin: 'bg-amber-100 text-amber-700 border-amber-200',
+    agente: 'bg-green-100 text-green-700 border-green-200',
+    cliente: 'bg-blue-100 text-blue-700 border-blue-200',
+  };
+  const roleLabels = { super_admin: 'Super Admin', red_admin: 'Admin Red', oficina_admin: 'Jefe Oficina', agente: 'Agente', cliente: 'Cliente' };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-blue-600" style={{ fontFamily: 'Poppins' }}>Tu Casa +Cerca</h1>
           <p className="text-slate-600 mt-2">Plataforma de Gestión de Créditos</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-semibold mb-2">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="usuario@tcmc.local"
-            />
+              placeholder="tu@email.com" />
           </div>
-
           <div>
             <label className="block text-sm font-semibold mb-2">Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••"
-            />
+              placeholder="••••••••" />
           </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
-          >
+          {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
+          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold">
             Iniciar Sesión
           </button>
         </form>
 
-        <div className="mt-8 pt-8 border-t">
-          <p className="text-xs text-slate-600 text-center mb-4">Cuentas demo para pruebas:</p>
-          <div className="space-y-2 text-xs text-slate-600">
-            <div><strong>Cliente:</strong> client@tcmc.local / Client123!</div>
-            <div><strong>Asesor:</strong> advisor@tcmc.local / Advisor123!</div>
-            <div><strong>Admin:</strong> admin@tcmc.local / Admin123!</div>
+        <div className="mt-6 pt-6 border-t">
+          <p className="text-xs text-slate-500 text-center mb-3 font-semibold uppercase tracking-wide">Acceso rápido demo</p>
+          <div className="grid grid-cols-1 gap-2">
+            {[
+              { email: 'panchobenegas@gmail.com', label: 'Pancho Benegas', rol: 'super_admin', detail: 'Admin TCMC' },
+              { email: 'director@coldwell.com', label: 'Alejandro Ruiz', rol: 'red_admin', detail: 'Red Coldwell Bankers' },
+              { email: 'jefe.palermo@coldwell.com', label: 'Laura Méndez', rol: 'oficina_admin', detail: 'CB Palermo' },
+              { email: 'maria@coldwell.com', label: 'María Rodríguez', rol: 'agente', detail: 'Agente — CB Palermo' },
+              { email: 'client@tcmc.local', label: 'Cliente Demo', rol: 'cliente', detail: 'Vista cliente' },
+            ].map(u => (
+              <button key={u.email} onClick={() => quickLogin(u.email)}
+                className="flex items-center justify-between px-3 py-2 rounded-lg border hover:bg-slate-50 transition text-left text-sm">
+                <div>
+                  <span className="font-medium">{u.label}</span>
+                  <span className="text-slate-400 ml-2 text-xs">{u.detail}</span>
+                </div>
+                <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${roleColors[u.rol]}`}>
+                  {roleLabels[u.rol]}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -3789,15 +4365,19 @@ const App = () => {
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [userProfile, setUserProfile] = useState(null);
   const [simData, setSimData] = useState(null);
 
-  // SHARED STATE: all loans visible across roles
+  // SHARED STATE
   const [allLoans, setAllLoans] = useState(MOCK_CLIENTS);
+  const [allProfiles, setAllProfiles] = useState(MOCK_PROFILES);
+  const [allOficinas, setAllOficinas] = useState(MOCK_OFICINAS);
 
-  const handleLogin = (email, role, name) => {
+  const handleLogin = (email, role, name, profile) => {
     setUserEmail(email);
     setUserRole(role);
     setUserName(name);
+    setUserProfile(profile);
     setCurrentPage('dashboard');
   };
 
@@ -3806,26 +4386,17 @@ const App = () => {
     setUserRole(null);
     setUserName('');
     setUserEmail('');
+    setUserProfile(null);
     goBackToLanding();
   };
 
-  const handleRoleChange = (role) => {
-    setUserRole(role);
-    setCurrentPage('dashboard');
-    const roleNames = { 'client': 'Cliente Demo', 'advisor': 'Asesor Demo', 'admin': 'Admin Demo' };
-    setUserName(roleNames[role] || 'Usuario');
-  };
-
-  const handleNavigate = (page) => {
-    setCurrentPage(page);
-  };
+  const handleNavigate = (page) => setCurrentPage(page);
 
   const handleAdvanceFromSim = (data) => {
     setSimData(data);
     setCurrentPage('new-request');
   };
 
-  // When client submits a new request, add it to shared state
   const handleNewLoanSubmit = (formData) => {
     const nameParts = userName.split(' ');
     const newLoan = {
@@ -3835,8 +4406,11 @@ const App = () => {
       email: userEmail,
       phone: '11-0000-0000',
       advisor: formData.advisor || 'María Rodríguez',
+      agenteId: null,
+      oficinaId: null,
       stage: 'Solicitud Inicial',
       status: 'Pendiente',
+      createdAt: new Date().toISOString().split('T')[0],
       propertyLink: formData.propertyLink,
       propertyCode: formData.propertyCode || '',
       propertyValue: parseFloat(formData.propertyValue) || 0,
@@ -3867,20 +4441,47 @@ const App = () => {
     setCurrentPage('my-request');
   };
 
-  // Admin/Advisor can update a loan (change stage, add observation, etc.)
   const handleUpdateLoan = (loanId, updates) => {
     setAllLoans(prev => prev.map(loan =>
       loan.id === loanId ? { ...loan, ...updates, lastUpdate: new Date().toLocaleDateString('es-AR') } : loan
     ));
   };
 
+  // ---- ROLE-BASED DATA FILTERING ----
+  const getFilteredLoans = () => {
+    if (!userProfile) return allLoans; // legacy/client fallback
+    switch (userRole) {
+      case 'super_admin':
+        return allLoans; // ve todo
+      case 'red_admin': {
+        // ve loans de agentes de su red
+        const redAgentIds = allProfiles.filter(p => p.redId === userProfile.redId && p.rol === 'agente').map(p => p.id);
+        return allLoans.filter(l => !l.agenteId || redAgentIds.includes(l.agenteId));
+      }
+      case 'oficina_admin': {
+        // ve loans de agentes de su oficina
+        const ofiAgentIds = allProfiles.filter(p => p.oficinaId === userProfile.oficinaId && p.rol === 'agente').map(p => p.id);
+        return allLoans.filter(l => ofiAgentIds.includes(l.agenteId));
+      }
+      case 'agente':
+        // ve solo sus clientes
+        return allLoans.filter(l => l.agenteId === userProfile.id);
+      case 'cliente':
+        return allLoans.filter(l => l.email === userEmail);
+      default:
+        return allLoans;
+    }
+  };
+
+  const filteredLoans = getFilteredLoans();
+
   if (currentPage === 'login') {
     return <LoginPage onLogin={handleLogin} />;
   }
 
   const renderContent = () => {
-    if (userRole === 'client') {
-      // For client view, show their own loan (last one submitted by this email, or mock)
+    // CLIENT views
+    if (userRole === 'cliente') {
       const myLoan = allLoans.find(l => l.email === userEmail) || allLoans[0];
       switch(currentPage) {
         case 'dashboard': return <ClientSimulator onAdvance={handleAdvanceFromSim} />;
@@ -3890,23 +4491,58 @@ const App = () => {
         case 'support': return <ClientSupport />;
         default: return <ClientSimulator onAdvance={handleAdvanceFromSim} />;
       }
-    } else if (userRole === 'advisor') {
+    }
+
+    // AGENTE views (same as old advisor but filtered)
+    if (userRole === 'agente') {
       switch(currentPage) {
-        case 'dashboard': return <AdvisorDashboard loans={allLoans} />;
-        case 'clients': return <AdvisorClients loans={allLoans} onUpdateLoan={handleUpdateLoan} />;
-        case 'pipeline': return <AdvisorPipeline loans={allLoans} />;
-        default: return <AdvisorDashboard loans={allLoans} />;
+        case 'dashboard': return <AdvisorDashboard loans={filteredLoans} />;
+        case 'clients': return <AdvisorClients loans={filteredLoans} onUpdateLoan={handleUpdateLoan} />;
+        case 'pipeline': return <AdvisorPipeline loans={filteredLoans} />;
+        default: return <AdvisorDashboard loans={filteredLoans} />;
       }
-    } else if (userRole === 'admin') {
+    }
+
+    // OFICINA_ADMIN views
+    if (userRole === 'oficina_admin') {
+      switch(currentPage) {
+        case 'dashboard': return <AdvisorDashboard loans={filteredLoans} />;
+        case 'clients': return <AdvisorClients loans={filteredLoans} onUpdateLoan={handleUpdateLoan} />;
+        case 'pipeline': return <AdvisorPipeline loans={filteredLoans} />;
+        case 'reports': return <AdminReports loans={filteredLoans} profiles={allProfiles.filter(p => p.oficinaId === userProfile?.oficinaId)} />;
+        default: return <AdvisorDashboard loans={filteredLoans} />;
+      }
+    }
+
+    // RED_ADMIN views
+    if (userRole === 'red_admin') {
+      switch(currentPage) {
+        case 'dashboard': return <AdminDashboard loans={filteredLoans} />;
+        case 'legajos': return <AdminLegajos loans={filteredLoans} onUpdateLoan={handleUpdateLoan} />;
+        case 'pipeline': return <AdvisorPipeline loans={filteredLoans} />;
+        case 'cobranzas': return <AdminCobranzas loans={filteredLoans} onUpdateLoan={handleUpdateLoan} />;
+        case 'reports': return <AdminReports loans={filteredLoans} profiles={allProfiles.filter(p => p.redId === userProfile?.redId)} />;
+        default: return <AdminDashboard loans={filteredLoans} />;
+      }
+    }
+
+    // SUPER_ADMIN views (full access)
+    if (userRole === 'super_admin') {
       switch(currentPage) {
         case 'dashboard': return <AdminDashboard loans={allLoans} />;
+        case 'usuarios': return <AdminUsuarios profiles={allProfiles} onUpdateProfiles={setAllProfiles} oficinas={allOficinas} />;
+        case 'oficinas': return <AdminOficinas oficinas={allOficinas} onUpdateOficinas={setAllOficinas} profiles={allProfiles} />;
         case 'legajos': return <AdminLegajos loans={allLoans} onUpdateLoan={handleUpdateLoan} />;
+        case 'pipeline': return <AdvisorPipeline loans={allLoans} />;
         case 'cobranzas': return <AdminCobranzas loans={allLoans} onUpdateLoan={handleUpdateLoan} />;
-        case 'reports': return <AdminReports loans={allLoans} />;
+        case 'reports': return <AdminReports loans={allLoans} profiles={allProfiles} />;
         case 'config': return <AdminConfig />;
         default: return <AdminDashboard loans={allLoans} />;
       }
     }
+
+    // Fallback
+    return <div className="p-6 text-slate-500">Rol no reconocido: {userRole}</div>;
   };
 
   return (
@@ -3918,7 +4554,7 @@ const App = () => {
         currentPage={currentPage}
         onNavigate={handleNavigate}
         onLogout={handleLogout}
-        onRoleChange={handleRoleChange}
+        userProfile={userProfile}
       />
 
       <main className="flex-1 overflow-auto ml-64">
