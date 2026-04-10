@@ -1282,6 +1282,7 @@ const Calendar = createIconComponent('<rect x="3" y="4" width="18" height="18" r
 const XCircle = createIconComponent('<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>');
 const ChevronUp = createIconComponent('<polyline points="18 15 12 9 6 15"></polyline>');
 const Banknote = createIconComponent('<rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path>');
+const Bell = createIconComponent('<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>');
 
 // Payment schedule generator
 const STAGES_ALL = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura', 'Finalizado', 'Rechazado'];
@@ -1400,10 +1401,13 @@ const MOCK_CLIENTS = [
     agenteId: 'usr005',
     oficinaId: 'ofi001',
     propertyLink: 'https://example.com/property/001',
+    propertyAddress: 'Av. Libertador 4200, Palermo, CABA',
     propertyValue: 150000,
     offeredValue: 148000,
     loanAmount: 45000,
     months: 36,
+    escrituraDoc: null,
+    hipotecaDoc: null,
     documents: [
       { name: 'DNI Frente', status: 'Aprobado', date: '2025-10-16' },
       { name: 'DNI Dorso', status: 'Aprobado', date: '2025-10-16' },
@@ -1433,10 +1437,13 @@ const MOCK_CLIENTS = [
     agenteId: 'usr006',
     oficinaId: 'ofi001',
     propertyLink: 'https://example.com/property/002',
+    propertyAddress: 'Av. Cabildo 1500, Belgrano, CABA',
     propertyValue: 200000,
     offeredValue: 195000,
     loanAmount: 60000,
     months: 48,
+    escrituraDoc: null,
+    hipotecaDoc: null,
     documents: [
       { name: 'DNI Frente', status: 'Aprobado', date: '2025-09-21' },
       { name: 'DNI Dorso', status: 'Aprobado', date: '2025-09-21' },
@@ -1459,10 +1466,13 @@ const MOCK_CLIENTS = [
     agenteId: 'usr007',
     oficinaId: 'ofi002',
     propertyLink: 'https://example.com/property/003',
+    propertyAddress: 'Juncal 2800, Recoleta, CABA',
     propertyValue: 120000,
     offeredValue: 118000,
     loanAmount: 35000,
     months: 36,
+    escrituraDoc: null,
+    hipotecaDoc: null,
     documents: [
       { name: 'DNI Frente', status: 'Aprobado', date: '2025-11-05' },
       { name: 'DNI Dorso', status: 'Pendiente', date: null },
@@ -1485,10 +1495,13 @@ const MOCK_CLIENTS = [
     agenteId: 'usr005',
     oficinaId: 'ofi001',
     propertyLink: 'https://example.com/property/004',
+    propertyAddress: 'Av. Santa Fe 3200, Palermo, CABA',
     propertyValue: 180000,
     offeredValue: 175000,
     loanAmount: 50000,
     months: 60,
+    escrituraDoc: null,
+    hipotecaDoc: null,
     documents: [],
     observations: [],
   },
@@ -1529,6 +1542,7 @@ const Sidebar = ({ userRole, userName, userEmail, currentPage, onNavigate, onLog
       { id: 'legajos', label: 'Gestión de Legajos', icon: FileText },
       { id: 'pipeline', label: 'Pipeline', icon: TrendingUp },
       { id: 'cobranzas', label: 'Cobranzas', icon: Banknote },
+      { id: 'legajos-finalizados', label: 'Leg. Finalizados', icon: CheckCircle },
       { id: 'reports', label: 'Reportes', icon: BarChart3 },
     ],
     super_admin: [
@@ -1538,6 +1552,7 @@ const Sidebar = ({ userRole, userName, userEmail, currentPage, onNavigate, onLog
       { id: 'legajos', label: 'Gestión de Legajos', icon: FileText },
       { id: 'pipeline', label: 'Pipeline', icon: TrendingUp },
       { id: 'cobranzas', label: 'Cobranzas', icon: Banknote },
+      { id: 'legajos-finalizados', label: 'Leg. Finalizados', icon: CheckCircle },
       { id: 'reports', label: 'Reportes', icon: BarChart3 },
       { id: 'config', label: 'Configuración', icon: Settings },
     ],
@@ -1766,6 +1781,7 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
     // Step 2 - pre-filled from simulator if available
     propertyLink: '',
     propertyCode: '',
+    propertyAddress: '',
     propertyValue: prefill ? String(prefill.propertyValue) : '',
     offeredValue: '',
     loanAmount: prefill ? String(prefill.loanAmount) : '',
@@ -1817,6 +1833,7 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
           comprobanteDomicilio: null,
           propertyLink: '',
           propertyCode: '',
+          propertyAddress: '',
           propertyValue: '',
           offeredValue: '',
           loanAmount: '',
@@ -2023,6 +2040,17 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
                     <span>Propiedad vinculada: <strong>{formData.propertyCode}</strong></span>
                   </div>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Dirección del inmueble *</label>
+                <input
+                  type="text"
+                  placeholder="Calle, número, piso/depto, localidad, provincia"
+                  value={formData.propertyAddress}
+                  onChange={(e) => handleInputChange('propertyAddress', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2832,7 +2860,16 @@ const AdvisorClients = ({ loans, onUpdateLoan }) => {
                 <td className="px-6 py-4 text-sm text-slate-600">${(client.offeredValue || client.propertyValue || 0).toLocaleString()}</td>
                 <td className="px-6 py-4 text-sm text-right font-semibold">{formatCurrency(client.loanAmount)}</td>
                 <td className="px-6 py-4 text-sm">
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                    client.stage === 'Finalizado' ? 'bg-green-100 text-green-700' :
+                    client.stage === 'Rechazado' ? 'bg-red-100 text-red-700' :
+                    client.stage === 'Scoring' ? 'bg-amber-100 text-amber-700' :
+                    client.stage === 'Pre Aprobación' ? 'bg-blue-100 text-blue-700' :
+                    client.stage === 'Escribanía' ? 'bg-purple-100 text-purple-700' :
+                    client.stage === 'Aprobación' ? 'bg-indigo-100 text-indigo-700' :
+                    client.stage === 'Escritura' ? 'bg-cyan-100 text-cyan-700' :
+                    'bg-slate-100 text-slate-700'
+                  }`}>
                     {client.stage}
                   </span>
                 </td>
@@ -2903,7 +2940,7 @@ const AdminDashboard = ({ loans }) => {
   const data = loans || MOCK_CLIENTS;
   const totalClients = data.length;
   const totalVolume = data.reduce((sum, c) => sum + c.loanAmount, 0);
-  const approvedCount = data.filter(c => c.stage === 'Escritura').length;
+  const approvedCount = data.filter(c => ['Escritura', 'Finalizado'].includes(c.stage)).length;
   const stageCount = {};
 
   data.forEach(c => {
@@ -3429,7 +3466,16 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
                 <td className="px-6 py-4 text-sm text-right">${client.offeredValue.toLocaleString()}</td>
                 <td className="px-6 py-4 text-sm text-right font-semibold">{formatCurrency(client.loanAmount)}</td>
                 <td className="px-6 py-4 text-sm">
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                    client.stage === 'Finalizado' ? 'bg-green-100 text-green-700' :
+                    client.stage === 'Rechazado' ? 'bg-red-100 text-red-700' :
+                    client.stage === 'Scoring' ? 'bg-amber-100 text-amber-700' :
+                    client.stage === 'Pre Aprobación' ? 'bg-blue-100 text-blue-700' :
+                    client.stage === 'Escribanía' ? 'bg-purple-100 text-purple-700' :
+                    client.stage === 'Aprobación' ? 'bg-indigo-100 text-indigo-700' :
+                    client.stage === 'Escritura' ? 'bg-cyan-100 text-cyan-700' :
+                    'bg-slate-100 text-slate-700'
+                  }`}>
                     {client.stage}
                   </span>
                 </td>
@@ -3444,7 +3490,7 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
       {/* Legajo Detail Modal */}
       {selectedClient && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-lg max-w-5xl w-full max-h-[80vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between z-10">
               <h2 className="text-2xl font-bold">{selectedClient.nombre || selectedClient.name} {selectedClient.apellido || ''}</h2>
               <button onClick={() => setSelectedClient(null)} className="text-slate-400 hover:text-slate-600">
@@ -3483,6 +3529,13 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
                   <div className="font-semibold">{formatCurrency(selectedClient.offeredValue)}</div>
                 </div>
               </div>
+
+              {selectedClient.propertyAddress && (
+                <div className="text-sm">
+                  <span className="text-slate-600">Dirección del inmueble:</span>
+                  <div className="font-semibold flex items-center gap-1"><MapPin size={14} className="text-slate-400" />{selectedClient.propertyAddress}</div>
+                </div>
+              )}
 
               {(selectedClient.propertyLink || selectedClient.propertyCode) && (
                 <div className="text-sm space-y-1">
@@ -3910,6 +3963,421 @@ const AdminCobranzas = ({ loans, onUpdateLoan }) => {
                 </tr>
               </tfoot>
             </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// ADMIN - LEGAJOS FINALIZADOS (with CRM modal)
+// ============================================================================
+
+const AdminLegajosFinalizados = ({ loans, onUpdateLoan, profiles }) => {
+  const [selectedLoan, setSelectedLoan] = useState(null);
+  const [sortField, setSortField] = useState('nombre');
+  const [sortDir, setSortDir] = useState('asc');
+  const [filterText, setFilterText] = useState('');
+  const [filterEstado, setFilterEstado] = useState('');
+  const [newObservation, setNewObservation] = useState('');
+
+  const getEstadoLoan = (loan) => {
+    const today = new Date();
+    const vencidas = (loan.payments || []).filter(p => {
+      if (p.status === 'Pagado') return false;
+      return new Date(p.dueDate) < today;
+    });
+    if (vencidas.length === 0) return { label: 'Al día', color: 'bg-green-100 text-green-700', key: 'aldia' };
+    const maxDaysLate = Math.max(...vencidas.map(p =>
+      Math.floor((today - new Date(p.dueDate)) / (1000*60*60*24))
+    ));
+    if (maxDaysLate <= 5) return { label: `Atraso ${maxDaysLate}d`, color: 'bg-amber-100 text-amber-700', key: 'atraso5' };
+    return { label: `Atraso ${maxDaysLate}d`, color: 'bg-red-100 text-red-700', key: 'atraso5plus' };
+  };
+
+  const finalized = useMemo(() => {
+    return (loans || MOCK_CLIENTS).filter(l => l.stage === 'Finalizado' && l.payments && l.payments.length > 0);
+  }, [loans]);
+
+  const enriched = useMemo(() => {
+    return finalized.map(loan => {
+      const totalQ = loan.payments.length;
+      const totalUSD = loan.payments.reduce((s, p) => s + p.amount, 0);
+      const pendientes = loan.payments.filter(p => p.status !== 'Pagado');
+      const pendQ = pendientes.length;
+      const pendUSD = pendientes.reduce((s, p) => s + p.amount, 0);
+      const estado = getEstadoLoan(loan);
+      return { ...loan, totalQ, totalUSD, pendQ, pendUSD, estado };
+    });
+  }, [finalized]);
+
+  const filtered = useMemo(() => {
+    let result = enriched;
+    if (filterText) {
+      const ft = filterText.toLowerCase();
+      result = result.filter(l =>
+        ((l.nombre || '') + ' ' + (l.apellido || '')).toLowerCase().includes(ft) ||
+        (l.propertyAddress || '').toLowerCase().includes(ft)
+      );
+    }
+    if (filterEstado) {
+      result = result.filter(l => l.estado.key === filterEstado);
+    }
+    // Sort
+    result = [...result].sort((a, b) => {
+      let va, vb;
+      switch(sortField) {
+        case 'nombre': va = (a.nombre+' '+a.apellido).toLowerCase(); vb = (b.nombre+' '+b.apellido).toLowerCase(); break;
+        case 'propertyAddress': va = (a.propertyAddress||'').toLowerCase(); vb = (b.propertyAddress||'').toLowerCase(); break;
+        case 'loanAmount': va = a.loanAmount; vb = b.loanAmount; break;
+        case 'offeredValue': va = a.offeredValue; vb = b.offeredValue; break;
+        case 'totalQ': va = a.totalQ; vb = b.totalQ; break;
+        case 'totalUSD': va = a.totalUSD; vb = b.totalUSD; break;
+        case 'pendQ': va = a.pendQ; vb = b.pendQ; break;
+        case 'pendUSD': va = a.pendUSD; vb = b.pendUSD; break;
+        case 'estado': va = a.estado.key; vb = b.estado.key; break;
+        default: va = a.nombre; vb = b.nombre;
+      }
+      if (va < vb) return sortDir === 'asc' ? -1 : 1;
+      if (va > vb) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return result;
+  }, [enriched, filterText, filterEstado, sortField, sortDir]);
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+  };
+
+  const SortIcon = ({ field }) => {
+    if (sortField !== field) return React.createElement('span', { className: 'text-slate-300 ml-1' }, '↕');
+    return React.createElement('span', { className: 'ml-1' }, sortDir === 'asc' ? '↑' : '↓');
+  };
+
+  const exportCSV = () => {
+    const headers = ['Tomador','Dir. Inmueble','Monto Tomado','Valor Compra','Total Cuotas (Q)','Total Cuotas (USD)','Cuotas Pend (Q)','Cuotas Pend (USD)','Estado'];
+    const rows = filtered.map(l => [
+      l.nombre + ' ' + l.apellido, l.propertyAddress || '', l.loanAmount, l.offeredValue,
+      l.totalQ, l.totalUSD.toFixed(2), l.pendQ, l.pendUSD.toFixed(2), l.estado.label
+    ]);
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'legajos_finalizados_tcmc.csv'; a.click();
+  };
+
+  const exportExcel = () => {
+    const data = filtered.map(l => ({
+      'Tomador': l.nombre + ' ' + l.apellido, 'Dir. Inmueble': l.propertyAddress || '',
+      'Monto Tomado': l.loanAmount, 'Valor Compra': l.offeredValue,
+      'Total Cuotas (Q)': l.totalQ, 'Total Cuotas (USD)': l.totalUSD,
+      'Cuotas Pend (Q)': l.pendQ, 'Cuotas Pend (USD)': l.pendUSD, 'Estado': l.estado.label,
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leg. Finalizados');
+    XLSX.writeFile(wb, 'legajos_finalizados_tcmc.xlsx');
+  };
+
+  const handleUploadDoc = (tipo) => {
+    const docData = {
+      name: `${tipo}_${selectedLoan.id}.pdf`,
+      date: new Date().toLocaleDateString('es-AR'),
+    };
+    const field = tipo === 'escritura' ? 'escrituraDoc' : 'hipotecaDoc';
+    if (onUpdateLoan) onUpdateLoan(selectedLoan.id, { [field]: docData });
+    setSelectedLoan(prev => ({ ...prev, [field]: docData }));
+  };
+
+  const handleAddObservation = () => {
+    if (!newObservation.trim() || !selectedLoan) return;
+    const updatedObs = [...(selectedLoan.observations || []), {
+      date: new Date().toLocaleDateString('es-AR'),
+      text: newObservation.trim(),
+      by: 'Admin'
+    }];
+    if (onUpdateLoan) onUpdateLoan(selectedLoan.id, { observations: updatedObs });
+    setSelectedLoan(prev => ({ ...prev, observations: updatedObs }));
+    setNewObservation('');
+  };
+
+  const cellClass = "px-3 py-2.5 text-sm";
+  const headerClass = "px-3 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide cursor-pointer hover:bg-slate-100 select-none";
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-3xl font-bold">Legajos Finalizados</h1>
+        <div className="flex gap-2">
+          <button onClick={exportCSV} className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center gap-1">
+            <Download size={14} /> CSV
+          </button>
+          <button onClick={exportExcel} className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1">
+            <Download size={14} /> Excel
+          </button>
+        </div>
+      </div>
+      <p className="text-slate-500 text-sm mb-4">{finalized.length} créditos finalizados</p>
+
+      <div className="flex gap-3 mb-4 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar por tomador o dirección..."
+            value={filterText}
+            onChange={e => setFilterText(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          <option value="">Todos los estados</option>
+          <option value="aldia">Al día</option>
+          <option value="atraso5">Atraso ≤5 días</option>
+          <option value="atraso5plus">Atraso &gt;5 días</option>
+        </select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="bg-slate-50 rounded-lg p-8 text-center text-slate-500">No hay legajos finalizados que coincidan con los filtros.</div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b">
+                <tr>
+                  <th className={headerClass + " text-left"} onClick={() => handleSort('nombre')}>Tomador<SortIcon field="nombre" /></th>
+                  <th className={headerClass + " text-left"} onClick={() => handleSort('propertyAddress')}>Dir. Inmueble<SortIcon field="propertyAddress" /></th>
+                  <th className={headerClass + " text-right"} onClick={() => handleSort('loanAmount')}>Monto Tomado<SortIcon field="loanAmount" /></th>
+                  <th className={headerClass + " text-right"} onClick={() => handleSort('offeredValue')}>Valor Compra<SortIcon field="offeredValue" /></th>
+                  <th className={headerClass + " text-right"} onClick={() => handleSort('totalQ')}>Cuotas (Q)<SortIcon field="totalQ" /></th>
+                  <th className={headerClass + " text-right"} onClick={() => handleSort('totalUSD')}>Cuotas (USD)<SortIcon field="totalUSD" /></th>
+                  <th className={headerClass + " text-right"} onClick={() => handleSort('pendQ')}>Pend. (Q)<SortIcon field="pendQ" /></th>
+                  <th className={headerClass + " text-right"} onClick={() => handleSort('pendUSD')}>Pend. (USD)<SortIcon field="pendUSD" /></th>
+                  <th className={headerClass + " text-center"} onClick={() => handleSort('estado')}>Estado<SortIcon field="estado" /></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(loan => (
+                  <tr key={loan.id} className="border-t border-gray-100 hover:bg-blue-50 cursor-pointer transition"
+                    onClick={() => setSelectedLoan(loan)}>
+                    <td className={cellClass + " font-semibold"}>{loan.nombre} {loan.apellido}</td>
+                    <td className={cellClass + " text-slate-600"}>{loan.propertyAddress || '—'}</td>
+                    <td className={cellClass + " text-right font-medium"}>{formatCurrency(loan.loanAmount)}</td>
+                    <td className={cellClass + " text-right"}>{formatCurrency(loan.offeredValue)}</td>
+                    <td className={cellClass + " text-right"}>{loan.totalQ}</td>
+                    <td className={cellClass + " text-right"}>{formatCurrency(loan.totalUSD)}</td>
+                    <td className={cellClass + " text-right font-medium"}>{loan.pendQ}</td>
+                    <td className={cellClass + " text-right font-medium"}>{formatCurrency(loan.pendUSD)}</td>
+                    <td className={cellClass + " text-center"}>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${loan.estado.color}`}>{loan.estado.label}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ============ MODAL CRM DEL LEGAJO ============ */}
+      {selectedLoan && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-5xl w-full max-h-[85vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between z-10">
+              <div>
+                <h2 className="text-2xl font-bold">{selectedLoan.nombre} {selectedLoan.apellido}</h2>
+                <p className="text-sm text-slate-500">Legajo {selectedLoan.id} — {selectedLoan.stage}</p>
+              </div>
+              <button onClick={() => { setSelectedLoan(null); setNewObservation(''); }} className="text-slate-400 hover:text-slate-600">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* SECCION 1: Datos del Cliente */}
+              <div>
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3">Datos del Cliente</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                  <div><span className="text-slate-500">Nombre completo</span><div className="font-semibold">{selectedLoan.nombre} {selectedLoan.apellido}</div></div>
+                  <div><span className="text-slate-500">DNI</span><div className="font-semibold">{selectedLoan.dni || '—'}</div></div>
+                  <div><span className="text-slate-500">Email</span><div className="font-semibold">{selectedLoan.email}</div></div>
+                  <div><span className="text-slate-500">Teléfono</span><div className="font-semibold">{selectedLoan.phone}</div></div>
+                  <div><span className="text-slate-500">Asesor</span><div className="font-semibold">{selectedLoan.advisor}</div></div>
+                  <div><span className="text-slate-500">Fecha de inicio</span><div className="font-semibold">{selectedLoan.createdAt}</div></div>
+                </div>
+              </div>
+
+              {/* SECCION 2: Datos del Inmueble */}
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3">Datos del Inmueble</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                  <div className="col-span-2 md:col-span-3">
+                    <span className="text-slate-500">Dirección</span>
+                    <div className="font-semibold flex items-center gap-1"><MapPin size={14} className="text-slate-400" />{selectedLoan.propertyAddress || '—'}</div>
+                  </div>
+                  <div><span className="text-slate-500">Valor de compra</span><div className="font-semibold">{formatCurrency(selectedLoan.offeredValue)}</div></div>
+                  <div><span className="text-slate-500">Valor publicado</span><div className="font-semibold text-slate-400">{formatCurrency(selectedLoan.propertyValue)}</div></div>
+                  <div><span className="text-slate-500">LTV</span><div className="font-semibold">{selectedLoan.offeredValue ? ((selectedLoan.loanAmount / selectedLoan.offeredValue) * 100).toFixed(1) + '%' : '—'}</div></div>
+                  {selectedLoan.propertyLink && (
+                    <div className="col-span-2 md:col-span-3">
+                      <span className="text-slate-500">Link propiedad</span>
+                      <div><a href={selectedLoan.propertyLink} target="_blank" rel="noopener" className="text-blue-600 hover:underline text-sm">{selectedLoan.propertyLink}</a></div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* SECCION 3: Datos del Préstamo */}
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3">Datos del Préstamo</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                  <div><span className="text-slate-500">Monto tomado</span><div className="font-semibold text-lg">{formatCurrency(selectedLoan.loanAmount)}</div></div>
+                  <div><span className="text-slate-500">Plazo</span><div className="font-semibold">{selectedLoan.months} meses</div></div>
+                  <div><span className="text-slate-500">Cuota mensual</span><div className="font-semibold">{selectedLoan.payments && selectedLoan.payments.length > 0 ? formatCurrency(selectedLoan.payments[0].amount) : '—'}</div></div>
+                  <div><span className="text-slate-500">Tasa anual</span><div className="font-semibold">{(getTasaForMonths(selectedLoan.months || 36) * 100).toFixed(1)}%</div></div>
+                  <div><span className="text-slate-500">Fecha de escritura</span><div className="font-semibold">{selectedLoan.fechaEscritura || '—'}</div></div>
+                  <div><span className="text-slate-500">Monto bruto</span><div className="font-semibold">{formatCurrency(calcularBruto(selectedLoan.loanAmount))}</div></div>
+                </div>
+              </div>
+
+              {/* SECCION 4: Documentos Post-Finalización */}
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3">Documentos</h3>
+                <div className="space-y-2 mb-4">
+                  {(selectedLoan.documents || []).map((doc, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-sm p-2 hover:bg-slate-50 rounded">
+                      <span className="flex items-center gap-2"><FileText size={14} className="text-slate-400" />{doc.name}</span>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                        doc.status === 'Aprobado' ? 'bg-green-100 text-green-700' :
+                        doc.status === 'Observado' ? 'bg-amber-100 text-amber-700' :
+                        'bg-slate-100 text-slate-600'
+                      }`}>{doc.status}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <h4 className="text-sm font-semibold text-slate-700 mb-3">Documentos Post-Finalización</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileText size={16} className="text-blue-600" />
+                      <span className="text-sm font-medium">Escritura</span>
+                    </div>
+                    {selectedLoan.escrituraDoc ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500">{selectedLoan.escrituraDoc.name}</span>
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-semibold">Cargada — {selectedLoan.escrituraDoc.date}</span>
+                      </div>
+                    ) : (
+                      <button onClick={() => handleUploadDoc('escritura')}
+                        className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 flex items-center gap-1 font-medium">
+                        <Upload size={12} /> Cargar Escritura
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileText size={16} className="text-purple-600" />
+                      <span className="text-sm font-medium">Hipoteca</span>
+                    </div>
+                    {selectedLoan.hipotecaDoc ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500">{selectedLoan.hipotecaDoc.name}</span>
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-semibold">Cargada — {selectedLoan.hipotecaDoc.date}</span>
+                      </div>
+                    ) : (
+                      <button onClick={() => handleUploadDoc('hipoteca')}
+                        className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded hover:bg-purple-700 flex items-center gap-1 font-medium">
+                        <Upload size={12} /> Cargar Hipoteca
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* SECCION 5: Historial de Pagos */}
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3">Historial de Pagos</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-slate-500 border-b">
+                        <th className="text-left py-2 px-2">Cuota</th>
+                        <th className="text-left py-2 px-2">Vencimiento</th>
+                        <th className="text-right py-2 px-2">Monto</th>
+                        <th className="text-left py-2 px-2">Estado</th>
+                        <th className="text-left py-2 px-2">Info de Pago</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(selectedLoan.payments || []).map((p, i) => (
+                        <tr key={i} className="border-t border-gray-100">
+                          <td className="py-1.5 px-2 font-medium">#{p.number}</td>
+                          <td className="py-1.5 px-2">{p.dueDate}</td>
+                          <td className="py-1.5 px-2 text-right font-medium">{formatCurrency(p.amount)}</td>
+                          <td className="py-1.5 px-2">
+                            <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
+                              p.status === 'Pagado' ? 'bg-green-100 text-green-700' :
+                              p.status === 'Informado' ? 'bg-blue-100 text-blue-700' :
+                              new Date(p.dueDate) < new Date() ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>{new Date(p.dueDate) < new Date() && p.status === 'Pendiente' ? 'Vencido' : p.status}</span>
+                          </td>
+                          <td className="py-1.5 px-2 text-slate-500">
+                            {p.pagoInfo ? `${p.pagoInfo.fecha} — ${p.pagoInfo.banco}` : p.comprobante ? `Comp: ${p.comprobante}` : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* SECCION 6: Observaciones */}
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3">Observaciones</h3>
+                <div className="flex gap-2 mb-3">
+                  <textarea
+                    value={newObservation}
+                    onChange={(e) => setNewObservation(e.target.value)}
+                    placeholder="Agregar observación..."
+                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm resize-none"
+                    rows="2"
+                  ></textarea>
+                  <button onClick={handleAddObservation}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium self-end">
+                    Agregar
+                  </button>
+                </div>
+                {(selectedLoan.observations || []).length > 0 && (
+                  <div className="space-y-2">
+                    {selectedLoan.observations.map((obs, idx) => (
+                      <div key={idx} className="text-sm bg-amber-50 border border-amber-200 rounded p-3">
+                        <div className="text-xs text-slate-500 mb-1">{typeof obs === 'string' ? '' : obs.date} {typeof obs === 'string' ? '' : `— ${obs.by}`}</div>
+                        <div>{typeof obs === 'string' ? obs : obs.text}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t p-4 bg-slate-50 sticky bottom-0 flex justify-end">
+              <button
+                onClick={() => { setSelectedLoan(null); setNewObservation(''); }}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-100 transition font-medium"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -4357,6 +4825,96 @@ const LoginPage = ({ onLogin }) => {
 };
 
 // ============================================================================
+// NOTIFICATION BELL COMPONENT
+// ============================================================================
+
+const NotificationBell = ({ notifications, onMarkRead, onMarkAllRead }) => {
+  const [open, setOpen] = useState(false);
+  const unread = notifications.filter(n => !n.read);
+
+  const typeIcons = {
+    new_request: { bg: 'bg-blue-100', color: 'text-blue-600', label: 'Nueva solicitud' },
+    stage_change: { bg: 'bg-purple-100', color: 'text-purple-600', label: 'Cambio de etapa' },
+    info_request: { bg: 'bg-amber-100', color: 'text-amber-600', label: 'Observación' },
+    payment_due: { bg: 'bg-red-100', color: 'text-red-600', label: 'Cuota por vencer' },
+  };
+
+  const formatTime = (iso) => {
+    const d = new Date(iso);
+    const now = new Date();
+    const diffMin = Math.floor((now - d) / 60000);
+    if (diffMin < 1) return 'Ahora';
+    if (diffMin < 60) return `Hace ${diffMin}m`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `Hace ${diffH}h`;
+    return d.toLocaleDateString('es-AR');
+  };
+
+  return (
+    <div className="relative">
+      <button onClick={() => setOpen(!open)} className="relative p-2 hover:bg-slate-200 rounded-lg transition">
+        <Bell size={20} className="text-slate-600" />
+        {unread.length > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold animate-pulse">
+            {unread.length > 9 ? '9+' : unread.length}
+          </span>
+        )}
+      </button>
+      {open && (
+        <React.Fragment>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}></div>
+          <div className="absolute right-0 top-12 w-96 bg-white rounded-lg shadow-xl border z-50 max-h-[28rem] flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <h3 className="font-bold text-sm">Notificaciones</h3>
+              {unread.length > 0 && (
+                <button onClick={() => { onMarkAllRead(); }} className="text-xs text-blue-600 hover:underline font-medium">
+                  Marcar todas como leídas
+                </button>
+              )}
+            </div>
+            <div className="overflow-y-auto flex-1">
+              {notifications.length === 0 ? (
+                <div className="p-6 text-center text-slate-400 text-sm">No hay notificaciones</div>
+              ) : (
+                notifications.slice(0, 20).map(n => {
+                  const t = typeIcons[n.type] || typeIcons.new_request;
+                  return (
+                    <div key={n.id}
+                      className={`px-4 py-3 border-b border-gray-50 hover:bg-slate-50 cursor-pointer transition ${!n.read ? 'bg-blue-50/50' : ''}`}
+                      onClick={() => onMarkRead(n.id)}>
+                      <div className="flex items-start gap-3">
+                        <div className={`w-8 h-8 rounded-full ${t.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                          <Bell size={14} className={t.color} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-xs font-semibold ${t.color}`}>{t.label}</span>
+                            <span className="text-xs text-slate-400">{formatTime(n.createdAt)}</span>
+                          </div>
+                          <div className="text-sm font-medium text-slate-800 mt-0.5">{n.title}</div>
+                          <div className="text-xs text-slate-500 mt-0.5 truncate">{n.message}</div>
+                          {n.channel === 'both' && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <Mail size={10} className="text-slate-300" />
+                              <span className="text-xs text-slate-300">+ email</span>
+                            </div>
+                          )}
+                        </div>
+                        {!n.read && <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-2"></div>}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </React.Fragment>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
 // MAIN APP COMPONENT
 // ============================================================================
 
@@ -4372,6 +4930,42 @@ const App = () => {
   const [allLoans, setAllLoans] = useState(MOCK_CLIENTS);
   const [allProfiles, setAllProfiles] = useState(MOCK_PROFILES);
   const [allOficinas, setAllOficinas] = useState(MOCK_OFICINAS);
+  const [notifications, setNotifications] = useState([]);
+  const [notifSentKeys, setNotifSentKeys] = useState(new Set());
+
+  const addNotification = (type, loanId, title, message, channel) => {
+    setNotifications(prev => [{
+      id: 'notif_' + Date.now() + '_' + Math.random().toString(36).substr(2,4),
+      type, loanId, title, message, channel,
+      createdAt: new Date().toISOString(),
+      read: false
+    }, ...prev]);
+  };
+
+  // TRIGGER D: Cuotas próximas a vencer (7 días antes)
+  React.useEffect(() => {
+    const today = new Date();
+    allLoans.filter(l => l.stage === 'Finalizado' && l.payments).forEach(loan => {
+      loan.payments.forEach(p => {
+        if (p.status === 'Pendiente') {
+          const due = new Date(p.dueDate);
+          const daysUntil = Math.floor((due - today) / (1000*60*60*24));
+          if (daysUntil >= 0 && daysUntil <= 7) {
+            const notifKey = `payment_due_${loan.id}_${p.number}`;
+            if (!notifSentKeys.has(notifKey)) {
+              setNotifSentKeys(prev => new Set([...prev, notifKey]));
+              addNotification(
+                'payment_due', loan.id,
+                'Cuota Próxima a Vencer',
+                `Cuota #${p.number} de ${loan.nombre} ${loan.apellido} por ${formatCurrency(p.amount)} vence el ${p.dueDate}`,
+                'both'
+              );
+            }
+          }
+        }
+      });
+    });
+  }, [allLoans]);
 
   const handleLogin = (email, role, name, profile) => {
     setUserEmail(email);
@@ -4412,7 +5006,10 @@ const App = () => {
       status: 'Pendiente',
       createdAt: new Date().toISOString().split('T')[0],
       propertyLink: formData.propertyLink,
+      propertyAddress: formData.propertyAddress || '',
       propertyCode: formData.propertyCode || '',
+      escrituraDoc: null,
+      hipotecaDoc: null,
       propertyValue: parseFloat(formData.propertyValue) || 0,
       offeredValue: parseFloat(formData.offeredValue) || 0,
       loanAmount: parseFloat(formData.loanAmount) || 0,
@@ -4438,13 +5035,41 @@ const App = () => {
       payments: [],
     };
     setAllLoans(prev => [...prev, newLoan]);
+    // TRIGGER A: Solicitud nueva
+    addNotification(
+      'new_request', newLoan.id,
+      'Nueva Solicitud de Crédito',
+      `${newLoan.nombre} ${newLoan.apellido} solicitó ${formatCurrency(newLoan.loanAmount)} a ${newLoan.months} meses para ${newLoan.propertyAddress || 'inmueble sin dirección'}`,
+      'both'
+    );
     setCurrentPage('my-request');
   };
 
   const handleUpdateLoan = (loanId, updates) => {
+    const prevLoan = allLoans.find(l => l.id === loanId);
     setAllLoans(prev => prev.map(loan =>
       loan.id === loanId ? { ...loan, ...updates, lastUpdate: new Date().toLocaleDateString('es-AR') } : loan
     ));
+    if (prevLoan) {
+      // TRIGGER B: Cambio de estado
+      if (updates.stage && updates.stage !== prevLoan.stage) {
+        addNotification(
+          'stage_change', loanId,
+          'Cambio de Etapa',
+          `Legajo ${prevLoan.nombre} ${prevLoan.apellido}: ${prevLoan.stage} → ${updates.stage}`,
+          'both'
+        );
+      }
+      // TRIGGER C: Pedido de información (nueva observación)
+      if (updates.observations && updates.observations.length > (prevLoan.observations || []).length) {
+        addNotification(
+          'info_request', loanId,
+          'Nueva Observación',
+          `Se agregó una observación al legajo de ${prevLoan.nombre} ${prevLoan.apellido}`,
+          'both'
+        );
+      }
+    }
   };
 
   // ---- ROLE-BASED DATA FILTERING ----
@@ -4521,6 +5146,7 @@ const App = () => {
         case 'legajos': return <AdminLegajos loans={filteredLoans} onUpdateLoan={handleUpdateLoan} />;
         case 'pipeline': return <AdvisorPipeline loans={filteredLoans} />;
         case 'cobranzas': return <AdminCobranzas loans={filteredLoans} onUpdateLoan={handleUpdateLoan} />;
+        case 'legajos-finalizados': return <AdminLegajosFinalizados loans={filteredLoans} onUpdateLoan={handleUpdateLoan} profiles={allProfiles} />;
         case 'reports': return <AdminReports loans={filteredLoans} profiles={allProfiles.filter(p => p.redId === userProfile?.redId)} />;
         default: return <AdminDashboard loans={filteredLoans} />;
       }
@@ -4535,6 +5161,7 @@ const App = () => {
         case 'legajos': return <AdminLegajos loans={allLoans} onUpdateLoan={handleUpdateLoan} />;
         case 'pipeline': return <AdvisorPipeline loans={allLoans} />;
         case 'cobranzas': return <AdminCobranzas loans={allLoans} onUpdateLoan={handleUpdateLoan} />;
+        case 'legajos-finalizados': return <AdminLegajosFinalizados loans={allLoans} onUpdateLoan={handleUpdateLoan} profiles={allProfiles} />;
         case 'reports': return <AdminReports loans={allLoans} profiles={allProfiles} />;
         case 'config': return <AdminConfig />;
         default: return <AdminDashboard loans={allLoans} />;
@@ -4557,8 +5184,18 @@ const App = () => {
         userProfile={userProfile}
       />
 
-      <main className="flex-1 overflow-auto ml-64">
-        {renderContent()}
+      <main className="flex-1 overflow-auto ml-64 flex flex-col">
+        <div className="sticky top-0 z-30 bg-white border-b px-6 py-2 flex items-center justify-end gap-3">
+          <span className="text-xs text-slate-400 mr-auto">{ROLE_LABELS[userRole] || userRole}</span>
+          <NotificationBell
+            notifications={notifications}
+            onMarkRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
+            onMarkAllRead={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
+          />
+        </div>
+        <div className="flex-1">
+          {renderContent()}
+        </div>
       </main>
     </div>
   );
