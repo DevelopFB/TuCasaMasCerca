@@ -474,8 +474,15 @@
 
         <div class="hero-inner">
             <div class="hero-copy">
-                <h1 class="hero-title">Tu casa está <span class="brand-accent">+Cerca</span> de lo que creés</h1>
-                <p class="hero-subtitle">Simulá tu préstamo en minutos y conocé cuánto podés financiar hoy.</p>
+                <h1 class="hero-title">
+    Tu casa está<br>
+    <span class="brand-accent">+Cerca</span> de<br>
+    lo que creés
+</h1>
+                <p class="hero-subtitle">
+    Simulá tu préstamo en minutos y<br>
+    conocé cuánto podés financiar hoy.
+</p>
 
                 <div class="hero-badges">
                     <div class="badge-card"><span class="badge-icon">✓</span>100% online</div>
@@ -484,6 +491,14 @@
                     <div class="badge-card"><span class="badge-icon">◎</span>Simple</div>
                 </div>
             </div>
+
+            .hero-badges {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 10px 12px;
+    margin-top: 20px;
+    max-width: 320px;
+}
 
             <div class="hero-sim card-hero">
                 <div class="calculator-box">
