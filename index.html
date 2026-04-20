@@ -1099,7 +1099,7 @@
             const tipo = document.getElementById('cb-tipo').value;
             const precio = document.getElementById('cb-precio').value;
             let url = 'https://www.coldwellbanker.com.ar/propiedades?';
-            const params = [];
+            const params = ['suitable_for_credit=1']; // filtro por defecto: solo aptas credito Tu Casa +Cerca
             if (zona) params.push('zona=' + encodeURIComponent(zona));
             if (tipo) params.push('tipo=' + encodeURIComponent(tipo));
             if (precio) params.push('precio_hasta=' + encodeURIComponent(precio));
@@ -1287,6 +1287,84 @@ const Bell = createIconComponent('<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3
 // Payment schedule generator
 const STAGES_ALL = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura', 'Finalizado', 'Rechazado'];
 const STAGES_FLOW = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Escritura'];
+
+// ============================================================================
+// FORM BUILDER - DEFAULT CONFIG DEL FORMULARIO DE SOLICITUD DE CREDITO
+// ============================================================================
+// Este objeto define la estructura del formulario que ve el cliente.
+// Admin puede editar/agregar/ocultar preguntas via AdminFormBuilder sin tocar codigo.
+
+const DEFAULT_FORM_CONFIG = {
+  titulo: 'Nueva Solicitud de Crédito',
+  steps: [
+    {
+      id: 'step1',
+      titulo: 'Verificación de Identidad',
+      hidden: false,
+      questions: [
+        { id: 'dniFrente', label: 'DNI Frente', type: 'file', required: true, hidden: false, helpText: 'Click para subir imagen' },
+        { id: 'dniDorso', label: 'DNI Dorso', type: 'file', required: true, hidden: false, helpText: 'Click para subir imagen' },
+        { id: 'selfie', label: 'Verificación por video / Selfie', type: 'info', required: false, hidden: false, helpText: 'Verificación por MetaMap — Próximamente' },
+        { id: 'domicilio', label: 'Domicilio', type: 'text', required: true, hidden: false, placeholder: 'Calle, número, departamento, localidad' },
+        { id: 'comprobanteDomicilio', label: 'Comprobante de Domicilio', type: 'file', required: true, hidden: false, helpText: 'Ej: factura de servicios' },
+      ],
+    },
+    {
+      id: 'step2',
+      titulo: 'Datos del Crédito',
+      hidden: false,
+      questions: [
+        { id: 'propertyLink', label: 'Link de Coldwell Banker', type: 'url', required: false, hidden: false, placeholder: 'https://coldwellbanker.com.ar/propiedad/...' },
+        { id: 'propertyCode', label: 'Código de propiedad CB', type: 'text', required: false, hidden: false, placeholder: 'Ej: IAP2257755' },
+        { id: 'propertyAddress', label: 'Dirección del inmueble', type: 'text', required: true, hidden: false, placeholder: 'Calle, número, piso/depto, localidad, provincia' },
+        { id: 'propertyValue', label: 'Precio de venta CB (USD)', type: 'number', required: true, hidden: false, helpText: 'Dato de CB — podés corregirlo si no coincide' },
+        { id: 'offeredValue', label: 'Valor ofertado / precio de compra (USD)', type: 'number', required: true, hidden: false, helpText: 'Base para el cálculo del crédito (LTV)' },
+        { id: 'loanAmount', label: 'Importe del crédito a solicitar (USD)', type: 'number', required: true, hidden: false },
+        { id: 'months', label: 'Plazo', type: 'select', required: true, hidden: false, options: ['12 meses', '24 meses', '36 meses', '48 meses', '60 meses'] },
+        { id: 'advisor', label: 'Asesor asignado', type: 'select', required: true, hidden: false, options: ['María Rodríguez', 'Carlos Mendoza', 'Alejandra Gutiérrez'] },
+        { id: 'reservaCredito', label: 'Reserva ad Referéndum', type: 'file', required: true, hidden: false },
+      ],
+    },
+    {
+      id: 'step3',
+      titulo: 'Ingresos y Codeudor',
+      hidden: false,
+      questions: [
+        { id: 'ingresosAnuales', label: 'Ingresos anuales declarados (USD)', type: 'number', required: true, hidden: false },
+        { id: 'ingresos', label: 'Declaración de ingresos (archivo)', type: 'file', required: true, hidden: false },
+        { id: 'rentaPresunta', label: 'Renta presunta (archivo opcional)', type: 'file', required: false, hidden: false },
+        { id: 'hasCodeudor', label: '¿Agregar codeudor?', type: 'boolean', required: false, hidden: false },
+        { id: 'codeudorNombre', label: 'Nombre del codeudor', type: 'text', required: false, hidden: false, dependsOn: 'hasCodeudor' },
+        { id: 'codeudorApellido', label: 'Apellido del codeudor', type: 'text', required: false, hidden: false, dependsOn: 'hasCodeudor' },
+        { id: 'codeudorDni', label: 'DNI del codeudor', type: 'text', required: false, hidden: false, dependsOn: 'hasCodeudor' },
+        { id: 'codeudorVinculo', label: 'Vínculo con el codeudor', type: 'select', required: false, hidden: false, options: ['Cónyuge', 'Padre/Madre', 'Hermano/a', 'Hijo/a', 'Otro'], dependsOn: 'hasCodeudor' },
+        { id: 'codeudorIngresosAnuales', label: 'Ingresos anuales codeudor (USD)', type: 'number', required: false, hidden: false, dependsOn: 'hasCodeudor' },
+        { id: 'codeudorDocs', label: 'Documentos del codeudor', type: 'file', required: false, hidden: false, dependsOn: 'hasCodeudor' },
+      ],
+    },
+    {
+      id: 'step4',
+      titulo: 'Aceptación de Términos',
+      hidden: false,
+      questions: [
+        { id: 'termsAccepted', label: 'Acepto los términos y condiciones de Tu Casa +Cerca', type: 'checkbox', required: true, hidden: false },
+      ],
+    },
+  ],
+};
+
+const QUESTION_TYPES = [
+  { value: 'text', label: 'Texto corto' },
+  { value: 'textarea', label: 'Texto largo' },
+  { value: 'number', label: 'Número' },
+  { value: 'url', label: 'URL' },
+  { value: 'date', label: 'Fecha' },
+  { value: 'select', label: 'Desplegable (opciones)' },
+  { value: 'checkbox', label: 'Checkbox' },
+  { value: 'boolean', label: 'Sí / No' },
+  { value: 'file', label: 'Archivo (upload)' },
+  { value: 'info', label: 'Info (solo lectura)' },
+];
 
 function generatePaymentSchedule(loanAmount, months, fechaEscritura, tasaAnual) {
   const bruto = loanAmount + (loanAmount * 0.05) + (loanAmount * 0.05 * 0.21);
@@ -1552,6 +1630,7 @@ const Sidebar = ({ userRole, userName, userEmail, currentPage, onNavigate, onLog
       { id: 'cobranzas', label: 'Cobranzas', icon: Banknote },
       { id: 'legajos-finalizados', label: 'Leg. Finalizados', icon: CheckCircle },
       { id: 'reports', label: 'Reportes', icon: BarChart3 },
+      { id: 'form-builder', label: 'ABM Formulario', icon: FileText },
       { id: 'config', label: 'Configuración', icon: Settings },
     ],
   };
@@ -4762,6 +4841,337 @@ const AdminConfig = () => {
 };
 
 // ============================================================================
+// ADMIN - FORM BUILDER (ABM Formulario de Credito estilo Google Forms)
+// ============================================================================
+
+const AdminFormBuilder = ({ formConfig, onUpdateConfig }) => {
+  const [config, setConfig] = useState(formConfig);
+  const [editingStep, setEditingStep] = useState(null);
+  const [editingQuestion, setEditingQuestion] = useState(null); // { stepId, questionId } | null
+  const [expandedStep, setExpandedStep] = useState(config.steps[0]?.id || null);
+  const [dirty, setDirty] = useState(false);
+
+  const markDirty = () => setDirty(true);
+
+  const save = () => {
+    onUpdateConfig(config);
+    setDirty(false);
+    alert('Formulario guardado. Los cambios se aplicarán en nuevas solicitudes.');
+  };
+
+  const resetDefaults = () => {
+    if (confirm('¿Restaurar el formulario a sus valores por defecto? Se perderán los cambios.')) {
+      setConfig(JSON.parse(JSON.stringify(DEFAULT_FORM_CONFIG)));
+      markDirty();
+    }
+  };
+
+  // ---- STEP ACTIONS ----
+  const addStep = () => {
+    const newStep = { id: 'step_' + Date.now(), titulo: 'Nuevo paso', hidden: false, questions: [] };
+    setConfig(c => ({ ...c, steps: [...c.steps, newStep] }));
+    setExpandedStep(newStep.id);
+    markDirty();
+  };
+
+  const deleteStep = (stepId) => {
+    if (!confirm('¿Eliminar este paso y todas sus preguntas?')) return;
+    setConfig(c => ({ ...c, steps: c.steps.filter(s => s.id !== stepId) }));
+    markDirty();
+  };
+
+  const updateStep = (stepId, updates) => {
+    setConfig(c => ({ ...c, steps: c.steps.map(s => s.id === stepId ? { ...s, ...updates } : s) }));
+    markDirty();
+  };
+
+  const moveStep = (stepId, dir) => {
+    const idx = config.steps.findIndex(s => s.id === stepId);
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= config.steps.length) return;
+    const newSteps = [...config.steps];
+    [newSteps[idx], newSteps[newIdx]] = [newSteps[newIdx], newSteps[idx]];
+    setConfig(c => ({ ...c, steps: newSteps }));
+    markDirty();
+  };
+
+  // ---- QUESTION ACTIONS ----
+  const addQuestion = (stepId) => {
+    const newQ = { id: 'q_' + Date.now(), label: 'Nueva pregunta', type: 'text', required: false, hidden: false };
+    setConfig(c => ({
+      ...c,
+      steps: c.steps.map(s => s.id === stepId ? { ...s, questions: [...s.questions, newQ] } : s),
+    }));
+    setEditingQuestion({ stepId, questionId: newQ.id });
+    markDirty();
+  };
+
+  const deleteQuestion = (stepId, questionId) => {
+    if (!confirm('¿Eliminar esta pregunta?')) return;
+    setConfig(c => ({
+      ...c,
+      steps: c.steps.map(s => s.id === stepId ? { ...s, questions: s.questions.filter(q => q.id !== questionId) } : s),
+    }));
+    markDirty();
+  };
+
+  const updateQuestion = (stepId, questionId, updates) => {
+    setConfig(c => ({
+      ...c,
+      steps: c.steps.map(s => s.id === stepId ? {
+        ...s,
+        questions: s.questions.map(q => q.id === questionId ? { ...q, ...updates } : q),
+      } : s),
+    }));
+    markDirty();
+  };
+
+  const moveQuestion = (stepId, questionId, dir) => {
+    const step = config.steps.find(s => s.id === stepId);
+    const idx = step.questions.findIndex(q => q.id === questionId);
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= step.questions.length) return;
+    const newQs = [...step.questions];
+    [newQs[idx], newQs[newIdx]] = [newQs[newIdx], newQs[idx]];
+    updateStep(stepId, { questions: newQs });
+  };
+
+  const typeIcon = (type) => {
+    const icons = { text: '📝', textarea: '📄', number: '🔢', url: '🔗', date: '📅', select: '📋', checkbox: '☑️', boolean: '🔘', file: '📎', info: 'ℹ️' };
+    return icons[type] || '❓';
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-3xl font-bold">ABM Formulario de Crédito</h1>
+        <div className="flex gap-2">
+          <button onClick={resetDefaults} className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-slate-50">
+            Restaurar por defecto
+          </button>
+          <button onClick={save} disabled={!dirty}
+            className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1 ${dirty ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
+            <CheckCircle size={14} /> Guardar cambios
+          </button>
+        </div>
+      </div>
+      <p className="text-slate-500 text-sm mb-6">Configurá los pasos, preguntas y documentación del formulario que completan los clientes. Podés ocultar preguntas sin borrarlas.</p>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm">
+        <div className="flex items-start gap-2">
+          <AlertCircle size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <div className="font-semibold text-blue-900">¿Cómo funciona?</div>
+            <div className="text-blue-800 mt-1">Cada paso contiene preguntas. Al cliente se le muestra el formulario paso a paso. Podés reordenar, editar el texto, cambiar el tipo de respuesta, marcar como requerida, ocultar (sin borrar) o pedir documentación extra.</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {config.steps.map((step, sIdx) => {
+          const isExpanded = expandedStep === step.id;
+          const isEditingStep = editingStep === step.id;
+          return (
+            <div key={step.id} className={`bg-white rounded-lg shadow-sm border ${step.hidden ? 'opacity-60 border-dashed' : ''}`}>
+              {/* Step Header */}
+              <div className="p-4 flex items-center gap-3 border-b">
+                <button onClick={() => setExpandedStep(isExpanded ? null : step.id)}
+                  className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                  {sIdx + 1}
+                </button>
+                {isEditingStep ? (
+                  <input
+                    autoFocus
+                    value={step.titulo}
+                    onChange={e => updateStep(step.id, { titulo: e.target.value })}
+                    onBlur={() => setEditingStep(null)}
+                    onKeyDown={e => { if (e.key === 'Enter') setEditingStep(null); }}
+                    className="flex-1 border-b-2 border-blue-400 px-2 py-1 font-semibold text-lg outline-none"
+                  />
+                ) : (
+                  <div className="flex-1 font-semibold text-lg cursor-pointer hover:text-blue-600" onClick={() => setEditingStep(step.id)}>
+                    {step.titulo}
+                    {step.hidden && <span className="ml-2 text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded">OCULTO</span>}
+                  </div>
+                )}
+                <span className="text-xs text-slate-400">{step.questions.filter(q => !q.hidden).length} visibles / {step.questions.length} total</span>
+                <div className="flex gap-1">
+                  <button onClick={() => moveStep(step.id, -1)} disabled={sIdx === 0}
+                    className="px-2 py-1 text-slate-500 hover:bg-slate-100 rounded disabled:opacity-30" title="Subir">↑</button>
+                  <button onClick={() => moveStep(step.id, 1)} disabled={sIdx === config.steps.length - 1}
+                    className="px-2 py-1 text-slate-500 hover:bg-slate-100 rounded disabled:opacity-30" title="Bajar">↓</button>
+                  <button onClick={() => updateStep(step.id, { hidden: !step.hidden })}
+                    className="px-2 py-1 text-slate-500 hover:bg-slate-100 rounded" title={step.hidden ? 'Mostrar' : 'Ocultar'}>
+                    {step.hidden ? <Eye size={14} /> : <EyeOff size={14} />}
+                  </button>
+                  <button onClick={() => deleteStep(step.id)}
+                    className="px-2 py-1 text-red-500 hover:bg-red-50 rounded" title="Eliminar paso">
+                    <X size={14} />
+                  </button>
+                  <button onClick={() => setExpandedStep(isExpanded ? null : step.id)}
+                    className="px-2 py-1 text-slate-500 hover:bg-slate-100 rounded">
+                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Questions */}
+              {isExpanded && (
+                <div className="p-4 space-y-2">
+                  {step.questions.length === 0 && (
+                    <div className="text-sm text-slate-400 italic p-4 text-center border border-dashed rounded">
+                      Sin preguntas. Agregá una con el botón de abajo.
+                    </div>
+                  )}
+                  {step.questions.map((q, qIdx) => {
+                    const isEditingQ = editingQuestion?.stepId === step.id && editingQuestion?.questionId === q.id;
+                    return (
+                      <div key={q.id} className={`border rounded-lg ${q.hidden ? 'bg-slate-50 border-dashed' : 'bg-white'}`}>
+                        {!isEditingQ ? (
+                          <div className="p-3 flex items-center gap-3">
+                            <span className="text-lg">{typeIcon(q.type)}</span>
+                            <div className="flex-1 cursor-pointer" onClick={() => setEditingQuestion({ stepId: step.id, questionId: q.id })}>
+                              <div className="font-medium text-sm flex items-center gap-2">
+                                {q.label}
+                                {q.required && <span className="text-red-500">*</span>}
+                                {q.hidden && <span className="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded">OCULTA</span>}
+                                {q.dependsOn && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Condicional: {q.dependsOn}</span>}
+                              </div>
+                              <div className="text-xs text-slate-400 mt-0.5">
+                                Tipo: {QUESTION_TYPES.find(t => t.value === q.type)?.label || q.type} · ID: <code className="bg-slate-100 px-1 rounded">{q.id}</code>
+                              </div>
+                            </div>
+                            <div className="flex gap-1">
+                              <button onClick={() => moveQuestion(step.id, q.id, -1)} disabled={qIdx === 0}
+                                className="px-1.5 py-0.5 text-xs text-slate-400 hover:bg-slate-100 rounded disabled:opacity-30">↑</button>
+                              <button onClick={() => moveQuestion(step.id, q.id, 1)} disabled={qIdx === step.questions.length - 1}
+                                className="px-1.5 py-0.5 text-xs text-slate-400 hover:bg-slate-100 rounded disabled:opacity-30">↓</button>
+                              <button onClick={() => updateQuestion(step.id, q.id, { hidden: !q.hidden })}
+                                className="px-1.5 py-0.5 text-slate-400 hover:bg-slate-100 rounded" title={q.hidden ? 'Mostrar' : 'Ocultar'}>
+                                {q.hidden ? <Eye size={12} /> : <EyeOff size={12} />}
+                              </button>
+                              <button onClick={() => deleteQuestion(step.id, q.id)}
+                                className="px-1.5 py-0.5 text-red-400 hover:bg-red-50 rounded" title="Eliminar">
+                                <X size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="col-span-2">
+                                <label className="block text-xs font-semibold text-slate-600 mb-1">Texto de la pregunta</label>
+                                <input
+                                  value={q.label}
+                                  onChange={e => updateQuestion(step.id, q.id, { label: e.target.value })}
+                                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                                  placeholder="Ej: ¿Cuál es tu ingreso mensual?"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-semibold text-slate-600 mb-1">Tipo de respuesta</label>
+                                <select
+                                  value={q.type}
+                                  onChange={e => updateQuestion(step.id, q.id, { type: e.target.value })}
+                                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                  {QUESTION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-semibold text-slate-600 mb-1">ID interno</label>
+                                <input
+                                  value={q.id}
+                                  onChange={e => updateQuestion(step.id, q.id, { id: e.target.value.replace(/[^a-zA-Z0-9_]/g, '') })}
+                                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono"
+                                />
+                              </div>
+                              <div className="col-span-2">
+                                <label className="block text-xs font-semibold text-slate-600 mb-1">Placeholder / Texto de ayuda</label>
+                                <input
+                                  value={q.placeholder || q.helpText || ''}
+                                  onChange={e => updateQuestion(step.id, q.id, { placeholder: e.target.value, helpText: e.target.value })}
+                                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                                />
+                              </div>
+                              {q.type === 'select' && (
+                                <div className="col-span-2">
+                                  <label className="block text-xs font-semibold text-slate-600 mb-1">Opciones (una por línea)</label>
+                                  <textarea
+                                    value={(q.options || []).join('\n')}
+                                    onChange={e => updateQuestion(step.id, q.id, { options: e.target.value.split('\n').filter(o => o.trim()) })}
+                                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono"
+                                    rows="4"
+                                  />
+                                </div>
+                              )}
+                              <div className="col-span-2">
+                                <label className="block text-xs font-semibold text-slate-600 mb-1">Mostrar solo si (dependencia)</label>
+                                <input
+                                  value={q.dependsOn || ''}
+                                  onChange={e => updateQuestion(step.id, q.id, { dependsOn: e.target.value || undefined })}
+                                  placeholder="Ej: hasCodeudor (ID de otra pregunta Sí/No)"
+                                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono"
+                                />
+                              </div>
+                              <div className="col-span-2 flex items-center gap-4 mt-2">
+                                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                                  <input type="checkbox" checked={q.required} onChange={e => updateQuestion(step.id, q.id, { required: e.target.checked })} />
+                                  Requerida
+                                </label>
+                                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                                  <input type="checkbox" checked={q.hidden} onChange={e => updateQuestion(step.id, q.id, { hidden: e.target.checked })} />
+                                  Ocultar al cliente
+                                </label>
+                              </div>
+                              <div className="col-span-2 flex justify-end">
+                                <button onClick={() => setEditingQuestion(null)}
+                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+                                  Cerrar edición
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <button onClick={() => addQuestion(step.id)}
+                    className="w-full py-2 border-2 border-dashed border-slate-300 rounded-lg text-sm text-slate-500 hover:bg-slate-50 hover:border-blue-400 hover:text-blue-600 flex items-center justify-center gap-2">
+                    <Plus size={14} /> Agregar pregunta
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <button onClick={addStep}
+        className="mt-4 w-full py-3 border-2 border-dashed border-slate-300 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-50 hover:border-blue-400 hover:text-blue-600 flex items-center justify-center gap-2">
+        <Plus size={16} /> Agregar paso nuevo
+      </button>
+
+      {/* PREVIEW */}
+      <div className="mt-8 bg-white rounded-lg shadow-md p-6 border">
+        <h2 className="text-lg font-bold mb-4">Vista previa — Lo que verá el cliente</h2>
+        <div className="space-y-4">
+          {config.steps.filter(s => !s.hidden).map((step, sIdx) => (
+            <div key={step.id} className="border-l-4 border-blue-400 pl-4">
+              <div className="font-semibold">Paso {sIdx + 1}: {step.titulo}</div>
+              <ul className="text-sm text-slate-600 mt-1 space-y-0.5">
+                {step.questions.filter(q => !q.hidden).map(q => (
+                  <li key={q.id}>• {q.label} {q.required && <span className="text-red-500">*</span>} <span className="text-xs text-slate-400">({QUESTION_TYPES.find(t => t.value === q.type)?.label})</span></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
 // LOGIN PAGE
 // ============================================================================
 
@@ -4987,6 +5397,7 @@ const App = () => {
   const [allLoans, setAllLoans] = useState(MOCK_CLIENTS);
   const [allProfiles, setAllProfiles] = useState(MOCK_PROFILES);
   const [allOficinas, setAllOficinas] = useState(MOCK_OFICINAS);
+  const [formConfig, setFormConfig] = useState(DEFAULT_FORM_CONFIG);
   const [notifications, setNotifications] = useState([]);
   const [notifSentKeys, setNotifSentKeys] = useState(new Set());
 
@@ -5218,6 +5629,7 @@ const App = () => {
         case 'cobranzas': return <AdminCobranzas loans={allLoans} onUpdateLoan={handleUpdateLoan} />;
         case 'legajos-finalizados': return <AdminLegajosFinalizados loans={allLoans} onUpdateLoan={handleUpdateLoan} profiles={allProfiles} />;
         case 'reports': return <AdminReports loans={allLoans} profiles={allProfiles} />;
+        case 'form-builder': return <AdminFormBuilder formConfig={formConfig} onUpdateConfig={setFormConfig} />;
         case 'config': return <AdminConfig />;
         default: return <AdminDashboard loans={allLoans} />;
       }

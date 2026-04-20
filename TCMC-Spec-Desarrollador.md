@@ -306,7 +306,58 @@ Modal amplio (max-w-5xl) con 6 secciones:
 - Resumen financiero: volumen total, cobranza, morosidad
 - Export a Excel
 
-### 8.10 Configuracion (super_admin)
+### 8.10 ABM Formulario de Credito (super_admin) — NUEVO
+
+Editor tipo "Google Forms" para configurar el formulario que completan los clientes sin tocar codigo.
+
+**Funcionalidad:**
+- CRUD de **pasos** (agregar, eliminar, reordenar, renombrar, ocultar)
+- CRUD de **preguntas** dentro de cada paso
+- Cada pregunta tiene:
+  - `id` (interno, usado por el backend)
+  - `label` (texto visible)
+  - `type` (text, textarea, number, url, date, select, checkbox, boolean, file, info)
+  - `required` (booleano)
+  - `hidden` (booleano — oculta sin eliminar)
+  - `placeholder` / `helpText`
+  - `options` (array, solo para type=select)
+  - `dependsOn` (id de otra pregunta boolean — se muestra solo si aquella es true)
+- Vista previa en tiempo real de lo que ve el cliente
+- Boton "Restaurar por defecto" para volver a la config base
+
+**Modelo de datos (`FormConfig`):**
+```json
+{
+  "titulo": "Nueva Solicitud de Credito",
+  "steps": [
+    {
+      "id": "step1",
+      "titulo": "Verificacion de Identidad",
+      "hidden": false,
+      "questions": [
+        {
+          "id": "dniFrente",
+          "label": "DNI Frente",
+          "type": "file",
+          "required": true,
+          "hidden": false,
+          "helpText": "Click para subir imagen"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Persistencia backend:**
+- Tabla `form_config` con campos: `id`, `version`, `config` (JSONB), `is_active`, `created_at`
+- PUT `/api/form-config` crea nueva version y desactiva anterior (versionado)
+- GET `/api/form-config/active` devuelve la config activa al frontend del cliente
+- El formulario del cliente (`ClientNewRequest`) debe consumir esta config y renderizar dinamicamente
+
+**IMPORTANTE:** En el mockup actual, el formulario del cliente aun esta hardcodeado. El desarrollador debe refactorizarlo para que consuma `formConfig` desde el state (y del backend en produccion).
+
+### 8.11 Configuracion (super_admin)
 - LTV Maximo (%)
 - Monto Maximo (USD)
 - Tasas base por plazo (12, 24, 36, 48, 60 meses)
@@ -462,7 +513,44 @@ HIPOTECA (post-finalizacion)
 
 ---
 
-## 13. Notas para Produccion
+## 13. Integracion con Coldwell Banker (Propiedades)
+
+### 13.1 Estado actual
+- En la landing (`buscarEnCB()`) se construye una URL de busqueda con parametros y se redirige a `https://www.coldwellbanker.com.ar/propiedades` con filtro `suitable_for_credit=1` por defecto (solo propiedades aptas para credito Tu Casa +Cerca).
+- En el formulario de nueva solicitud (paso 2) el cliente pega el link CB o el codigo de propiedad. Se extrae el codigo via regex del link.
+
+### 13.2 Integracion real con datos de CB
+
+**CB Argentina NO tiene una API publica** al momento de esta spec. Opciones para obtener datos reales:
+
+| Opcion | Viabilidad | Notas |
+|--------|-----------|-------|
+| **Partnership formal CB + API privada** | Mejor opcion | Requiere acuerdo comercial con CB Argentina para acceso a su API interna / feed XML de propiedades. Lo ideal es negociar un endpoint tipo `GET /api/property/{code}` que devuelva JSON con titulo, direccion, valor, fotos, m2, ambientes, apto credito (boolean). |
+| **Scraping del sitio publico** | No recomendada | Fragil, contra TOS, alto riesgo de bloqueo. Solo como fallback temporal. |
+| **Feed XML / RSS publico** | Si existe | Verificar con CB si tienen feed de propiedades (MLS, portales usan XML). Parsear y cachear localmente. |
+| **Parseo del codigo desde URL (actual)** | Basico funcional | Solo da el codigo, no los datos. Se usa para prellenar el campo. |
+
+### 13.3 Recomendacion de arquitectura
+
+1. **Negociar acceso API con CB** (critico antes del launch productivo)
+2. Crear un servicio `CBIntegrationService` en el backend con metodos:
+   - `getPropertyByCode(code)` → devuelve datos completos
+   - `searchProperties(filters)` → listado con filtro `suitable_for_credit`
+3. Cache de propiedades en Redis (TTL 1 hora) para reducir llamadas
+4. En frontend, cuando el cliente pega un link o codigo, llamar al backend para auto-completar precio, direccion, fotos, etc.
+
+### 13.4 Filtro `suitable_for_credit=1`
+Este parametro es convencion interna: las propiedades aptas para credito Tu Casa +Cerca deben cumplir:
+- Valor <= monto maximo configurado (default USD 50.000 / LTV 35%)
+- Situacion dominial saneada (titulo limpio)
+- Apto hipoteca
+- Ubicadas en zonas cubiertas por el FCICC
+
+Se sugiere que CB exponga un flag booleano `suitable_for_credit` en su API que nosotros definamos conjuntamente.
+
+---
+
+## 14. Notas para Produccion
 
 1. **Base de datos:** Migrar de SQLite a PostgreSQL
 2. **Storage:** Reemplazar uploads locales por S3/Supabase Storage con presigned URLs
@@ -475,7 +563,7 @@ HIPOTECA (post-finalizacion)
 
 ---
 
-## 14. Archivos del Proyecto
+## 15. Archivos del Proyecto
 
 | Archivo | Proposito |
 |---------|-----------|
@@ -491,7 +579,7 @@ HIPOTECA (post-finalizacion)
 
 ---
 
-## 15. Como Usar el Mockup
+## 16. Como Usar el Mockup
 
 1. Abrir `index.html` en un navegador moderno
 2. Click en "Ingresar" en la landing page
