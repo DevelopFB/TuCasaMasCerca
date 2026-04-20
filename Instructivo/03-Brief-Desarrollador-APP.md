@@ -2,6 +2,24 @@
 
 Este documento contiene **todo lo necesario** para implementar la aplicación productiva (portal cliente + backoffice). El objetivo es **minimizar horas de desarrollo** tomando el mockup como fuente de verdad.
 
+## 📂 Carpeta de trabajo
+
+**Trabajá exclusivamente en `/app/`.** No toques `/landing/` ni modifiques `/index.html` en la raíz (es el mockup combinado de referencia).
+
+Archivos que vas a usar:
+- `/app/README.md` — quickstart con Next.js + Supabase
+- `/app/mockup-reference.html` — mockup visual/funcional completo. Abrilo en navegador y hacé login con cada rol para entender lo que hay que construir.
+- `/shared/algorithms.js` — algoritmos financieros (importar, no duplicar)
+- `/shared/constants.js` — STAGES, DEFAULT_FORM_CONFIG, tipos compartidos (seed inicial)
+- `/shared/CONTRACT.md` y `/Instructivo/04-Contrato-Web-App.md` — contrato con la landing
+- `/Instructivo/01-Instructivo-Formulario.md` — cómo funciona el ABM Formulario que tenés que construir
+- `/docs-legacy/` — docs históricos, referencia adicional si querés
+
+**Endpoints públicos (consumidos por la landing):**
+- `POST /api/leads` — recibe leads del simulador de la landing
+- `GET /api/config/public` — provee tasas y LTV actualizados
+- Ambos requieren CORS habilitado para `https://tucasamascerca.com`
+
 ---
 
 ## 1. Alcance

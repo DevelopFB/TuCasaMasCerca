@@ -2,6 +2,19 @@
 
 Este documento contiene **todo lo necesario** para implementar la landing page productiva. El objetivo es **minimizar las horas de desarrollo** portando el mockup existente a una arquitectura productiva simple.
 
+## 📂 Carpeta de trabajo
+
+**Trabajá exclusivamente en `/landing/`.** No toques `/app/` ni `/index.html` en la raíz (es el mockup combinado de referencia).
+
+Archivos que vas a usar:
+- `/landing/index.html` — tu punto de partida (ya limpio, sin React)
+- `/landing/assets/` — imágenes listas para optimizar
+- `/shared/algorithms.js` — algoritmos financieros del simulador (importar desde acá)
+- `/shared/CONTRACT.md` y `/Instructivo/04-Contrato-Web-App.md` — contrato con el backend de la app
+- `/Instructivo/01-Instructivo-Formulario.md` — contexto del negocio (opcional)
+
+**No necesitás** leer todo el `/index.html` raíz ni el código React. Tu entregable es solo landing estática + integración con API pública del backend.
+
 ---
 
 ## 1. Alcance
