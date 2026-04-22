@@ -1302,11 +1302,13 @@ const DEFAULT_FORM_CONFIG = {
       titulo: 'Verificación de Identidad',
       hidden: false,
       questions: [
-        { id: 'dniFrente', label: 'DNI Frente', type: 'file', required: true, hidden: false, helpText: 'Click para subir imagen' },
-        { id: 'dniDorso', label: 'DNI Dorso', type: 'file', required: true, hidden: false, helpText: 'Click para subir imagen' },
+        { id: 'tipoDocumento', label: 'Tipo de documento', type: 'select', required: true, hidden: false, options: ['DNI', 'Pasaporte', 'CUIT', 'CUIL', 'Cédula de identidad extranjera'] },
+        { id: 'numeroDocumento', label: 'Número de documento', type: 'text', required: true, hidden: false, placeholder: 'Ej: 35.123.456' },
+        { id: 'dniFrente', label: 'Documento - Frente', type: 'file', required: true, hidden: false, helpText: 'Click para subir imagen' },
+        { id: 'dniDorso', label: 'Documento - Dorso', type: 'file', required: true, hidden: false, helpText: 'Click para subir imagen' },
         { id: 'selfie', label: 'Verificación por video / Selfie', type: 'info', required: false, hidden: false, helpText: 'Verificación por MetaMap — Próximamente' },
-        { id: 'domicilio', label: 'Domicilio', type: 'text', required: true, hidden: false, placeholder: 'Calle, número, departamento, localidad' },
-        { id: 'comprobanteDomicilio', label: 'Comprobante de Domicilio', type: 'file', required: true, hidden: false, helpText: 'Ej: factura de servicios' },
+        { id: 'direccionActual', label: 'Dirección actual', type: 'text', required: true, hidden: false, placeholder: 'Calle, número, piso/depto, localidad, provincia' },
+        { id: 'comprobanteDomicilio', label: 'Comprobante de domicilio', type: 'file', required: true, hidden: false, helpText: 'Ej: factura de servicios (no mayor a 3 meses)' },
       ],
     },
     {
@@ -4859,10 +4861,13 @@ const AdminFormBuilder = ({ formConfig, onUpdateConfig }) => {
     alert('Formulario guardado. Los cambios se aplicarán en nuevas solicitudes.');
   };
 
-  const resetDefaults = () => {
-    if (confirm('¿Restaurar el formulario a sus valores por defecto? Se perderán los cambios.')) {
-      setConfig(JSON.parse(JSON.stringify(DEFAULT_FORM_CONFIG)));
-      markDirty();
+  const cancelChanges = () => {
+    if (!dirty) return;
+    if (confirm('¿Cancelar los cambios en curso? Volverá a la última versión guardada.')) {
+      setConfig(JSON.parse(JSON.stringify(formConfig)));
+      setEditingStep(null);
+      setEditingQuestion(null);
+      setDirty(false);
     }
   };
 
@@ -4946,8 +4951,9 @@ const AdminFormBuilder = ({ formConfig, onUpdateConfig }) => {
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-3xl font-bold">ABM Formulario de Crédito</h1>
         <div className="flex gap-2">
-          <button onClick={resetDefaults} className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-slate-50">
-            Restaurar por defecto
+          <button onClick={cancelChanges} disabled={!dirty}
+            className={`px-3 py-2 border rounded-lg text-sm font-medium ${dirty ? 'bg-white border-gray-300 hover:bg-slate-50' : 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'}`}>
+            Cancelar cambios
           </button>
           <button onClick={save} disabled={!dirty}
             className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1 ${dirty ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
@@ -5095,13 +5101,45 @@ const AdminFormBuilder = ({ formConfig, onUpdateConfig }) => {
                               </div>
                               {q.type === 'select' && (
                                 <div className="col-span-2">
-                                  <label className="block text-xs font-semibold text-slate-600 mb-1">Opciones (una por línea)</label>
-                                  <textarea
-                                    value={(q.options || []).join('\n')}
-                                    onChange={e => updateQuestion(step.id, q.id, { options: e.target.value.split('\n').filter(o => o.trim()) })}
-                                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono"
-                                    rows="4"
-                                  />
+                                  <label className="block text-xs font-semibold text-slate-600 mb-2">Opciones del desplegable</label>
+                                  <div className="space-y-2">
+                                    {(q.options && q.options.length > 0 ? q.options : ['']).map((opt, optIdx) => (
+                                      <div key={optIdx} className="flex items-center gap-2">
+                                        <span className="text-xs text-slate-400 w-6 text-right">{optIdx + 1}.</span>
+                                        <input
+                                          value={opt}
+                                          onChange={e => {
+                                            const newOptions = [...(q.options || [''])];
+                                            newOptions[optIdx] = e.target.value;
+                                            updateQuestion(step.id, q.id, { options: newOptions });
+                                          }}
+                                          placeholder={`Opción ${optIdx + 1}`}
+                                          className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newOptions = [...(q.options || [])];
+                                            newOptions.splice(optIdx, 1);
+                                            updateQuestion(step.id, q.id, { options: newOptions });
+                                          }}
+                                          disabled={(q.options || []).length <= 1}
+                                          className="px-2 py-1.5 text-red-500 hover:bg-red-50 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                                          title="Eliminar opción">
+                                          <X size={14} />
+                                        </button>
+                                      </div>
+                                    ))}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newOptions = [...(q.options || []), ''];
+                                        updateQuestion(step.id, q.id, { options: newOptions });
+                                      }}
+                                      className="w-full py-1.5 border-2 border-dashed border-blue-300 rounded text-xs text-blue-600 hover:bg-blue-50 flex items-center justify-center gap-1">
+                                      <Plus size={12} /> Agregar opción
+                                    </button>
+                                  </div>
                                 </div>
                               )}
                               <div className="col-span-2">
@@ -5175,23 +5213,31 @@ const AdminFormBuilder = ({ formConfig, onUpdateConfig }) => {
 // LOGIN PAGE
 // ============================================================================
 
+// Mock user database a nivel de modulo para que el registro persista entre renders.
+// En produccion: reemplazar por POST /api/auth/register y POST /api/auth/login
+let DEMO_USERS = {
+  'panchobenegas@gmail.com':     { password: 'Admin123!', profileId: 'usr001' },
+  'director@coldwell.com':       { password: 'Red123!', profileId: 'usr002' },
+  'jefe.palermo@coldwell.com':   { password: 'Oficina123!', profileId: 'usr003' },
+  'jefe.belgrano@coldwell.com':  { password: 'Oficina123!', profileId: 'usr004' },
+  'maria@coldwell.com':          { password: 'Agente123!', profileId: 'usr005' },
+  'carlos@coldwell.com':         { password: 'Agente123!', profileId: 'usr006' },
+  'alejandra@coldwell.com':      { password: 'Agente123!', profileId: 'usr007' },
+  'pablo@coldwell.com':          { password: 'Agente123!', profileId: 'usr008' },
+  'client@tcmc.local':           { password: 'Client123!', profileId: null, legacyRole: 'cliente', legacyName: 'Cliente Demo' },
+};
+
 const LoginPage = ({ onLogin }) => {
+  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'forgot'
+  const [forgotEmail, setForgotEmail] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
-  // Mock user database — maps to MOCK_PROFILES
-  const DEMO_USERS = {
-    'panchobenegas@gmail.com':     { password: 'Admin123!', profileId: 'usr001' },
-    'director@coldwell.com':       { password: 'Red123!', profileId: 'usr002' },
-    'jefe.palermo@coldwell.com':   { password: 'Oficina123!', profileId: 'usr003' },
-    'jefe.belgrano@coldwell.com':  { password: 'Oficina123!', profileId: 'usr004' },
-    'maria@coldwell.com':          { password: 'Agente123!', profileId: 'usr005' },
-    'carlos@coldwell.com':         { password: 'Agente123!', profileId: 'usr006' },
-    'alejandra@coldwell.com':      { password: 'Agente123!', profileId: 'usr007' },
-    'pablo@coldwell.com':          { password: 'Agente123!', profileId: 'usr008' },
-    'client@tcmc.local':           { password: 'Client123!', profileId: null, legacyRole: 'cliente', legacyName: 'Cliente Demo' },
-  };
+  const [success, setSuccess] = useState('');
+  // Registro
+  const [regData, setRegData] = useState({
+    nombre: '', apellido: '', email: '', phone: '', password: '', passwordConfirm: ''
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -5236,32 +5282,166 @@ const LoginPage = ({ onLogin }) => {
   };
   const roleLabels = { super_admin: 'Super Admin', red_admin: 'Admin Red', oficina_admin: 'Jefe Oficina', agente: 'Agente', cliente: 'Cliente' };
 
+  const handleForgot = (e) => {
+    e.preventDefault();
+    setError(''); setSuccess('');
+    if (!forgotEmail) {
+      setError('Ingresá el email registrado.');
+      return;
+    }
+    // Mock: simular envio de email
+    if (DEMO_USERS[forgotEmail]) {
+      setSuccess('Te enviamos un email a ' + forgotEmail + ' con instrucciones para recuperar tu contraseña. Revisá tu bandeja de entrada (y spam).');
+      setTimeout(() => { setMode('login'); setSuccess(''); setForgotEmail(''); }, 3500);
+    } else {
+      // Por seguridad, mostrar mismo mensaje aun si el email no existe
+      setSuccess('Si ese email está registrado, te enviamos un link de recuperación. Revisá tu bandeja de entrada (y spam).');
+      setTimeout(() => { setMode('login'); setSuccess(''); setForgotEmail(''); }, 3500);
+    }
+  };
+
+  const handleRegister = (e) => {
+    e.preventDefault();
+    setError(''); setSuccess('');
+    if (!regData.nombre || !regData.apellido || !regData.email || !regData.phone) {
+      setError('Completá todos los datos de contacto.');
+      return;
+    }
+    if (regData.password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (regData.password !== regData.passwordConfirm) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
+    // Mock: crear cuenta pendiente de aprobacion
+    setSuccess('¡Registro exitoso! Tu cuenta fue creada como cliente. Ya podés iniciar sesión con tu email y contraseña.');
+    // Pre-fill login con el email recien registrado
+    setEmail(regData.email);
+    setPassword('');
+    // Registrar en DEMO_USERS para que pueda loguear (solo mockup)
+    DEMO_USERS[regData.email] = { password: regData.password, profileId: null, legacyRole: 'cliente', legacyName: regData.nombre + ' ' + regData.apellido };
+    setTimeout(() => { setMode('login'); setSuccess(''); }, 2500);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-blue-600" style={{ fontFamily: 'Poppins' }}>Tu Casa +Cerca</h1>
           <p className="text-slate-600 mt-2">Plataforma de Gestión de Créditos</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold mb-2">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="tu@email.com" />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-2">Contraseña</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••" />
-          </div>
-          {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold">
+        {/* Tabs Login / Registro */}
+        <div className="flex border-b mb-6">
+          <button onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+            className={`flex-1 py-2 text-sm font-semibold transition ${mode === 'login' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
             Iniciar Sesión
           </button>
-        </form>
+          <button onClick={() => { setMode('register'); setError(''); setSuccess(''); }}
+            className={`flex-1 py-2 text-sm font-semibold transition ${mode === 'register' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
+            Registrarse
+          </button>
+        </div>
+
+        {mode === 'login' ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2">Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="tu@email.com" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold">Contraseña</label>
+                <button type="button" onClick={() => { setMode('forgot'); setError(''); setSuccess(''); setForgotEmail(email); }}
+                  className="text-xs text-blue-600 hover:underline font-medium">
+                  ¿Olvidaste tu clave?
+                </button>
+              </div>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="••••••••" />
+            </div>
+            {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
+            {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">{success}</div>}
+            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold">
+              Iniciar Sesión
+            </button>
+          </form>
+        ) : mode === 'forgot' ? (
+          <form onSubmit={handleForgot} className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
+              Ingresá tu email registrado. Te enviaremos un link para recuperar tu contraseña.
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2">Email registrado</label>
+              <input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} autoFocus
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="tu@email.com" />
+            </div>
+            {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
+            {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">{success}</div>}
+            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold">
+              Enviar link de recuperación
+            </button>
+            <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+              className="w-full text-sm text-slate-500 hover:text-slate-700">
+              ← Volver al inicio de sesión
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleRegister} className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wide text-slate-600">Nombre *</label>
+                <input type="text" value={regData.nombre} onChange={(e) => setRegData({...regData, nombre: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Tu nombre" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wide text-slate-600">Apellido *</label>
+                <input type="text" value={regData.apellido} onChange={(e) => setRegData({...regData, apellido: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="Tu apellido" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wide text-slate-600">Teléfono *</label>
+                <input type="tel" value={regData.phone} onChange={(e) => setRegData({...regData, phone: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="+54 11 ..." />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1 uppercase tracking-wide text-slate-600">Email *</label>
+                <input type="email" value={regData.email} onChange={(e) => setRegData({...regData, email: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="tu@correo.com" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1 uppercase tracking-wide text-slate-600">Contraseña *</label>
+              <input type="password" value={regData.password} onChange={(e) => setRegData({...regData, password: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                placeholder="Mínimo 8 caracteres" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1 uppercase tracking-wide text-slate-600">Confirmar contraseña *</label>
+              <input type="password" value={regData.passwordConfirm} onChange={(e) => setRegData({...regData, passwordConfirm: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                placeholder="••••••••" />
+            </div>
+            {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
+            {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">{success}</div>}
+            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold mt-2">
+              Crear cuenta
+            </button>
+            <p className="text-xs text-slate-500 text-center">
+              Al registrarte aceptás los términos y condiciones de Tu Casa +Cerca. Tu cuenta inicia como Cliente.
+            </p>
+          </form>
+        )}
 
         <div className="mt-6 pt-6 border-t">
           <p className="text-xs text-slate-500 text-center mb-3 font-semibold uppercase tracking-wide">Acceso rápido demo</p>

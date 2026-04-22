@@ -89,11 +89,13 @@
         titulo: 'Verificación de Identidad',
         hidden: false,
         questions: [
-          { id: 'dniFrente', label: 'DNI Frente', type: 'file', required: true, hidden: false, helpText: 'Click para subir imagen' },
-          { id: 'dniDorso', label: 'DNI Dorso', type: 'file', required: true, hidden: false, helpText: 'Click para subir imagen' },
+          { id: 'tipoDocumento', label: 'Tipo de documento', type: 'select', required: true, hidden: false, options: ['DNI', 'Pasaporte', 'CUIT', 'CUIL', 'Cédula de identidad extranjera'] },
+          { id: 'numeroDocumento', label: 'Número de documento', type: 'text', required: true, hidden: false, placeholder: 'Ej: 35.123.456' },
+          { id: 'dniFrente', label: 'Documento - Frente', type: 'file', required: true, hidden: false, helpText: 'Click para subir imagen' },
+          { id: 'dniDorso', label: 'Documento - Dorso', type: 'file', required: true, hidden: false, helpText: 'Click para subir imagen' },
           { id: 'selfie', label: 'Verificación por video / Selfie', type: 'info', required: false, hidden: false, helpText: 'Verificación por MetaMap — Próximamente' },
-          { id: 'domicilio', label: 'Domicilio', type: 'text', required: true, hidden: false, placeholder: 'Calle, número, departamento, localidad' },
-          { id: 'comprobanteDomicilio', label: 'Comprobante de Domicilio', type: 'file', required: true, hidden: false, helpText: 'Ej: factura de servicios' }
+          { id: 'direccionActual', label: 'Dirección actual', type: 'text', required: true, hidden: false, placeholder: 'Calle, número, piso/depto, localidad, provincia' },
+          { id: 'comprobanteDomicilio', label: 'Comprobante de domicilio', type: 'file', required: true, hidden: false, helpText: 'Ej: factura de servicios (no mayor a 3 meses)' }
         ]
       },
       {

@@ -60,7 +60,7 @@ Dentro de un paso expandido, cada pregunta aparece como una fila. Al hacer click
 | **Tipo de respuesta** | Ver tabla en sección 5 |
 | **ID interno** | Identificador único usado por el sistema. No debe tener espacios ni acentos. Ejemplo: `ingresoMensual` |
 | **Placeholder / Texto de ayuda** | Texto gris que aparece dentro del campo o debajo |
-| **Opciones** | Solo si el tipo es "Desplegable". Una opción por línea |
+| **Opciones** | Solo si el tipo es "Desplegable". Cada opción tiene su propia fila. Usá **+ Agregar opción** para sumar y la **✕** al costado de cada fila para quitar. |
 | **Mostrar solo si (dependencia)** | ID de otra pregunta Sí/No que debe estar activada. Ver sección 6 |
 | **Requerida** | El cliente no puede avanzar sin responder |
 | **Ocultar al cliente** | Quita la pregunta del formulario sin eliminarla |
@@ -172,19 +172,19 @@ El cliente verá un cuadro de subida de archivos con tu nuevo label.
 
 ---
 
-## 8. Guardar, deshacer, restaurar
+## 8. Guardar y cancelar cambios
 
 ### 8.1 Guardar cambios
 - El botón **"Guardar cambios"** (arriba a la derecha) se activa cuando hay modificaciones.
 - Al guardarlo, los cambios se aplican a las **nuevas solicitudes**. Las solicitudes ya iniciadas conservan el formulario con el que empezaron.
 
-### 8.2 Restaurar por defecto
-- El botón **"Restaurar por defecto"** vuelve al formulario original de fábrica (los 4 pasos que vinieron pre-cargados).
-- Pide confirmación antes de reemplazar todo.
+### 8.2 Cancelar cambios en curso
+- El botón **"Cancelar cambios"** (al lado de Guardar) se activa cuando tenés ediciones sin guardar.
+- Al cancelarlo, se pide confirmación y se vuelve a la última versión guardada. **No** restaura al formulario original de fábrica, solo descarta los cambios que estabas haciendo ahora.
 
-### 8.3 ¿Puedo deshacer?
-- Mientras no hayas apretado "Guardar cambios", los cambios viven solo en tu pantalla. Recargá la página y se pierden (vuelve a lo último guardado).
-- Después de guardar, en producción el sistema mantiene versionado (cada cambio queda registrado). Si querés volver a una versión anterior, pedíselo al desarrollador o restaurá por defecto.
+### 8.3 Historial de versiones (producción)
+- En producción el sistema mantiene versionado: cada vez que guardás, se crea una nueva versión y la anterior queda archivada.
+- Si necesitás volver a una versión anterior después de haber guardado, pedíselo al desarrollador / usá el panel de historial de versiones (feature de backend).
 
 ---
 
