@@ -721,6 +721,7 @@
                             <div class="result-detail">Recibirás: <strong id="recv">$30.000</strong></div>
                             <div style="border-top: 1px solid rgba(0, 82, 204, 0.2); margin-top: 12px; padding-top: 12px;">
                                 <div class="result-detail">TNA: <strong id="tna">12.50%</strong> <span class="tip" data-tip="Tasa Nominal Anual aplicada sobre saldo para calcular tu cuota.">?</span></div>
+                                <div class="result-detail">CFT: <strong id="cft">—</strong> <span class="tip" data-tip="Costo Financiero Total: tasa anualizada que incluye intereses, IVA y gastos. Es el costo real anual del crédito.">?</span></div>
                             </div>
                         </div>
                     </div>
@@ -977,8 +978,8 @@
                 <div class="tasa-table-row"><span>60 meses</span><span class="tasa-value" id="ex-cuota-60">—</span></div>
             </div>
             <div class="tasa-box">
-                <h3 style="display:flex;align-items:center;gap:10px;"><span class="icon" style="color:var(--brand-primary);"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>Costo Implícito Anual (TIR) <span class="tip" data-tip="Tasa implícita anual estimada según los flujos del préstamo (cuotas + costos). No es la TNA contractual sobre saldo.">?</span></h3>
-                <p style="font-size: 12px; color: var(--brand-mid); margin-bottom: 16px;">Tasa implícita anual estimada según flujos (incluye comisión y amortización).</p>
+                <h3 style="display:flex;align-items:center;gap:10px;"><span class="icon" style="color:var(--brand-primary);"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>CFT — Costo Financiero Total <span class="tip" data-tip="Tasa anualizada que incluye intereses, IVA y gastos. Es el costo real anual del crédito según la normativa argentina.">?</span></h3>
+                <p style="font-size: 12px; color: var(--brand-mid); margin-bottom: 16px;">CFT anualizado: incluye intereses, comisiones e IVA sobre intereses (sin sellados ni gastos de escritura).</p>
                 <div class="tasa-table-row"><span>12 meses</span><span class="tasa-value" id="ex-tna-12">—</span></div>
                 <div class="tasa-table-row"><span>24 meses</span><span class="tasa-value" id="ex-tna-24">—</span></div>
                 <div class="tasa-table-row"><span>36 meses</span><span class="tasa-value" id="ex-tna-36">—</span></div>
@@ -1263,6 +1264,7 @@
 
             document.getElementById('cuota').textContent = '$' + cuota.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById('tna').textContent = (tasa * 100).toFixed(2) + '%';
+            document.getElementById('cft').textContent = (tnaCalc * 100).toFixed(2) + '%';
             document.getElementById('ask').textContent = '$' + loan.toLocaleString('es-AR');
             document.getElementById('bruto').textContent = '$' + Math.round(bruto).toLocaleString('es-AR');
             document.getElementById('recv').textContent = '$' + loan.toLocaleString('es-AR');
@@ -2013,9 +2015,9 @@ const ClientSimulator = ({ onAdvance }) => {
               <div className="text-lg font-bold text-slate-800">{formatCurrency(cuota * months)}</div>
             </div>
             <div>
-              <div className="text-xs text-slate-500 uppercase font-semibold mb-1">TIR</div>
+              <div className="text-xs text-slate-500 uppercase font-semibold mb-1">CFT</div>
               <div className="text-lg font-bold text-slate-800">{(tir * 100).toFixed(2)}%</div>
-              <div className="text-[10px] text-slate-400 mt-0.5 leading-tight">Tasa Interna<br/>de Retorno</div>
+              <div className="text-[10px] text-slate-400 mt-0.5 leading-tight">Costo Financiero<br/>Total (anual)</div>
             </div>
           </div>
         </div>
