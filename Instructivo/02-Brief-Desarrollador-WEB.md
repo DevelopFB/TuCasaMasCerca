@@ -177,17 +177,86 @@ El simulador del hero permite al usuario jugar con valores. Cuando el usuario ha
 
 ---
 
-## 8. Branding y contenido
+## 8. Branding (alineado al brandbook V1)
 
+**Brandbook oficial:** `/+CERCA-BRANDBOOK-V1.pdf` (en la raíz del repo). Es la fuente de verdad — leerlo antes de tocar estilos.
+
+### 8.1 Nombre y copy
 - **Nombre oficial:** "Tu Casa +Cerca" (nunca solo "+Cerca")
-- **Logo:** `assets/logo.png` (si no existe, generar uno simple con Poppins bold)
-- **Colores principales:**
-  - Azul marca: `#2563eb`
-  - Azul acento: `#AFC8FF`
-  - Verde éxito: `#16a34a`
-  - Rojo atraso: `#dc2626`
-- **Tipografía:** Poppins (ya cargada desde Google Fonts)
+- **Tagline principal:** "Tu casa está +Cerca de lo que creés"
 - **Copy:** Todo el texto está en el mockup. No modificar sin aprobación.
+
+### 8.2 Paleta (definida como CSS variables)
+```css
+--brand-primary: #1A4394;     /* Azul institucional - dominante (botones, gradientes, headers) */
+--brand-vivid:   #0D00FF;     /* Azul vibrante - acentos, hover states, focus, links */
+--brand-dark:    #1E1E1E;     /* Negro/gris oscuro - texto principal */
+--brand-mid:     #748082;     /* Gris medio - texto secundario, hints */
+--brand-light:   #E1EAEB;     /* Gris claro - bordes, fondos suaves, separadores */
+--brand-white:   #FFFFFF;
+```
+
+Las versiones de opacidad (75/50/25/10%) están definidas en el brandbook si se necesitan.
+
+### 8.3 Tipografía
+- **Familia web:** Poppins (cargada desde Google Fonts)
+- **Pesos disponibles:** 300 (Light), 400 (Regular), 500 (Medium), 600 (Semibold), 700 (Bold)
+- **NO usar 800** (Extra Bold) — está prohibido en este proyecto.
+
+**Jerarquía:**
+| Uso | Peso | Tamaño |
+|-----|------|--------|
+| H1 hero | 700 | clamp(32px, 5vw, 48px) |
+| H2 sections | 600 | clamp(24px, 4vw, 36px) |
+| H3 cards | 600 | 18-20px |
+| Body | 400 | 15-16px |
+| Body small / hints | 300 | 13-14px |
+| Botones | 600 | 14-15px |
+| Eyebrows / labels | 500, uppercase, tracking | 11-12px |
+
+### 8.4 Iconografía
+- **Estilo:** SVG line-style (stroke, sin relleno), siguiendo el brandbook
+- **Set actual:** Lucide Icons inline. NO usar emojis en componentes principales.
+- **Reglas:** stroke-width 2, stroke-linecap round, stroke-linejoin round, color via `currentColor`
+- **Tamaños standard:** 18px (sm), 24px (default), 32px (lg), 48px (xl)
+
+### 8.5 Logo
+- **Logo principal:** `Tu Casa +Cerca` con isotipo (símbolo casa + ventana + cruz "+")
+- **Tamaño mínimo:** 70px (web) / 1.85 cm (impreso)
+- **Versiones:** completo, isotipo solo, monocromo, blanco/negro
+- **Sobre azul institucional o primario:** logo blanco
+- **Sobre fondos claros/blancos:** logo en color o azul institucional
+- **Prohibiciones (9 reglas):** ver brandbook página correspondiente. Las más críticas:
+  - NO condensar/estirar/deformar
+  - NO cambiar colores
+  - NO usar el icono casa sin todos sus elementos (+, ventana)
+  - NO crear submarcas
+
+### 8.6 Estados de UI
+- **Hover en botones:** `transform: translateY(-1px)` + sombra más fuerte
+- **Focus visible:** outline 3px sólido en `--brand-vivid` (#0D00FF), offset 2px
+- **Transiciones:** 0.2s ease para color/transform/box-shadow
+- **Reduce motion:** respetar `prefers-reduced-motion`
+
+### 8.7 Sombras consistentes
+```css
+--shadow-sm: 0 2px 8px rgba(26, 67, 148, 0.08);
+--shadow-md: 0 8px 24px rgba(26, 67, 148, 0.12);
+--shadow-lg: 0 20px 48px rgba(26, 67, 148, 0.18);
+```
+
+### 8.8 Spacing escala
+```css
+--space-1: 8px; --space-2: 16px; --space-3: 24px;
+--space-4: 32px; --space-6: 48px; --space-8: 64px; --space-12: 96px;
+--section-py: clamp(48px, 8vw, 80px);   /* padding vertical secciones */
+--section-px: clamp(16px, 4vw, 24px);   /* padding horizontal secciones */
+```
+
+### 8.9 Breakpoints responsive
+- **1024px:** Tablet (grids 4 cols → 2 cols)
+- **768px:** Mobile grande (grids 2 cols → 1 col, padding sections reducido)
+- **520px:** Mobile chico (cards padding 24px → 16px, font-sizes reducidos)
 
 ---
 

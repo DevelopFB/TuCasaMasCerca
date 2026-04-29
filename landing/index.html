@@ -4,145 +4,218 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tu Casa +Cerca</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* ============================================================
+           DESIGN TOKENS — Tu Casa +Cerca (alineados al brandbook V1)
+           ============================================================ */
+        :root {
+            /* Brand colors */
+            --brand-primary: #1A4394;     /* Azul institucional — dominante */
+            --brand-vivid:   #0D00FF;     /* Azul vibrante — acentos, hover, links */
+            --brand-dark:    #1E1E1E;     /* Negro/gris oscuro — texto principal */
+            --brand-mid:     #748082;     /* Gris medio — texto secundario */
+            --brand-light:   #E1EAEB;     /* Gris claro — fondos suaves, separadores */
+            --brand-white:   #FFFFFF;
+            /* Estados */
+            --brand-primary-hover: #143575;
+            --brand-primary-soft:  rgba(26, 67, 148, 0.08);
+            /* Sombras */
+            --shadow-sm: 0 2px 8px rgba(26, 67, 148, 0.08);
+            --shadow-md: 0 8px 24px rgba(26, 67, 148, 0.12);
+            --shadow-lg: 0 20px 48px rgba(26, 67, 148, 0.18);
+            /* Spacing escala */
+            --space-1: 8px;
+            --space-2: 16px;
+            --space-3: 24px;
+            --space-4: 32px;
+            --space-6: 48px;
+            --space-8: 64px;
+            --space-12: 96px;
+            /* Padding seccion responsive */
+            --section-py: clamp(48px, 8vw, 80px);
+            --section-px: clamp(16px, 4vw, 24px);
+            /* Transiciones */
+            --transition-base: all .2s ease;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {font-family: 'Inter', sans-serif; line-height: 1.6; color: #1a1a1a; background: #fff; overflow-x: hidden; width: 100%;}
-        header { background: #fff; border-bottom: 1px solid #e5e5e5; position: sticky; top: 0; z-index: 1000; padding: 16px 0; }
+        body {font-family: 'Poppins', 'Inter', sans-serif; font-weight: 400; line-height: 1.6; color: var(--brand-dark); background: #fff; overflow-x: hidden; width: 100%;}
+        header { background: #fff; border-bottom: 1px solid var(--brand-light); position: sticky; top: 0; z-index: 1000; padding: 16px 0; }
         .header-container { max-width: 1400px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
         .logo img { height: 40px; width: auto; display: block; }
-        .logo span { color: #0052cc; }
-        .brand { color: #0052cc; }
+        .logo span { color: var(--brand-primary); }
+        .brand { color: var(--brand-primary); }
         #landing-page nav { display: flex; gap: 32px; align-items: center; }
-        #landing-page nav a { text-decoration: none; color: #1a1a1a; font-size: 14px; font-weight: 500; }
-        .btn-ingresar { background: #0052cc; color: white; padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        #landing-page nav a { text-decoration: none; color: var(--brand-dark); font-size: 14px; font-weight: 500; }
+        .btn-ingresar { background: var(--brand-primary); color: white; padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
         
-        .hero { max-width: 1400px; margin: 0 auto; padding: 60px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
-        .hero-content h1 { font-family: 'Poppins', sans-serif; font-size: 48px; font-weight: 700; margin-bottom: 20px; }
-        .hero-content p { font-size: 18px; color: #666; margin-bottom: 32px; }
+        .hero { max-width: 1400px; margin: 0 auto; padding: var(--section-py) var(--section-px); display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+        .hero-content h1 { font-family: 'Poppins', sans-serif; font-size: clamp(32px, 5vw, 48px); font-weight: 700; margin-bottom: 20px; }
+        .hero-content p { font-size: 18px; color: var(--brand-mid); margin-bottom: 32px; }
         
-        .calculator-box { background: linear-gradient(135deg, #f5f5f5 0%, #fff 100%); padding: 40px; border-radius: 16px; border: 1px solid #e5e5e5; box-shadow: 0 4px 20px rgba(0, 82, 204, 0.08); }
+        .calculator-box { background: linear-gradient(135deg, #f5f5f5 0%, #fff 100%); padding: 40px; border-radius: 16px; border: 1px solid var(--brand-light); box-shadow: 0 4px 20px rgba(0, 82, 204, 0.08); }
         .calculator-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; }
-        .form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 2px solid #e5e5e5; border-radius: 8px; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 2px solid var(--brand-light); border-radius: 8px; font-size: 14px; }
         
-        .result-highlight { background: #f0f7ff; padding: 24px; border-radius: 12px; border-left: 4px solid #0052cc; margin-top: 24px; }
-        .result-amount { font-size: 32px; font-weight: 700; color: #0052cc; margin: 12px 0; }
+        .result-highlight { background: #f0f7ff; padding: 24px; border-radius: 12px; border-left: 4px solid var(--brand-primary); margin-top: 24px; }
+        .result-amount { font-size: 32px; font-weight: 700; color: var(--brand-primary); margin: 12px 0; }
         .result-detail { font-size: 13px; color: #999; margin-bottom: 6px; }
-        .result-detail strong { color: #1a1a1a; }
+        .result-detail strong { color: var(--brand-dark); }
         
-        .btn-big { width: 100%; background: #0052cc; color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 24px; }
+        .btn-big { width: 100%; background: var(--brand-primary); color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 24px; }
         
-        .aspiracion { background: linear-gradient(135deg, #0052cc 0%, #0041a3 100%); color: white; padding: 60px 24px; margin: 60px 0; text-align: center; }
-        .aspiracion h2 { font-family: 'Poppins', sans-serif; font-size: 44px; font-weight: 700; margin-bottom: 20px; }
+        .aspiracion { background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-vivid) 100%); color: white; padding: var(--section-py) var(--section-px); margin: 60px 0; text-align: center; }
+        .aspiracion h2 { font-family: 'Poppins', sans-serif; font-size: clamp(28px, 5vw, 44px); font-weight: 600; margin-bottom: 20px; }
         
-        .proceso-section { padding: 80px 24px; background: #f9f9f9; }
-        .section-title { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; text-align: center; margin-bottom: 48px; }
+        .proceso-section { padding: var(--section-py) var(--section-px); background: #f9f9f9; }
+        .section-title { font-family: 'Poppins', sans-serif; font-size: clamp(24px, 4vw, 36px); font-weight: 600; text-align: center; margin-bottom: 48px; }
         
         .pasos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 60px; }
         .paso { text-align: center; }
-        .paso-numero { width: 56px; height: 56px; background: #0052cc; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: 700; font-size: 24px; }
+        .paso-numero { width: 56px; height: 56px; background: var(--brand-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: 700; font-size: 24px; }
         
-        .flujo { background: white; padding: 40px; border-radius: 12px; border: 1px solid #e5e5e5; }
+        .flujo { background: white; padding: 40px; border-radius: 12px; border: 1px solid var(--brand-light); }
         .flujo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 24px; }
-        .flujo-item { padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #0052cc; }
-        .flujo-item h4 { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; color: #0052cc; margin-bottom: 8px; }
+        .flujo-item { padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid var(--brand-primary); }
+        .flujo-item h4 { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--brand-primary); margin-bottom: 8px; }
         
-        .casos { padding: 80px 24px; }
+        .casos { padding: var(--section-py) var(--section-px); }
         .casos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
-        .caso-card { background: white; padding: 24px; border-radius: 12px; border: 2px solid #e5e5e5; }
+        .caso-card { background: white; padding: 24px; border-radius: 12px; border: 2px solid var(--brand-light); }
         .caso-emoji { font-size: 40px; margin-bottom: 12px; }
-        .caso-titulo { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+        .caso-titulo { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 8px; }
         
-        .plataforma { background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%); padding: 80px 24px; }
-        .plat-titulo { font-family: 'Poppins', sans-serif; font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 16px; }
+        .plataforma { background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%); padding: var(--section-py) var(--section-px); }
+        .plat-titulo { font-family: 'Poppins', sans-serif; font-size: clamp(22px, 3.5vw, 32px); font-weight: 600; text-align: center; margin-bottom: 16px; }
         .plat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px; }
-        .plat-card { background: white; padding: 32px; border-radius: 12px; border: 1px solid #e5e5e5; text-align: center; }
+        .plat-card { background: white; padding: 32px; border-radius: 12px; border: 1px solid var(--brand-light); text-align: center; }
         .plat-icon { font-size: 40px; margin-bottom: 16px; }
         
-        .tasas { padding: 80px 24px; }
+        .tasas { padding: var(--section-py) var(--section-px); }
         .tasas-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; margin-top: 48px; }
-        .tasa-box { background: white; padding: 32px; border-radius: 12px; border: 1px solid #e5e5e5; }
-        .tasa-table-row { display: grid; grid-template-columns: 1fr 1fr; padding: 10px 0; border-bottom: 1px solid #e5e5e5; font-size: 13px; }
-        .tasa-value { color: #0052cc; font-weight: 700; text-align: right; }
+        .tasa-box { background: white; padding: 32px; border-radius: 12px; border: 1px solid var(--brand-light); }
+        .tasa-table-row { display: grid; grid-template-columns: 1fr 1fr; padding: 10px 0; border-bottom: 1px solid var(--brand-light); font-size: 13px; }
+        .tasa-value { color: var(--brand-primary); font-weight: 700; text-align: right; }
         
-        .faq { padding: 80px 24px; background: #f9f9f9; }
+        .faq { padding: var(--section-py) var(--section-px); background: #f9f9f9; }
         .faq-container { max-width: 1000px; margin: 0 auto; }
         .faq-item { background: white; padding: 24px; margin-bottom: 12px; border-radius: 8px; }
         .faq-q { display: flex; justify-content: space-between; cursor: pointer; font-weight: 600; }
-        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; color: #666; font-size: 13px; margin-top: 16px; }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; color: var(--brand-mid); font-size: 13px; margin-top: 16px; }
         .faq-item.active .faq-answer { max-height: 500px; }
         
-        .cta-final { background: linear-gradient(135deg, #0052cc 0%, #0041a3 100%); color: white; padding: 80px 24px; text-align: center; }
-        .cta-final h2 { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; margin-bottom: 20px; }
-        .btn-primary { background: white; color: #0052cc; padding: 16px 48px; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .cta-final { background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-vivid) 100%); color: white; padding: var(--section-py) var(--section-px); text-align: center; }
+        .cta-final h2 { font-family: 'Poppins', sans-serif; font-size: clamp(24px, 4vw, 36px); font-weight: 600; margin-bottom: 20px; }
+        .btn-primary { background: white; color: var(--brand-primary); padding: 16px 48px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
         
-        footer { background: #1a1a1a; color: white; padding: 48px 24px 24px; }
+        footer { background: var(--brand-dark); color: white; padding: 48px 24px 24px; }
         .footer-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-bottom: 32px; }
         
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
         .modal-content { background: white; margin: 5% auto; padding: 40px; border-radius: 16px; width: 90%; max-width: 450px; }
-        .modal-title { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 16px; }
+        .modal-title { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 600; margin-bottom: 16px; }
         
-        @media (max-width: 768px) {
-            
-            .hero-inner { grid-template-columns: 1fr; }
-.hero { grid-template-columns: 1fr; }
-            .calculator-wrapper { grid-template-columns: 1fr; }
-            .pasos { grid-template-columns: 1fr; }
-            .flujo-grid { grid-template-columns: 1fr; }
-            .casos-grid { grid-template-columns: 1fr; }
+        /* Iconos SVG line-style (alineados al brandbook) */
+        .icon { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; }
+        .icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        .icon-lg { width: 32px; height: 32px; }
+        .icon-xl { width: 48px; height: 48px; }
+        .icon-sm { width: 18px; height: 18px; }
+        /* hero-check con ícono SVG */
+        .hero-check svg { width: 14px; height: 14px; stroke-width: 2.5; }
+        /* badge-icon override */
+        .badge-icon svg { width: 14px; height: 14px; stroke-width: 2.5; }
+        /* prop-card-img como contenedor de ícono grande con fondo */
+        .prop-card-img .icon { width: 48px; height: 48px; }
+        .prop-card-img .icon svg { stroke: var(--brand-primary); }
+        .cb-ben-icon { color: var(--brand-primary); }
+        .cb-ben-icon .icon { width: 32px; height: 32px; }
+
+        /* Tablet */
+        @media (max-width: 1024px) {
+            .pasos { grid-template-columns: repeat(2, 1fr); }
+            .casos-grid { grid-template-columns: repeat(2, 1fr); }
             .plat-grid { grid-template-columns: repeat(2, 1fr); }
             .tasas-grid { grid-template-columns: 1fr; }
         }
+        /* Mobile grande */
+        @media (max-width: 768px) {
+            .hero-inner { grid-template-columns: 1fr; }
+            .hero { grid-template-columns: 1fr; padding: var(--section-py) var(--section-px); gap: 32px; }
+            .calculator-wrapper { grid-template-columns: 1fr; gap: 16px; }
+            .calculator-box { padding: 24px; }
+            .pasos { grid-template-columns: 1fr; }
+            .flujo { padding: 24px; }
+            .flujo-grid { grid-template-columns: 1fr; gap: 16px; }
+            .casos-grid { grid-template-columns: 1fr; }
+            .plat-grid { grid-template-columns: 1fr; }
+            .tasas-grid { grid-template-columns: 1fr; }
+            .footer-container { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+            .modal-content { padding: 24px; margin: 10% auto; }
+            .aspiracion { padding: var(--section-py) var(--section-px); margin: 32px 0; }
+        }
+        /* Mobile chico */
+        @media (max-width: 520px) {
+            .hero-content h1 { font-size: clamp(28px, 8vw, 38px) !important; }
+            .calculator-box { padding: 16px; border-radius: 12px; }
+            .footer-container { grid-template-columns: 1fr; }
+            .cb-infografia { padding: 24px 16px; }
+            .cb-stat { padding: 0 8px; min-width: 120px; }
+            .faq-item { padding: 16px; }
+            .testimonio-card { padding: 20px; }
+            .plat-card, .tasa-box, .caso-card { padding: 20px; }
+            .btn-primary, .btn-big { padding: 14px 24px; font-size: 15px; }
+        }
     
         .hero-icons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-top: 18px; }
-        .hero-icon-item { display:flex; align-items:center; gap:10px; font-size: 13px; color:#1a1a1a; }
-        .hero-check { display:inline-flex; width: 22px; height: 22px; border-radius: 999px; align-items:center; justify-content:center; background:#e9f0ff; color:#0052cc; font-weight: 800; }
-        .btn-secondary { background: #f2f4f7; color: #1a1a1a; padding: 12px 18px; border: 1px solid #e5e5e5; border-radius: 10px; cursor: pointer; font-weight: 700; }
+        .hero-icon-item { display:flex; align-items:center; gap:10px; font-size: 13px; color:var(--brand-dark); }
+        .hero-check { display:inline-flex; width: 22px; height: 22px; border-radius: 999px; align-items:center; justify-content:center; background:#e9f0ff; color:var(--brand-primary); font-weight: 600; }
+        .btn-secondary { background: #f2f4f7; color: var(--brand-dark); padding: 12px 18px; border: 1px solid var(--brand-light); border-radius: 10px; cursor: pointer; font-weight: 600; }
         .bo-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
         @media (max-width: 700px) { .bo-grid { grid-template-columns: 1fr; } .hero-icons { grid-template-columns: 1fr; } }
 
         /* COLDWELL BANKER SECTION */
-        .cb-section { padding: 80px 24px; background: white; }
+        .cb-section { padding: var(--section-py) var(--section-px); background: white; }
         .cb-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
-        .cb-badge { display: inline-block; background: #e8f0fe; color: #0052cc; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 6px 16px; border-radius: 999px; margin-bottom: 20px; }
-        .cb-subtitle { color: #666; font-size: 16px; max-width: 680px; margin: 0 auto 48px; line-height: 1.7; }
+        .cb-badge { display: inline-block; background: #e8f0fe; color: var(--brand-primary); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; padding: 6px 16px; border-radius: 999px; margin-bottom: 20px; }
+        .cb-subtitle { color: var(--brand-mid); font-size: 16px; max-width: 680px; margin: 0 auto 48px; line-height: 1.7; }
         .cb-infografia { display: flex; align-items: center; justify-content: center; gap: 0; background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%); border-radius: 16px; padding: 40px 32px; margin-bottom: 48px; flex-wrap: wrap; gap: 8px; }
         .cb-stat { text-align: center; padding: 0 20px; }
-        .cb-stat-num { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; color: #0052cc; }
-        .cb-stat-label { font-size: 12px; color: #666; margin-top: 4px; }
-        .cb-arrow { font-size: 24px; color: #0052cc; opacity: 0.4; }
+        .cb-stat-num { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; color: var(--brand-primary); }
+        .cb-stat-label { font-size: 12px; color: var(--brand-mid); margin-top: 4px; }
+        .cb-arrow { font-size: 24px; color: var(--brand-primary); opacity: 0.4; }
         .cb-beneficios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: left; }
         .cb-ben-item { display: flex; gap: 16px; align-items: flex-start; background: #f9f9f9; padding: 24px; border-radius: 12px; }
         .cb-ben-icon { font-size: 28px; flex-shrink: 0; }
         .cb-ben-item strong { display: block; font-size: 14px; margin-bottom: 6px; }
-        .cb-ben-item p { font-size: 13px; color: #666; margin: 0; }
+        .cb-ben-item p { font-size: 13px; color: var(--brand-mid); margin: 0; }
 
         /* PROPIEDADES CB */
-        .propiedades-section { padding: 80px 24px; background: #f9f9f9; }
+        .propiedades-section { padding: var(--section-py) var(--section-px); background: #f9f9f9; }
         .prop-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
         .prop-filtros { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-        .btn-cb-buscar { background: #0052cc; color: white; border: none; padding: 14px 28px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; }
-        .btn-cb-buscar:hover { background: #0041a3; }
+        .btn-cb-buscar { background: var(--brand-primary); color: white; border: none; padding: 14px 28px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: var(--transition-base); }
+        .btn-cb-buscar:hover { background: var(--brand-primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-cb-buscar:focus-visible { outline: 3px solid var(--brand-vivid); outline-offset: 2px; }
         .prop-preview { position: relative; }
-        .prop-card-demo { background: white; border-radius: 12px; border: 1px solid #e5e5e5; padding: 0; overflow: hidden; margin-bottom: -20px; box-shadow: 0 4px 20px rgba(0,82,204,0.1); }
+        .prop-card-demo { background: white; border-radius: 12px; border: 1px solid var(--brand-light); padding: 0; overflow: hidden; margin-bottom: -20px; box-shadow: 0 4px 20px rgba(0,82,204,0.1); }
         .prop-card-img { background: linear-gradient(135deg, #e8f0fe, #f0f7ff); padding: 32px; font-size: 48px; text-align: center; }
         .prop-card-info { padding: 16px 20px; }
-        .prop-card-tag { display: inline-block; background: #e8f0fe; color: #0052cc; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
+        .prop-card-tag { display: inline-block; background: #e8f0fe; color: var(--brand-primary); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
         .prop-card-info strong { display: block; font-size: 15px; }
-        .prop-card-info p { font-size: 13px; color: #666; margin: 2px 0 8px; }
-        .prop-card-price { font-size: 18px; font-weight: 700; color: #0052cc; }
+        .prop-card-info p { font-size: 13px; color: var(--brand-mid); margin: 2px 0 8px; }
+        .prop-card-price { font-size: 18px; font-weight: 700; color: var(--brand-primary); }
 
         /* TESTIMONIOS */
-        .testimonios-section { padding: 80px 24px; background: white; }
+        .testimonios-section { padding: var(--section-py) var(--section-px); background: white; }
         .testimonios-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-        .testimonio-card { background: #f9f9f9; border-radius: 16px; padding: 32px; border: 1px solid #e5e5e5; }
+        .testimonio-card { background: #f9f9f9; border-radius: 16px; padding: 32px; border: 1px solid var(--brand-light); }
         .testimonio-stars { color: #f59e0b; font-size: 18px; margin-bottom: 16px; letter-spacing: 2px; }
         .testimonio-texto { color: #444; font-size: 14px; line-height: 1.7; margin-bottom: 24px; font-style: italic; }
         .testimonio-autor { display: flex; gap: 12px; align-items: center; }
-        .testimonio-avatar { width: 44px; height: 44px; background: #0052cc; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+        .testimonio-avatar { width: 44px; height: 44px; background: var(--brand-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
         .testimonio-autor strong { display: block; font-size: 14px; }
         .testimonio-autor span { font-size: 12px; color: #888; }
 
@@ -156,6 +229,73 @@
             .prop-preview { display: none; }
         }
     
+
+        /* ============================================================
+           HOVER & FOCUS STATES — Accesibilidad y feedback visual
+           ============================================================ */
+        .btn-ingresar, .btn-big, .btn-primary, .btn-secondary, .btn-cb-buscar {
+            transition: var(--transition-base);
+        }
+        .btn-ingresar:hover { background: var(--brand-primary-hover); transform: translateY(-1px); }
+        .btn-big:hover { background: var(--brand-primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
+        .btn-secondary:hover { background: var(--brand-light); border-color: var(--brand-mid); }
+        .btn-ingresar:focus-visible, .btn-big:focus-visible, .btn-primary:focus-visible,
+        .btn-secondary:focus-visible, .btn-cb-buscar:focus-visible {
+            outline: 3px solid var(--brand-vivid);
+            outline-offset: 2px;
+        }
+
+        /* Cards interactivas */
+        .caso-card, .testimonio-card, .plat-card, .tasa-box {
+            transition: var(--transition-base);
+        }
+        .caso-card:hover, .testimonio-card:hover, .plat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--brand-primary);
+        }
+
+        /* Links y navegación */
+        #landing-page nav a {
+            transition: color .2s ease;
+            position: relative;
+        }
+        #landing-page nav a:hover { color: var(--brand-primary); }
+        #landing-page nav a:focus-visible { outline: 2px solid var(--brand-vivid); outline-offset: 4px; border-radius: 4px; }
+
+        /* Footer links */
+        footer a { color: rgba(255,255,255,0.85); text-decoration: none; transition: opacity .2s ease; }
+        footer a:hover { opacity: 0.7; text-decoration: underline; text-underline-offset: 4px; }
+
+        /* Inputs focus */
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(26, 67, 148, 0.15);
+        }
+
+        /* Skip link (accesibilidad) */
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            background: var(--brand-vivid);
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            z-index: 9999;
+            border-radius: 0 0 8px 0;
+        }
+        .skip-link:focus { left: 0; }
+
+        /* Reduce motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
 
         /* ===== APP-ROOT RESET: neutralizar estilos del landing ===== */
         #app-root { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
@@ -234,8 +374,9 @@
             margin: 0 0 16px;
         }
         .brand-accent{
-            color: #AFC8FF; /* acento azul claro */
-            text-shadow: 0 10px 30px rgba(0,0,0,.18);
+            color: var(--brand-white);
+            text-shadow: 0 4px 24px rgba(13, 0, 255, 0.45), 0 2px 8px rgba(0,0,0,0.2);
+            position: relative;
         }
         .hero-subtitle{
             margin: 0 0 26px;
@@ -262,7 +403,7 @@
             align-items:center; justify-content:center;
             background: rgba(255,255,255,.16);
             border: 1px solid rgba(255,255,255,.18);
-            font-weight: 800;
+            font-weight: 600;
         }
 
         .card-hero{
@@ -290,6 +431,8 @@
             transform: translateX(-50%);
             width: min(1000px, 80vw);
             height: auto;
+            aspect-ratio: 1 / 1;
+            object-fit: contain;
             z-index: 2; /* entre copy y simulador (por encima del fondo/overlay) */
             pointer-events: none;
             filter: drop-shadow(0 30px 60px rgba(0,0,0,.22));
@@ -337,6 +480,8 @@
   width:110px; /* ~1/3 del tamaño previo */
   height:auto;
   display:block;
+  border-radius: 12px;
+  object-fit: cover;
 }
 
 /* ===== CASOS (polish) ===== */
@@ -388,7 +533,7 @@
             border-radius:999px;
             border:1px solid rgba(0,0,0,.12);
             background:#fff;
-            color:#0052cc;
+            color:var(--brand-primary);
             font-weight:800;
             font-size:12px;
             cursor:help;
@@ -435,9 +580,11 @@
     
 </style>
 
-    <!-- Landing standalone: no necesita React ni Tailwind. Usa CSS propio (en este mismo <style>) -->
+    <!-- React, ReactDOM, Babel, and Tailwind CDN -->
+    <script>
 </head>
 <body>
+    <a href="#simulador" class="skip-link">Saltar al contenido</a>
     <div id="landing-page">
 <header>
         <div class="header-container">
@@ -467,10 +614,10 @@
                 <p class="hero-subtitle">Simulá tu préstamo en minutos y<br>conocé cuánto podés financiar hoy.</p>
 
                 <div class="hero-badges">
-                    <div class="badge-card"><span class="badge-icon">✓</span>100% online</div>
-                    <div class="badge-card"><span class="badge-icon">⚡</span>Rápido</div>
-                    <div class="badge-card"><span class="badge-icon">🔍</span>Transparente</div>
-                    <div class="badge-card"><span class="badge-icon">◎</span>Simple</div>
+                    <div class="badge-card"><span class="badge-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>100% online</div>
+                    <div class="badge-card"><span class="badge-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>Rápido</div>
+                    <div class="badge-card"><span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Transparente</div>
+                    <div class="badge-card"><span class="badge-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>Simple</div>
                 </div>
             </div>
 
@@ -500,7 +647,7 @@
                         </div>
 
                         <div class="result-highlight">
-                            <div style="font-size: 13px; color: #666; text-transform: uppercase;">Cuota mensual</div>
+                            <div style="font-size: 13px; color: var(--brand-mid); text-transform: uppercase;">Cuota mensual</div>
                             <div class="result-amount" id="cuota">$1.064</div>
                             <div class="result-detail">Préstamo a solicitar: <strong id="ask">$30.000</strong></div>
                             <div class="result-detail">Monto bruto: <strong id="bruto">$31.815</strong></div>
@@ -515,7 +662,7 @@
             </div>
 
             <!-- Capa pareja (PNG con fondo transparente). Reemplazá la ruta por tu asset final -->
-            <img class="hero-couple" src="assets/couple.png" alt="Pareja mirando el celular">
+            <img class="hero-couple" src="assets/couple.png" alt="Pareja mirando el celular" loading="eager" decoding="async" fetchpriority="high">
         </div>
     </section>
 
@@ -527,7 +674,7 @@
 
     <section class="proceso-section" id="como">
         <div class="flujo">
-            <h3 style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700;">El flujo completo online en Tu Casa +Cerca</h3>
+            <h3 style="font-family: 'Poppins', sans-serif; font-size: clamp(20px, 3vw, 24px); font-weight: 600;">El flujo completo online en Tu Casa +Cerca</h3>
             <div class="flujo-grid">
                 <div class="flujo-item"><h4>Simulador</h4><p>Probás tu capacidad según la propiedad.</p></div>
                 <div class="flujo-item"><h4>Link propiedad</h4><p>Compartís el link de inmuebles o CB.</p></div>
@@ -538,10 +685,10 @@
 
             </div>
             <div class="hero-icons">
-                <div class="hero-icon-item"><span class="hero-check">✓</span><span>Respuesta rápida</span></div>
-                <div class="hero-icon-item"><span class="hero-check">✓</span><span>100% online</span></div>
-                <div class="hero-icon-item"><span class="hero-check">✓</span><span>Sin burocracia</span></div>
-                <div class="hero-icon-item"><span class="hero-check">✓</span><span>Acompañamiento personalizado</span></div>
+                <div class="hero-icon-item"><span class="hero-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span>Respuesta rápida</span></div>
+                <div class="hero-icon-item"><span class="hero-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span>100% online</span></div>
+                <div class="hero-icon-item"><span class="hero-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span>Sin burocracia</span></div>
+                <div class="hero-icon-item"><span class="hero-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span>Acompañamiento personalizado</span></div>
             </div>
         </div>
     </section>
@@ -629,21 +776,21 @@
             </div>
             <div class="cb-beneficios">
                 <div class="cb-ben-item">
-                    <div class="cb-ben-icon">🏠</div>
+                    <div class="cb-ben-icon"><span class="icon icon-lg"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span></div>
                     <div>
                         <strong>Propiedades verificadas</strong>
                         <p>Las propiedades publicadas por CB cuentan con acompañamiento inmobiliario profesional durante todo el proceso.</p>
                     </div>
                 </div>
                 <div class="cb-ben-item">
-                    <div class="cb-ben-icon">🤝</div>
+                    <div class="cb-ben-icon"><span class="icon icon-lg"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></div>
                     <div>
                         <strong>Asesoramiento integral</strong>
                         <p>CB te acompaña en la búsqueda y Tu Casa +Cerca en el financiamiento, coordinado en un mismo recorrido.</p>
                     </div>
                 </div>
                 <div class="cb-ben-item">
-                    <div class="cb-ben-icon">⚡</div>
+                    <div class="cb-ben-icon"><span class="icon icon-lg"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span></div>
                     <div>
                         <strong>Proceso unificado</strong>
                         <p>Elegís la propiedad en CB y gestionás el financiamiento en Tu Casa +Cerca, de forma integrada y sin fricciones.</p>
@@ -659,7 +806,7 @@
             <div class="prop-text">
                 <div class="cb-badge" style="margin-bottom:16px;">Propiedades aptas crédito</div>
                 <h2 class="section-title" style="text-align:left; margin-bottom:16px;">Encontrá tu próxima casa con Coldwell Banker</h2>
-                <p style="color:#666; margin-bottom:28px; font-size:15px;">Buscá propiedades en la red Coldwell Banker. Encontrás el inmueble y nosotros te financiamos el complemento. Así de simple.</p>
+                <p style="color:var(--brand-mid); margin-bottom:28px; font-size:15px;">Buscá propiedades en la red Coldwell Banker. Encontrás el inmueble y nosotros te financiamos el complemento. Así de simple.</p>
                 <div class="prop-filtros">
                     <div class="form-group">
                         <label>Zona o barrio</label>
@@ -680,14 +827,14 @@
                     </div>
                 </div>
                 <button class="btn-cb-buscar" onclick="buscarEnCB()">
-                    🔍 Ver propiedades en Coldwell Banker
+                    <span class="icon icon-sm" style="margin-right:8px;vertical-align:-3px;"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Ver propiedades en Coldwell Banker
                 </button>
                 <p style="font-size:12px; color:#999; margin-top:12px;">Serás redirigido al sitio oficial de Coldwell Banker Argentina con tu búsqueda aplicada.</p>
             </div>
             <div class="prop-imagen">
                 <div class="prop-preview">
                     <div class="prop-card-demo">
-                        <div class="prop-card-img">🏡</div>
+                        <div class="prop-card-img"><span class="icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span></div>
                         <div class="prop-card-info">
                             <div class="prop-card-tag">Apto crédito Tu Casa +Cerca</div>
                             <strong>Departamento 3 amb.</strong>
@@ -696,7 +843,7 @@
                         </div>
                     </div>
                     <div class="prop-card-demo" style="opacity:0.7; transform: scale(0.95) translateY(8px);">
-                        <div class="prop-card-img">🏘️</div>
+                        <div class="prop-card-img"><span class="icon"><svg viewBox="0 0 24 24"><path d="M4 21v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7"/><path d="M9 3h6v4H9z"/><path d="M6 8h1v5H6zM17 8h1v5h-1z"/><line x1="6" y1="13" x2="6" y2="17"/><line x1="17" y1="13" x2="17" y2="17"/></svg></span></div>
                         <div class="prop-card-info">
                             <div class="prop-card-tag">Apto crédito Tu Casa +Cerca</div>
                             <strong>PH 2 amb.</strong>
@@ -712,7 +859,7 @@
     <!-- TESTIMONIOS -->
     <section class="testimonios-section" id="testimonios">
         <h2 class="section-title">Lo que dicen quienes ya dieron el paso</h2>
-        <p style="text-align:center; color:#666; margin-top:-32px; margin-bottom:48px;">Historias reales de personas que usaron Tu Casa +Cerca para comprar su casa.</p>
+        <p style="text-align:center; color:var(--brand-mid); margin-top:-32px; margin-bottom:48px;">Historias reales de personas que usaron Tu Casa +Cerca para comprar su casa.</p>
         <div class="testimonios-grid">
             <div class="testimonio-card">
                 <div class="testimonio-stars">★★★★★</div>
@@ -754,8 +901,8 @@
         <h2 class="section-title" id="tasas">Tasas y Cuotas</h2>
         <div class="tasas-grid">
             <div class="tasa-box">
-                <h3>📊 Cuotas por Plazo</h3>
-                <p style="font-size: 12px; color: #666; margin-bottom: 16px;">Ejemplos en base a un crédito de 30.000 USD</p>
+                <h3 style="display:flex;align-items:center;gap:10px;"><span class="icon" style="color:var(--brand-primary);"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="11" width="4" height="9"/><rect x="15" y="5" width="4" height="15"/></svg></span>Cuotas por Plazo</h3>
+                <p style="font-size: 12px; color: var(--brand-mid); margin-bottom: 16px;">Ejemplos en base a un crédito de 30.000 USD</p>
                 <div class="tasa-table-row"><span>12 meses</span><span class="tasa-value" id="ex-cuota-12">—</span></div>
                 <div class="tasa-table-row"><span>24 meses</span><span class="tasa-value" id="ex-cuota-24">—</span></div>
                 <div class="tasa-table-row"><span>36 meses</span><span class="tasa-value" id="ex-cuota-36">—</span></div>
@@ -763,8 +910,8 @@
                 <div class="tasa-table-row"><span>60 meses</span><span class="tasa-value" id="ex-cuota-60">—</span></div>
             </div>
             <div class="tasa-box">
-                <h3>⏳ Costo Implícito Anual (TIR) <span class="tip" data-tip="Tasa implícita anual estimada según los flujos del préstamo (cuotas + costos). No es la TNA contractual sobre saldo.">?</span></h3>
-                <p style="font-size: 12px; color: #666; margin-bottom: 16px;">Tasa implícita anual estimada según flujos (incluye comisión y amortización).</p>
+                <h3 style="display:flex;align-items:center;gap:10px;"><span class="icon" style="color:var(--brand-primary);"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>Costo Implícito Anual (TIR) <span class="tip" data-tip="Tasa implícita anual estimada según los flujos del préstamo (cuotas + costos). No es la TNA contractual sobre saldo.">?</span></h3>
+                <p style="font-size: 12px; color: var(--brand-mid); margin-bottom: 16px;">Tasa implícita anual estimada según flujos (incluye comisión y amortización).</p>
                 <div class="tasa-table-row"><span>12 meses</span><span class="tasa-value" id="ex-tna-12">—</span></div>
                 <div class="tasa-table-row"><span>24 meses</span><span class="tasa-value" id="ex-tna-24">—</span></div>
                 <div class="tasa-table-row"><span>36 meses</span><span class="tasa-value" id="ex-tna-36">—</span></div>
@@ -834,7 +981,7 @@
 
     <div id="modal" class="modal">
         <div class="modal-content">
-            <div class="modal-title">Acceso a plataforma en desarrollo</div><p style="color:#666;margin-top:8px;">Muy pronto vas a poder ingresar y gestionar tu crédito desde acá.</p><div style="margin-top:18px;"><button type="button" class="btn-big" onclick="closeModal()">Entendido</button></div>
+            <div class="modal-title">Acceso a plataforma en desarrollo</div><p style="color:var(--brand-mid);margin-top:8px;">Muy pronto vas a poder ingresar y gestionar tu crédito desde acá.</p><div style="margin-top:18px;"><button type="button" class="btn-big" onclick="closeModal()">Entendido</button></div>
         </div>
     </div>
 
@@ -843,7 +990,7 @@
     <div id="leadModal" class="modal">
         <div class="modal-content" style="max-width: 520px;">
             <div class="modal-title">Contactar agente</div>
-            <p style="color:#666;margin-top:8px;">Dejanos tus datos y un agente se contactará con vos. Guardaremos también tu última simulación.</p>
+            <p style="color:var(--brand-mid);margin-top:8px;">Dejanos tus datos y un agente se contactará con vos. Guardaremos también tu última simulación.</p>
 
             <form id="leadForm" style="margin-top: 18px;">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
@@ -891,7 +1038,7 @@
     <div id="backofficeModal" class="modal">
         <div class="modal-content" style="max-width: 520px;">
             <div class="modal-title">Backoffice — Configuración de Tasas</div>
-            <p style="color:#666;margin-top:8px;">Cambios guardados en este navegador (localStorage).</p>
+            <p style="color:var(--brand-mid);margin-top:8px;">Cambios guardados en este navegador (localStorage).</p>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px;">
                 <div class="form-group">
@@ -928,7 +1075,7 @@
                         <input id="bo-rate-60" type="number" step="0.01" min="0">
                     </div>
                 </div>
-                <div style="color:#666; font-size:12px; margin-top:6px;">Ingresá tasas en % (ej: 10.50)</div>
+                <div style="color:var(--brand-mid); font-size:12px; margin-top:6px;">Ingresá tasas en % (ej: 10.50)</div>
             </div>
 
             <div style="display:flex; gap: 10px; margin-top: 18px; justify-content:flex-end;">
@@ -938,9 +1085,6 @@
         </div>
     </div>
     </div>
-    <!-- NOTA: El #app-root fue removido. La app corre en un dominio separado (app.tucasamascerca.com).
-         El boton "Ingresar" ahora redirige a APP_URL/login. Ver /shared/CONTRACT.md -->
-
 
 <script>
         const DEFAULT_CONFIG = {
@@ -1098,12 +1242,10 @@
             window.open(url, '_blank');
         }
 
-        // ---- Handoff "Ingresar" → redirecciona a la app ----
-        // Config: APP_URL se setea segun el entorno. En produccion es https://app.tucasamascerca.com
+        // ---- Handoff "Ingresar" → redirige a la app (ver /shared/CONTRACT.md) ----
         const APP_URL = window.APP_URL || 'https://app.tucasamascerca.com';
-
+        const modal = document.getElementById('modal');
         function openModal() {
-            // Si el usuario simulo, pasar los valores por query params (ver /shared/CONTRACT.md)
             const params = new URLSearchParams();
             const prop = document.getElementById('property-value')?.value;
             const loan = document.getElementById('loan-amount')?.value;
@@ -1114,8 +1256,6 @@
             const qs = params.toString();
             window.location.href = APP_URL + '/login' + (qs ? '?' + qs : '');
         }
-        // Mantener modal legacy por compatibilidad (no se abre mas, pero algunos handlers lo referencian)
-        const modal = document.getElementById('modal');
         function closeModal() { if (modal) modal.style.display = 'none'; }
 
         // ---- Backoffice ----
@@ -1220,7 +1360,6 @@
     </script>
 
 
-<!-- El codigo React de la app fue removido de esta landing. Vive en /app/. Ver /shared/CONTRACT.md -->
 
 </body>
 </html>
