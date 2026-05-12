@@ -684,12 +684,12 @@
                     <div class="calculator-wrapper">
                         <div>
                             <div class="form-group">
-                                <label for="property-value">Valor del inmueble</label>
-                                <input type="number" id="property-value" min="50000">
+                                <label for="property-value">Valor del inmueble (U$D)</label>
+                                <input type="text" inputmode="numeric" id="property-value" autocomplete="off">
                             </div>
                             <div class="form-group">
-                                <label for="loan-amount">Préstamo a solicitar</label>
-                                <input type="number" id="loan-amount" min="1000" max="50000">
+                                <label for="loan-amount">Préstamo a solicitar (U$D)</label>
+                                <input type="text" inputmode="numeric" id="loan-amount" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="loan-term">Plazo</label>
@@ -1100,7 +1100,7 @@
             tasasBase: { 12: 0.105, 24: 0.115, 36: 0.125, 48: 0.135, 60: 0.145 },
             maxLTV: 0.35,
             maxLoan: 50000,
-            simDefaults: { propertyValue: 100000, loanAmount: 30000, months: 60 }
+            simDefaults: { propertyValue: 100000, loanAmount: 35000, months: 60 }
         };
 
         function loadConfig() {
@@ -1189,19 +1189,28 @@
             return prestamo + upfront + iva;
         }
 
+        // Helpers para inputs con separador de miles (formato es-AR)
+        function parseIntFromInput(el) {
+            const digits = (el.value || '').replace(/\D/g, '');
+            return digits ? parseInt(digits, 10) : 0;
+        }
+        function formatIntForInput(n) {
+            return (n || 0).toLocaleString('es-AR');
+        }
+
         function updateCalculator() {
-            const prop = parseInt(document.getElementById('property-value').value) || 100000;
-            let loan = parseInt(document.getElementById('loan-amount').value) || 30000;
+            const propEl = document.getElementById('property-value');
+            const loanEl = document.getElementById('loan-amount');
+            const prop = parseIntFromInput(propEl) || 100000;
+            let loan = parseIntFromInput(loanEl) || (CONFIG.simDefaults?.loanAmount || 35000);
             const months = parseInt(document.getElementById('loan-term').value) || 60;
 
             const maxPct = Math.floor(prop * CONFIG.maxLTV);
             const maxAllow = Math.min(CONFIG.maxLoan, maxPct);
             if (loan > maxAllow) loan = maxAllow;
 
-            // feedback en inputs
-            const loanInput = document.getElementById('loan-amount');
-            loanInput.max = maxAllow;
-            loanInput.value = loan;
+            // feedback en inputs (con separador de miles)
+            loanEl.value = formatIntForInput(loan);
 
             const bruto = calcularBruto(loan);
             const tasa = CONFIG.tasasBase[months] ?? 0.085;
@@ -1279,9 +1288,11 @@
         const APP_URL = window.APP_URL || 'https://app.tucasamascerca.com';
         function openModal() {
             const params = new URLSearchParams();
-            const prop = document.getElementById('property-value')?.value;
-            const loan = document.getElementById('loan-amount')?.value;
+            const propRaw = document.getElementById('property-value')?.value || '';
+            const loanRaw = document.getElementById('loan-amount')?.value || '';
             const months = document.getElementById('loan-term')?.value;
+            const prop = propRaw.replace(/\D/g, '');
+            const loan = loanRaw.replace(/\D/g, '');
             if (prop) params.set('propertyValue', prop);
             if (loan) params.set('loanAmount', loan);
             if (months) params.set('months', months);
@@ -1337,15 +1348,23 @@
             });
         });
 
-        document.getElementById('property-value').addEventListener('input', () => { updateCalculator(); });
-        document.getElementById('loan-amount').addEventListener('input', () => { updateCalculator(); });
+        // Re-format con miles mientras el usuario tipea, preservando posición del cursor aprox.
+        function liveFormatInput(el) {
+            el.addEventListener('input', () => {
+                const raw = (el.value || '').replace(/\D/g, '');
+                el.value = raw ? parseInt(raw, 10).toLocaleString('es-AR') : '';
+                updateCalculator();
+            });
+        }
+        liveFormatInput(document.getElementById('property-value'));
+        liveFormatInput(document.getElementById('loan-amount'));
         document.getElementById('loan-term').addEventListener('change', () => { updateCalculator(); });
 
         // Inicializar inputs con los defaults del simulador (configurables desde el super_admin de la app)
         function initSimulatorDefaults() {
             const d = CONFIG.simDefaults || DEFAULT_CONFIG.simDefaults;
-            document.getElementById('property-value').value = d.propertyValue;
-            document.getElementById('loan-amount').value = d.loanAmount;
+            document.getElementById('property-value').value = formatIntForInput(d.propertyValue);
+            document.getElementById('loan-amount').value = formatIntForInput(d.loanAmount);
             document.getElementById('loan-term').value = String(d.months);
         }
         initSimulatorDefaults();
