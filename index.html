@@ -695,11 +695,11 @@
                         <div>
                             <div class="form-group">
                                 <label for="property-value">Valor del inmueble</label>
-                                <input type="number" id="property-value" value="100000" min="50000">
+                                <input type="number" id="property-value" min="50000">
                             </div>
                             <div class="form-group">
                                 <label for="loan-amount">Préstamo a solicitar</label>
-                                <input type="number" id="loan-amount" value="30000" min="1000" max="50000">
+                                <input type="number" id="loan-amount" min="1000" max="50000">
                             </div>
                             <div class="form-group">
                                 <label for="loan-term">Plazo</label>
@@ -708,17 +708,17 @@
                                     <option value="24">24 meses</option>
                                     <option value="36">36 meses</option>
                                     <option value="48">48 meses</option>
-                                    <option value="60" selected>60 meses</option>
+                                    <option value="60">60 meses</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="result-highlight">
                             <div style="font-size: 13px; color: var(--brand-mid); text-transform: uppercase;">Cuota mensual</div>
-                            <div class="result-amount" id="cuota">$1.064</div>
-                            <div class="result-detail">Préstamo a solicitar: <strong id="ask">$30.000</strong></div>
-                            <div class="result-detail">Monto bruto: <strong id="bruto">$31.815</strong></div>
-                            <div class="result-detail">Recibirás: <strong id="recv">$30.000</strong></div>
+                            <div class="result-amount" id="cuota">U$D 1.064</div>
+                            <div class="result-detail">Préstamo a solicitar: <strong id="ask">U$D 30.000</strong></div>
+                            <div class="result-detail">Monto bruto: <strong id="bruto">U$D 31.815</strong></div>
+                            <div class="result-detail">Recibirás: <strong id="recv">U$D 30.000</strong></div>
                             <div style="border-top: 1px solid rgba(0, 82, 204, 0.2); margin-top: 12px; padding-top: 12px;">
                                 <div class="result-detail">TNA: <strong id="tna">12.50%</strong> <span class="tip" data-tip="Tasa Nominal Anual aplicada sobre saldo para calcular tu cuota.">?</span></div>
                                 <div class="result-detail">CFT: <strong id="cft">—</strong> <span class="tip" data-tip="Costo Financiero Total: tasa anualizada que incluye intereses, IVA y gastos. Es el costo real anual del crédito.">?</span></div>
@@ -995,11 +995,11 @@
             <h2 class="section-title">Preguntas Frecuentes</h2>
             <div class="faq-item">
                 <div class="faq-q" onclick="toggleFaq(this)"><span>¿Cuál es el monto máximo?</span><span>+</span></div>
-                <div class="faq-answer">El menor de: $50.000 o 35% del valor del inmueble.</div>
+                <div class="faq-answer">El menor de: U$D 50.000 o 35% del valor del inmueble.</div>
             </div>
             <div class="faq-item">
                 <div class="faq-q" onclick="toggleFaq(this)"><span>¿Qué es el upfront?</span><span>+</span></div>
-                <div class="faq-answer">Comisión 5% + IVA 21%. Si solicitas $30.000, upfront es $1.815. Recibirás $30.000 pero pagarás cuota sobre $31.815.</div>
+                <div class="faq-answer">Comisión 5% + IVA 21%. Si solicitas U$D 30.000, upfront es U$D 1.815. Recibirás U$D 30.000 pero pagarás cuota sobre U$D 31.815.</div>
             </div>
             <div class="faq-item">
                 <div class="faq-q" onclick="toggleFaq(this)"><span>¿Cuánto tarda?</span><span>+</span></div>
@@ -1040,7 +1040,7 @@
 
     <footer>
         <div class="footer-container">
-            <div><h4>Producto</h4><a href="#simulador">Simulador</a><a href="#tasas">Tasas</a><a href="#" onclick="openBackoffice(); return false;">Backoffice</a></div>
+            <div><h4>Producto</h4><a href="#simulador">Simulador</a><a href="#tasas">Tasas</a></div>
             <div><h4>Empresa</h4><a href="#">Blog</a><a href="#">Contacto</a></div>
             <div><h4>Legal</h4><a href="#">Términos</a><a href="#">Privacidad</a></div>
             <div><h4>Contacto</h4><a href="tel:+541144444444">+54 (11) 4444-4444</a></div>
@@ -1103,55 +1103,6 @@
     </div>
 
 
-    <div id="backofficeModal" class="modal">
-        <div class="modal-content" style="max-width: 520px;">
-            <div class="modal-title">Backoffice — Configuración de Tasas</div>
-            <p style="color:var(--brand-mid);margin-top:8px;">Cambios guardados en este navegador (localStorage).</p>
-
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px;">
-                <div class="form-group">
-                    <label>Máximo Loan-to-Value / LTV (% sobre valor del inmueble)</label>
-                    <input id="bo-maxLtv" type="number" min="1" max="100" step="0.1">
-                </div>
-                <div class="form-group">
-                    <label>Monto máximo a solicitar (USD)</label>
-                    <input id="bo-maxLoan" type="number" min="1000" step="100">
-                </div>
-            </div>
-
-            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
-                <div style="font-weight:700; margin: 6px 0 10px;">Tasas base (anual) por plazo</div>
-                <div class="bo-grid">
-                    <div class="form-group">
-                        <label>12 meses</label>
-                        <input id="bo-rate-12" type="number" step="0.01" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>24 meses</label>
-                        <input id="bo-rate-24" type="number" step="0.01" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>36 meses</label>
-                        <input id="bo-rate-36" type="number" step="0.01" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>48 meses</label>
-                        <input id="bo-rate-48" type="number" step="0.01" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>60 meses</label>
-                        <input id="bo-rate-60" type="number" step="0.01" min="0">
-                    </div>
-                </div>
-                <div style="color:var(--brand-mid); font-size:12px; margin-top:6px;">Ingresá tasas en % (ej: 10.50)</div>
-            </div>
-
-            <div style="display:flex; gap: 10px; margin-top: 18px; justify-content:flex-end;">
-                <button type="button" class="btn-secondary" onclick="resetBackoffice()">Reset</button>
-                <button type="button" class="btn-big" onclick="saveBackoffice()">Guardar</button>
-            </div>
-        </div>
-    </div>
     </div>
     <div id="app-root" style="display:none;"></div>
 
@@ -1159,7 +1110,8 @@
         const DEFAULT_CONFIG = {
             tasasBase: { 12: 0.105, 24: 0.115, 36: 0.125, 48: 0.135, 60: 0.145 },
             maxLTV: 0.35,
-            maxLoan: 50000
+            maxLoan: 50000,
+            simDefaults: { propertyValue: 100000, loanAmount: 30000, months: 60 }
         };
 
         function loadConfig() {
@@ -1178,6 +1130,11 @@
                     }
                     if (typeof cfg.maxLTV === 'number' && isFinite(cfg.maxLTV)) merged.maxLTV = cfg.maxLTV;
                     if (typeof cfg.maxLoan === 'number' && isFinite(cfg.maxLoan)) merged.maxLoan = cfg.maxLoan;
+                    if (cfg.simDefaults && typeof cfg.simDefaults === 'object') {
+                        if (typeof cfg.simDefaults.propertyValue === 'number') merged.simDefaults.propertyValue = cfg.simDefaults.propertyValue;
+                        if (typeof cfg.simDefaults.loanAmount === 'number') merged.simDefaults.loanAmount = cfg.simDefaults.loanAmount;
+                        if (typeof cfg.simDefaults.months === 'number') merged.simDefaults.months = cfg.simDefaults.months;
+                    }
                 }
                 return merged;
             } catch (e) {
@@ -1201,8 +1158,8 @@
 
         function fillLeadQuote() {
             const q = LAST_QUOTE;
-            const fmtMoney0 = (n) => '$' + Math.round(n).toLocaleString('es-AR');
-            const fmtMoney2 = (n) => '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const fmtMoney0 = (n) => 'U$D ' + Math.round(n).toLocaleString('es-AR');
+            const fmtMoney2 = (n) => 'U$D ' + n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             if (!q) return;
 
             document.getElementById('leadProp').textContent = fmtMoney0(q.propertyValue);
@@ -1262,12 +1219,12 @@
             const cuota = calcularCuota(tasa, months, bruto);
             const tnaCalc = calcularTNA(cuota, months, loan);
 
-            document.getElementById('cuota').textContent = '$' + cuota.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('cuota').textContent = 'U$D ' + cuota.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById('tna').textContent = (tasa * 100).toFixed(2) + '%';
             document.getElementById('cft').textContent = (tnaCalc * 100).toFixed(2) + '%';
-            document.getElementById('ask').textContent = '$' + loan.toLocaleString('es-AR');
-            document.getElementById('bruto').textContent = '$' + Math.round(bruto).toLocaleString('es-AR');
-            document.getElementById('recv').textContent = '$' + loan.toLocaleString('es-AR');
+            document.getElementById('ask').textContent = 'U$D ' + loan.toLocaleString('es-AR');
+            document.getElementById('bruto').textContent = 'U$D ' + Math.round(bruto).toLocaleString('es-AR');
+            document.getElementById('recv').textContent = 'U$D ' + loan.toLocaleString('es-AR');
 
             // guardar última cotización
             setLastQuote({
@@ -1294,7 +1251,7 @@
 
                 const cuotaEl = document.getElementById(`ex-cuota-${meses}`);
                 const tnaEl = document.getElementById(`ex-tna-${meses}`);
-                if (cuotaEl) cuotaEl.textContent = '$' + cuota.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+                if (cuotaEl) cuotaEl.textContent = 'U$D ' + cuota.toLocaleString('es-AR', { maximumFractionDigits: 0 });
                 if (tnaEl) tnaEl.textContent = (tna * 100).toFixed(2) + '%';
             });
         }
@@ -1334,57 +1291,12 @@
         function closeModal() { modal.style.display = 'none'; }
 
         // ---- Backoffice ----
-        const backofficeModal = document.getElementById('backofficeModal');
-        function openBackoffice() {
-            // cargar valores
-            document.getElementById('bo-maxLtv').value = (CONFIG.maxLTV * 100).toFixed(1);
-            document.getElementById('bo-maxLoan').value = CONFIG.maxLoan;
-
-            [12,24,36,48,60].forEach(m => {
-                const el = document.getElementById(`bo-rate-${m}`);
-                if (el) el.value = (CONFIG.tasasBase[m] * 100).toFixed(2);
-            });
-
-            backofficeModal.style.display = 'block';
-        }
-        function closeBackoffice() { backofficeModal.style.display = 'none'; }
-
-        function resetBackoffice() {
-            CONFIG = structuredClone(DEFAULT_CONFIG);
-            saveConfig(CONFIG);
-            updateCalculator();
-            updateExamples();
-            openBackoffice();
-        }
-
-        function saveBackoffice() {
-            const maxLtvPct = parseFloat(document.getElementById('bo-maxLtv').value);
-            const maxLoan = parseFloat(document.getElementById('bo-maxLoan').value);
-
-            const tasasBase = {};
-            [12,24,36,48,60].forEach(m => {
-                const v = parseFloat(document.getElementById(`bo-rate-${m}`).value);
-                tasasBase[m] = isFinite(v) ? (v / 100) : DEFAULT_CONFIG.tasasBase[m];
-            });
-
-            const next = {
-                tasasBase,
-                maxLTV: isFinite(maxLtvPct) ? (maxLtvPct / 100) : DEFAULT_CONFIG.maxLTV,
-                maxLoan: isFinite(maxLoan) ? maxLoan : DEFAULT_CONFIG.maxLoan
-            };
-
-            CONFIG = next;
-            saveConfig(CONFIG);
-            updateCalculator();
-            updateExamples();
-            closeBackoffice();
-            alert('Configuración guardada.');
-        }
+        // El backoffice de configuracion vive ahora en la app (super_admin > Configuracion).
+        // La landing lee CONFIG via localStorage hasta que se conecte GET /api/config/public.
 
         window.onclick = (e) => {
             if (e.target === modal) closeModal();
             if (e.target === leadModal) closeLeadModal();
-            if (e.target === backofficeModal) closeBackoffice();
         };
 
         // Lead form submit (demo: consola + localStorage)
@@ -1428,6 +1340,15 @@
         document.getElementById('property-value').addEventListener('input', () => { updateCalculator(); });
         document.getElementById('loan-amount').addEventListener('input', () => { updateCalculator(); });
         document.getElementById('loan-term').addEventListener('change', () => { updateCalculator(); });
+
+        // Inicializar inputs con los defaults del simulador (configurables desde el super_admin de la app)
+        function initSimulatorDefaults() {
+            const d = CONFIG.simDefaults || DEFAULT_CONFIG.simDefaults;
+            document.getElementById('property-value').value = d.propertyValue;
+            document.getElementById('loan-amount').value = d.loanAmount;
+            document.getElementById('loan-term').value = String(d.months);
+        }
+        initSimulatorDefaults();
 
         // init
         updateCalculator();
@@ -1624,6 +1545,7 @@ const CONFIG_DEFAULTS = {
   tasasBase: { 12: 0.105, 24: 0.115, 36: 0.125, 48: 0.135, 60: 0.145 },
   maxLTV: 0.35,
   maxLoan: 50000,
+  simDefaults: { propertyValue: 100000, loanAmount: 30000, months: 60 },
 };
 
 const calcularBruto = (loan) => {
@@ -4992,35 +4914,94 @@ const AdminReports = ({ loans, profiles }) => {
 // ============================================================================
 
 const AdminConfig = () => {
-  const [config, setConfig] = useState(CONFIG_DEFAULTS);
+  // Cargar de localStorage si existe (misma clave que usa la landing), sino defaults
+  const loadInitial = () => {
+    try {
+      const raw = localStorage.getItem('tcmc_config');
+      if (!raw) return JSON.parse(JSON.stringify(CONFIG_DEFAULTS));
+      const cfg = JSON.parse(raw);
+      const merged = JSON.parse(JSON.stringify(CONFIG_DEFAULTS));
+      if (cfg.tasasBase) Object.keys(merged.tasasBase).forEach(k => {
+        if (typeof cfg.tasasBase[k] === 'number') merged.tasasBase[k] = cfg.tasasBase[k];
+      });
+      if (typeof cfg.maxLTV === 'number') merged.maxLTV = cfg.maxLTV;
+      if (typeof cfg.maxLoan === 'number') merged.maxLoan = cfg.maxLoan;
+      if (cfg.simDefaults) {
+        if (typeof cfg.simDefaults.propertyValue === 'number') merged.simDefaults.propertyValue = cfg.simDefaults.propertyValue;
+        if (typeof cfg.simDefaults.loanAmount === 'number') merged.simDefaults.loanAmount = cfg.simDefaults.loanAmount;
+        if (typeof cfg.simDefaults.months === 'number') merged.simDefaults.months = cfg.simDefaults.months;
+      }
+      return merged;
+    } catch (e) {
+      return JSON.parse(JSON.stringify(CONFIG_DEFAULTS));
+    }
+  };
+
+  const [config, setConfig] = useState(loadInitial);
+  const [dirty, setDirty] = useState(false);
+  const [msg, setMsg] = useState(null);
 
   const handleConfigChange = (field, value) => {
-    setConfig(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setConfig(prev => ({ ...prev, [field]: value }));
+    setDirty(true);
   };
 
   const handleRateChange = (month, value) => {
     setConfig(prev => ({
       ...prev,
-      tasasBase: {
-        ...prev.tasasBase,
-        [month]: value / 100
-      }
+      tasasBase: { ...prev.tasasBase, [month]: value / 100 }
     }));
+    setDirty(true);
+  };
+
+  const handleSimDefaultChange = (field, value) => {
+    setConfig(prev => ({
+      ...prev,
+      simDefaults: { ...prev.simDefaults, [field]: value }
+    }));
+    setDirty(true);
+  };
+
+  const saveConfig = () => {
+    try {
+      localStorage.setItem('tcmc_config', JSON.stringify(config));
+      setDirty(false);
+      setMsg({ type: 'success', text: 'Configuración guardada. Los cambios se reflejan en la web pública y en próximas simulaciones.' });
+      setTimeout(() => setMsg(null), 4000);
+    } catch (e) {
+      setMsg({ type: 'error', text: 'Error al guardar.' });
+    }
+  };
+
+  const resetDefaults = () => {
+    if (!confirm('¿Restaurar todos los valores a los defaults de fábrica? Se perderá la configuración actual.')) return;
+    const def = JSON.parse(JSON.stringify(CONFIG_DEFAULTS));
+    setConfig(def);
+    localStorage.removeItem('tcmc_config');
+    setDirty(false);
+    setMsg({ type: 'success', text: 'Configuración restaurada a valores por defecto.' });
+    setTimeout(() => setMsg(null), 3000);
   };
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">Configuración</h1>
+      <h1 className="text-3xl font-bold mb-2">Configuración</h1>
+      <p className="text-slate-500 text-sm mb-6">Parámetros del producto que se aplican al simulador público (web) y a las nuevas solicitudes.</p>
 
-      <div className="bg-white rounded-lg shadow-md p-8">
-        <h2 className="text-2xl font-semibold mb-6">Parámetros de Crédito</h2>
+      {msg && (
+        <div className={`mb-4 border px-4 py-3 rounded-lg text-sm ${msg.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+          {msg.text}
+        </div>
+      )}
 
-        <div className="space-y-6 mb-8">
+      {/* Parametros de Credito */}
+      <div className="bg-white rounded-lg shadow-md p-8 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Parámetros de Crédito</h2>
+        <p className="text-xs text-slate-500 mb-6">Estos valores definen los límites del producto crediticio.</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div>
-            <label className="block text-sm font-semibold mb-2">LTV Máximo (%)</label>
+            <label className="block text-sm font-semibold mb-2">LTV Máximo (%) <span className="text-slate-400 font-normal">— Loan-to-Value</span></label>
             <input
               type="number"
               value={(config.maxLTV * 100).toFixed(1)}
@@ -5029,7 +5010,6 @@ const AdminConfig = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
           <div>
             <label className="block text-sm font-semibold mb-2">Monto Máximo (USD)</label>
             <input
@@ -5041,31 +5021,76 @@ const AdminConfig = () => {
           </div>
         </div>
 
-        <h3 className="text-lg font-semibold mb-4">Tasas Base por Plazo (anual %)</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <h3 className="text-base font-semibold mb-3">Tasas Base por Plazo (TNA % anual)</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {[12, 24, 36, 48, 60].map(month => (
             <div key={month}>
-              <label className="block text-sm font-semibold mb-2">{month} meses</label>
+              <label className="block text-xs font-semibold mb-1 text-slate-600">{month} meses</label>
               <input
                 type="number"
                 value={(config.tasasBase[month] * 100).toFixed(2)}
                 onChange={(e) => handleRateChange(month, parseFloat(e.target.value))}
                 step="0.01"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
             </div>
           ))}
         </div>
+      </div>
 
-        <div className="flex gap-4">
-          <button className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium">
-            Restaurar Valores por Defecto
-          </button>
-          <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
-            Guardar Cambios
-          </button>
+      {/* WEB SIMULADOR - defaults publicos */}
+      <div className="bg-white rounded-lg shadow-md p-8 mb-6">
+        <h2 className="text-xl font-semibold mb-1">Web Simulador — Valores por defecto</h2>
+        <p className="text-xs text-slate-500 mb-6">Lo que verá precargado un visitante de la landing al abrir el simulador público.</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-semibold mb-2">Valor del inmueble (USD)</label>
+            <input
+              type="number"
+              value={config.simDefaults.propertyValue}
+              onChange={(e) => handleSimDefaultChange('propertyValue', parseFloat(e.target.value))}
+              min="50000" step="1000"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">Monto a solicitar (USD)</label>
+            <input
+              type="number"
+              value={config.simDefaults.loanAmount}
+              onChange={(e) => handleSimDefaultChange('loanAmount', parseFloat(e.target.value))}
+              min="1000" step="1000"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">Plazo (meses)</label>
+            <select
+              value={config.simDefaults.months}
+              onChange={(e) => handleSimDefaultChange('months', parseInt(e.target.value))}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              {[12, 24, 36, 48, 60].map(m => <option key={m} value={m}>{m} meses</option>)}
+            </select>
+          </div>
         </div>
       </div>
+
+      {/* Botones */}
+      <div className="flex gap-3 justify-end">
+        <button onClick={resetDefaults}
+          className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 transition font-medium text-sm">
+          Restaurar valores por defecto
+        </button>
+        <button onClick={saveConfig} disabled={!dirty}
+          className={`px-6 py-2 rounded-lg transition font-medium text-sm ${dirty ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
+          Guardar cambios
+        </button>
+      </div>
+
+      <p className="text-xs text-slate-400 mt-6 italic">
+        Nota técnica: en producción esta configuración se persiste vía <code>PUT /api/config</code> y la landing la consume vía <code>GET /api/config/public</code>. En el mockup actual se guarda en localStorage del navegador.
+      </p>
     </div>
   );
 };
