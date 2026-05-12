@@ -17,6 +17,16 @@
             --brand-mid:     #748082;     /* Gris medio — texto secundario */
             --brand-light:   #E1EAEB;     /* Gris claro — fondos suaves, separadores */
             --brand-white:   #FFFFFF;
+            /* Tonos (brandbook V2: 75/50/25/10%) */
+            --brand-primary-75: rgba(26, 67, 148, 0.75);
+            --brand-primary-50: rgba(26, 67, 148, 0.50);
+            --brand-primary-25: rgba(26, 67, 148, 0.25);
+            --brand-primary-10: rgba(26, 67, 148, 0.10);
+            --brand-vivid-25:   rgba(13, 0, 255, 0.25);
+            --brand-vivid-10:   rgba(13, 0, 255, 0.10);
+            --brand-mid-25:     rgba(116, 128, 130, 0.25);
+            --brand-mid-10:     rgba(116, 128, 130, 0.10);
+            --brand-light-50:   rgba(225, 234, 235, 0.50);
             /* Estados */
             --brand-primary-hover: #143575;
             --brand-primary-soft:  rgba(26, 67, 148, 0.08);
@@ -116,7 +126,7 @@
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; }
         .form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 2px solid var(--brand-light); border-radius: 8px; font-size: 14px; }
         
-        .result-highlight { background: #f0f7ff; padding: 24px; border-radius: 12px; border-left: 4px solid var(--brand-primary); margin-top: 24px; }
+        .result-highlight { background: var(--brand-primary-10); padding: 24px; border-radius: 12px; border-left: 4px solid var(--brand-primary); margin-top: 24px; }
         .result-amount { font-size: 32px; font-weight: 700; color: var(--brand-primary); margin: 12px 0; }
         .result-detail { font-size: 13px; color: #999; margin-bottom: 6px; }
         .result-detail strong { color: var(--brand-dark); }
@@ -228,19 +238,20 @@
     
         .hero-icons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-top: 18px; }
         .hero-icon-item { display:flex; align-items:center; gap:10px; font-size: 13px; color:var(--brand-dark); }
-        .hero-check { display:inline-flex; width: 22px; height: 22px; border-radius: 999px; align-items:center; justify-content:center; background:#e9f0ff; color:var(--brand-primary); font-weight: 600; }
-        .btn-secondary { background: #f2f4f7; color: var(--brand-dark); padding: 12px 18px; border: 1px solid var(--brand-light); border-radius: 10px; cursor: pointer; font-weight: 600; }
+        .hero-check { display:inline-flex; width: 22px; height: 22px; border-radius: 999px; align-items:center; justify-content:center; background:var(--brand-vivid-10); color:var(--brand-primary); font-weight: 600; }
+        .btn-secondary { background: var(--brand-mid-10); color: var(--brand-dark); padding: 12px 18px; border: 1px solid var(--brand-light); border-radius: 10px; cursor: pointer; font-weight: 600; }
         .bo-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
         @media (max-width: 700px) { .bo-grid { grid-template-columns: 1fr; } .hero-icons { grid-template-columns: 1fr; } }
 
         /* COLDWELL BANKER SECTION */
         .cb-section { padding: var(--section-py) var(--section-px); background: white; }
         .cb-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
-        .cb-badge { display: inline-block; background: #e8f0fe; color: var(--brand-primary); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; padding: 6px 16px; border-radius: 999px; margin-bottom: 20px; }
+        .cb-badge { display: inline-block; background: var(--brand-primary-10); color: var(--brand-primary); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; padding: 6px 16px; border-radius: 999px; margin-bottom: 20px; }
         .cb-subtitle { color: var(--brand-mid); font-size: 16px; max-width: 680px; margin: 0 auto 48px; line-height: 1.7; }
-        .cb-infografia { display: flex; align-items: center; justify-content: center; gap: 0; background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%); border-radius: 16px; padding: 40px 32px; margin-bottom: 48px; flex-wrap: wrap; gap: 8px; }
+        .cb-infografia { display: flex; align-items: center; justify-content: center; gap: 0; background: linear-gradient(135deg, var(--brand-primary-10) 0%, var(--brand-vivid-10) 100%); border-radius: 16px; padding: 40px 32px; margin-bottom: 48px; flex-wrap: wrap; gap: 8px; }
         .cb-stat { text-align: center; padding: 0 20px; }
-        .cb-stat-num { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; color: var(--brand-primary); }
+        .cb-stat-num { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; color: var(--brand-primary); display: flex; align-items: center; justify-content: center; min-height: 44px; }
+        .cb-stat-logo img { height: 44px; width: auto; display: block; }
         .cb-stat-label { font-size: 12px; color: var(--brand-mid); margin-top: 4px; }
         .cb-arrow { font-size: 24px; color: var(--brand-primary); opacity: 0.4; }
         .cb-beneficios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: left; }
@@ -258,11 +269,11 @@
         .btn-cb-buscar:focus-visible { outline: 3px solid var(--brand-vivid); outline-offset: 2px; }
         .prop-preview { position: relative; }
         .prop-card-demo { background: white; border-radius: 12px; border: 1px solid var(--brand-light); padding: 0; overflow: hidden; margin-bottom: -20px; box-shadow: 0 4px 20px rgba(0,82,204,0.1); }
-        .prop-card-img { background: linear-gradient(135deg, #e8f0fe, #f0f7ff); height: 200px; overflow: hidden; position: relative; }
+        .prop-card-img { background: linear-gradient(135deg, var(--brand-primary-10), var(--brand-vivid-10)); height: 200px; overflow: hidden; position: relative; }
         .prop-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
         .prop-card-demo:hover .prop-card-img img { transform: scale(1.05); }
         .prop-card-info { padding: 16px 20px; }
-        .prop-card-tag { display: inline-block; background: #e8f0fe; color: var(--brand-primary); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
+        .prop-card-tag { display: inline-block; background: var(--brand-primary-10); color: var(--brand-primary); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
         .prop-card-info strong { display: block; font-size: 15px; }
         .prop-card-info p { font-size: 13px; color: var(--brand-mid); margin: 2px 0 8px; }
         .prop-card-price { font-size: 18px; font-weight: 700; color: var(--brand-primary); }
@@ -810,7 +821,7 @@
         <div class="cb-inner">
             <div class="cb-badge">Integración estratégica</div>
             <h2 class="section-title" style="margin-bottom:16px;">Elegís la propiedad. Tu Casa +Cerca completa el camino.</h2>
-            <p class="cb-subtitle">Encontrás tu propiedad con Coldwell Banker y financiás el complemento con Tu Casa +Cerca, en un proceso integrado y 100% online. Coldwell Banker es una red global reconocida mundialmente, con presencia en +40 países.</p>
+            <p class="cb-subtitle">Encontrás tu propiedad con Coldwell Banker Argentina y financiás el complemento con Tu Casa +Cerca, en un proceso integrado y 100% online. Coldwell Banker Argentina es parte de una red global reconocida mundialmente, con presencia en +40 países.</p>
             <div class="cb-infografia">
                 <div class="cb-stat">
                     <div class="cb-stat-num">100+</div>
@@ -823,7 +834,7 @@
                 </div>
                 <div class="cb-arrow">→</div>
                 <div class="cb-stat">
-                    <div class="cb-stat-num">CB</div>
+                    <div class="cb-stat-num cb-stat-logo"><img src="assets/Coldwell-Banker-Symbol.png" alt="Coldwell Banker"></div>
                     <div class="cb-stat-label">Red global reconocida</div>
                 </div>
                 <div class="cb-arrow">→</div>
@@ -863,8 +874,8 @@
         <div class="prop-inner">
             <div class="prop-text">
                 <div class="cb-badge" style="margin-bottom:16px;">Propiedades aptas crédito</div>
-                <h2 class="section-title" style="text-align:left; margin-bottom:16px;">Encontrá tu próxima casa con Coldwell Banker</h2>
-                <p style="color:var(--brand-mid); margin-bottom:28px; font-size:15px;">Buscá propiedades en la red Coldwell Banker. Encontrás el inmueble y nosotros te financiamos el complemento. Así de simple.</p>
+                <h2 class="section-title" style="text-align:left; margin-bottom:16px;">Encontrá tu próxima casa con Coldwell Banker Argentina</h2>
+                <p style="color:var(--brand-mid); margin-bottom:28px; font-size:15px;">Buscá propiedades en la red Coldwell Banker Argentina. Encontrás el inmueble y nosotros te financiamos el complemento. Así de simple.</p>
                 <div class="prop-filtros">
                     <div class="form-group">
                         <label>Zona o barrio</label>
@@ -885,7 +896,7 @@
                     </div>
                 </div>
                 <button class="btn-cb-buscar" onclick="buscarEnCB()">
-                    <span class="icon icon-sm" style="margin-right:8px;vertical-align:-3px;"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Ver propiedades en Coldwell Banker
+                    <span class="icon icon-sm" style="margin-right:8px;vertical-align:-3px;"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Ver propiedades en Coldwell Banker Argentina
                 </button>
                 <p style="font-size:12px; color:#999; margin-top:12px;">Serás redirigido al sitio oficial de Coldwell Banker Argentina con tu búsqueda aplicada.</p>
             </div>
@@ -1008,8 +1019,8 @@
                 <div class="faq-answer">Sí. Podés cancelar el crédito antes del vencimiento. Te informaremos las condiciones de prepago al momento de la aprobación.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Qué pasa si la propiedad la encontré a través de Coldwell Banker?</span><span>+</span></div>
-                <div class="faq-answer">Perfecto. Operamos en alianza con Coldwell Banker. Solo compartís el link de la propiedad en tu solicitud y el proceso se coordina de forma integrada entre ambas plataformas.</div>
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Qué pasa si la propiedad la encontré a través de Coldwell Banker Argentina?</span><span>+</span></div>
+                <div class="faq-answer">Perfecto. Operamos en alianza con Coldwell Banker Argentina. Solo compartís el link de la propiedad en tu solicitud y el proceso se coordina de forma integrada entre ambas plataformas.</div>
             </div>
             <div class="faq-item">
                 <div class="faq-q" onclick="toggleFaq(this)"><span>¿Los créditos son en pesos o en dólares?</span><span>+</span></div>
