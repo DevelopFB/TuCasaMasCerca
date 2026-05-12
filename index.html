@@ -706,9 +706,9 @@
                                 <select id="loan-term">
                                     <option value="12">12 meses</option>
                                     <option value="24">24 meses</option>
-                                    <option value="36" selected>36 meses</option>
+                                    <option value="36">36 meses</option>
                                     <option value="48">48 meses</option>
-                                    <option value="60">60 meses</option>
+                                    <option value="60" selected>60 meses</option>
                                 </select>
                             </div>
                         </div>
@@ -1246,7 +1246,7 @@
         function updateCalculator() {
             const prop = parseInt(document.getElementById('property-value').value) || 100000;
             let loan = parseInt(document.getElementById('loan-amount').value) || 30000;
-            const months = parseInt(document.getElementById('loan-term').value) || 36;
+            const months = parseInt(document.getElementById('loan-term').value) || 60;
 
             const maxPct = Math.floor(prop * CONFIG.maxLTV);
             const maxAllow = Math.min(CONFIG.maxLoan, maxPct);
