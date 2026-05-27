@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Casa +Cerca</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================================
+           DESIGN TOKENS — Tu Casa +Cerca (alineados al brandbook V1)
+           ============================================================ */
+        :root {
+            /* Brand colors */
+            --brand-primary: #1A4394;     /* Azul institucional — dominante */
+            --brand-vivid:   #0D00FF;     /* Azul vibrante — acentos, hover, links */
+            --brand-dark:    #1E1E1E;     /* Negro/gris oscuro — texto principal */
+            --brand-mid:     #748082;     /* Gris medio — texto secundario */
+            --brand-light:   #E1EAEB;     /* Gris claro — fondos suaves, separadores */
+            --brand-white:   #FFFFFF;
+            /* Tonos (brandbook V2: 75/50/25/10%) */
+            --brand-primary-75: rgba(26, 67, 148, 0.75);
+            --brand-primary-50: rgba(26, 67, 148, 0.50);
+            --brand-primary-25: rgba(26, 67, 148, 0.25);
+            --brand-primary-10: rgba(26, 67, 148, 0.10);
+            --brand-vivid-25:   rgba(13, 0, 255, 0.25);
+            --brand-vivid-10:   rgba(13, 0, 255, 0.10);
+            --brand-mid-25:     rgba(116, 128, 130, 0.25);
+            --brand-mid-10:     rgba(116, 128, 130, 0.10);
+            --brand-light-50:   rgba(225, 234, 235, 0.50);
+            /* Estados */
+            --brand-primary-hover: #143575;
+            --brand-primary-soft:  rgba(26, 67, 148, 0.08);
+            /* Sombras */
+            --shadow-sm: 0 2px 8px rgba(26, 67, 148, 0.08);
+            --shadow-md: 0 8px 24px rgba(26, 67, 148, 0.12);
+            --shadow-lg: 0 20px 48px rgba(26, 67, 148, 0.18);
+            /* Spacing escala */
+            --space-1: 8px;
+            --space-2: 16px;
+            --space-3: 24px;
+            --space-4: 32px;
+            --space-6: 48px;
+            --space-8: 64px;
+            --space-12: 96px;
+            /* Padding seccion responsive */
+            --section-py: clamp(48px, 8vw, 80px);
+            --section-px: clamp(16px, 4vw, 24px);
+            /* Transiciones */
+            --transition-base: all .2s ease;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {font-family: 'Poppins', 'Inter', sans-serif; font-weight: 400; line-height: 1.6; color: var(--brand-dark); background: #fff; overflow-x: hidden; width: 100%;}
+        header { background: #fff; border-bottom: 1px solid var(--brand-light); position: sticky; top: 0; z-index: 1000; padding: 16px 0; }
+        .header-container { max-width: 1400px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
+        .logo img { height: 40px; width: auto; display: block; }
+        .logo span { color: var(--brand-primary); }
+        .brand { color: var(--brand-primary); }
+        #landing-page nav { display: flex; gap: 32px; align-items: center; }
+        #landing-page nav a { text-decoration: none; color: var(--brand-dark); font-size: 14px; font-weight: 500; }
+        .btn-ingresar { background: var(--brand-primary); color: white; padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        /* Hamburger menu (oculto en desktop) */
+        .hamburger {
+            display: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 36px;
+            height: 28px;
+        }
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 3px;
+            background: var(--brand-primary);
+            border-radius: 2px;
+            transition: transform .3s ease, opacity .3s ease;
+        }
+        .hamburger.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+        /* Mobile nav */
+        @media (max-width: 768px) {
+            .hamburger { display: flex; }
+            #landing-page nav {
+                display: none;
+                position: absolute;
+                top: 72px;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                padding: 16px 24px 24px;
+                border-bottom: 1px solid var(--brand-light);
+                box-shadow: var(--shadow-md);
+                z-index: 999;
+            }
+            #landing-page nav.open { display: flex; }
+            #landing-page nav a {
+                padding: 14px 8px;
+                font-size: 16px;
+                border-bottom: 1px solid var(--brand-light);
+            }
+            #landing-page nav a:last-of-type { border-bottom: none; }
+            #landing-page nav .btn-ingresar {
+                margin-top: 12px;
+                width: 100%;
+                padding: 14px;
+                font-size: 16px;
+            }
+        }
+        
+        .hero { max-width: 1400px; margin: 0 auto; padding: var(--section-py) var(--section-px); display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+        .hero-content h1 { font-family: 'Poppins', sans-serif; font-size: clamp(32px, 5vw, 48px); font-weight: 700; margin-bottom: 20px; }
+        .hero-content p { font-size: 18px; color: var(--brand-mid); margin-bottom: 32px; }
+        
+        .calculator-box { background: linear-gradient(135deg, #f5f5f5 0%, #fff 100%); padding: 40px; border-radius: 16px; border: 1px solid var(--brand-light); box-shadow: 0 4px 20px rgba(0, 82, 204, 0.08); }
+        .calculator-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 2px solid var(--brand-light); border-radius: 8px; font-size: 14px; }
+        
+        .result-highlight { background: var(--brand-primary-10); padding: 24px; border-radius: 12px; border-left: 4px solid var(--brand-primary); margin-top: 24px; }
+        .result-amount { font-size: 32px; font-weight: 700; color: var(--brand-primary); margin: 12px 0; }
+        .result-detail { font-size: 13px; color: #999; margin-bottom: 6px; }
+        .result-detail strong { color: var(--brand-dark); }
+        
+        .btn-big { width: 100%; background: var(--brand-primary); color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 24px; }
+        
+        .aspiracion { background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-vivid) 100%); color: white; padding: var(--section-py) var(--section-px); margin: 60px 0; text-align: center; }
+        .aspiracion h2 { font-family: 'Poppins', sans-serif; font-size: clamp(28px, 5vw, 44px); font-weight: 600; margin-bottom: 20px; }
+        
+        .proceso-section { padding: var(--section-py) var(--section-px); background: #f9f9f9; }
+        .section-title { font-family: 'Poppins', sans-serif; font-size: clamp(24px, 4vw, 36px); font-weight: 600; text-align: center; margin-bottom: 48px; }
+        
+        .pasos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 60px; }
+        .paso { text-align: center; }
+        .paso-numero { width: 56px; height: 56px; background: var(--brand-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: 700; font-size: 24px; }
+        
+        .flujo { background: white; padding: 40px; border-radius: 12px; border: 1px solid var(--brand-light); }
+        .flujo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 24px; }
+        .flujo-item { padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid var(--brand-primary); }
+        .flujo-item h4 { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--brand-primary); margin-bottom: 8px; }
+        
+        .casos { padding: var(--section-py) var(--section-px); }
+        .casos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+        .caso-card { background: white; padding: 24px; border-radius: 12px; border: 2px solid var(--brand-light); }
+        .caso-emoji { font-size: 40px; margin-bottom: 12px; }
+        .caso-titulo { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        
+        .plataforma { background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%); padding: var(--section-py) var(--section-px); }
+        .plat-titulo { font-family: 'Poppins', sans-serif; font-size: clamp(22px, 3.5vw, 32px); font-weight: 600; text-align: center; margin-bottom: 16px; }
+        .plat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px; }
+        .plat-card { background: white; padding: 32px; border-radius: 12px; border: 1px solid var(--brand-light); text-align: center; }
+        .plat-icon { font-size: 40px; margin-bottom: 16px; }
+        
+        .tasas { padding: var(--section-py) var(--section-px); }
+        .tasas-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; margin-top: 48px; }
+        .tasa-box { background: white; padding: 32px; border-radius: 12px; border: 1px solid var(--brand-light); }
+        .tasa-table-row { display: grid; grid-template-columns: 1fr 1fr; padding: 10px 0; border-bottom: 1px solid var(--brand-light); font-size: 13px; }
+        .tasa-value { color: var(--brand-primary); font-weight: 700; text-align: right; }
+        
+        .faq { padding: var(--section-py) var(--section-px); background: #f9f9f9; }
+        .faq-container { max-width: 1000px; margin: 0 auto; }
+        .faq-item { background: white; padding: 24px; margin-bottom: 12px; border-radius: 8px; }
+        .faq-q { display: flex; justify-content: space-between; cursor: pointer; font-weight: 600; }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; color: var(--brand-mid); font-size: 13px; margin-top: 16px; }
+        .faq-item.active .faq-answer { max-height: 500px; }
+        
+        .cta-final { background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-vivid) 100%); color: white; padding: var(--section-py) var(--section-px); text-align: center; }
+        .cta-final h2 { font-family: 'Poppins', sans-serif; font-size: clamp(24px, 4vw, 36px); font-weight: 600; margin-bottom: 20px; }
+        .btn-primary { background: white; color: var(--brand-primary); padding: 16px 48px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        
+        footer { background: var(--brand-dark); color: white; padding: 48px 24px 24px; }
+        .footer-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-bottom: 32px; }
+        
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
+        .modal-content { background: white; margin: 5% auto; padding: 40px; border-radius: 16px; width: 90%; max-width: 450px; }
+        .modal-title { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 600; margin-bottom: 16px; }
+        
+        /* Iconos SVG line-style (alineados al brandbook) */
+        .icon { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; }
+        .icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        .icon-lg { width: 32px; height: 32px; }
+        .icon-xl { width: 48px; height: 48px; }
+        .icon-sm { width: 18px; height: 18px; }
+        /* hero-check con ícono SVG */
+        .hero-check svg { width: 14px; height: 14px; stroke-width: 2.5; }
+        /* badge-icon override */
+        .badge-icon svg { width: 14px; height: 14px; stroke-width: 2.5; }
+        /* prop-card-img como contenedor de ícono grande con fondo */
+        .prop-card-img .icon { width: 48px; height: 48px; }
+        .prop-card-img .icon svg { stroke: var(--brand-primary); }
+        .cb-ben-icon { color: var(--brand-primary); }
+        .cb-ben-icon .icon { width: 32px; height: 32px; }
+
+        /* Tablet */
+        @media (max-width: 1024px) {
+            .pasos { grid-template-columns: repeat(2, 1fr); }
+            .casos-grid { grid-template-columns: repeat(2, 1fr); }
+            .plat-grid { grid-template-columns: repeat(2, 1fr); }
+            .tasas-grid { grid-template-columns: 1fr; }
+        }
+        /* Mobile grande */
+        @media (max-width: 768px) {
+            .hero-inner { grid-template-columns: 1fr; }
+            .hero { grid-template-columns: 1fr; padding: var(--section-py) var(--section-px); gap: 32px; }
+            .calculator-wrapper { grid-template-columns: 1fr; gap: 16px; }
+            .calculator-box { padding: 24px; }
+            .pasos { grid-template-columns: 1fr; }
+            .flujo { padding: 24px; }
+            .flujo-grid { grid-template-columns: 1fr; gap: 16px; }
+            .casos-grid { grid-template-columns: 1fr; }
+            .plat-grid { grid-template-columns: 1fr; }
+            .tasas-grid { grid-template-columns: 1fr; }
+            .footer-container { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+            .modal-content { padding: 24px; margin: 10% auto; }
+            .aspiracion { padding: var(--section-py) var(--section-px); margin: 32px 0; }
+        }
+        /* Mobile chico */
+        @media (max-width: 520px) {
+            .hero-content h1 { font-size: clamp(28px, 8vw, 38px) !important; }
+            .calculator-box { padding: 16px; border-radius: 12px; }
+            .footer-container { grid-template-columns: 1fr; }
+            .cb-infografia { padding: 24px 16px; }
+            .cb-stat { padding: 0 8px; min-width: 120px; }
+            .faq-item { padding: 16px; }
+            .testimonio-card { padding: 20px; }
+            .plat-card, .tasa-box, .caso-card { padding: 20px; }
+            .btn-primary, .btn-big { padding: 14px 24px; font-size: 15px; }
+        }
+    
+        .hero-icons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-top: 18px; }
+        .hero-icon-item { display:flex; align-items:center; gap:10px; font-size: 13px; color:var(--brand-dark); }
+        .hero-check { display:inline-flex; width: 22px; height: 22px; border-radius: 999px; align-items:center; justify-content:center; background:var(--brand-vivid-10); color:var(--brand-primary); font-weight: 600; }
+        .btn-secondary { background: var(--brand-mid-10); color: var(--brand-dark); padding: 12px 18px; border: 1px solid var(--brand-light); border-radius: 10px; cursor: pointer; font-weight: 600; }
+        .bo-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        @media (max-width: 700px) { .bo-grid { grid-template-columns: 1fr; } .hero-icons { grid-template-columns: 1fr; } }
+
+        /* COLDWELL BANKER SECTION */
+        .cb-section { padding: var(--section-py) var(--section-px); background: white; }
+        .cb-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
+        .cb-badge { display: inline-block; background: var(--brand-primary-10); color: var(--brand-primary); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; padding: 6px 16px; border-radius: 999px; margin-bottom: 20px; }
+        .cb-subtitle { color: var(--brand-mid); font-size: 16px; max-width: 680px; margin: 0 auto 48px; line-height: 1.7; }
+        .cb-infografia { display: flex; align-items: center; justify-content: center; gap: 0; background: linear-gradient(135deg, var(--brand-primary-10) 0%, var(--brand-vivid-10) 100%); border-radius: 16px; padding: 40px 32px; margin-bottom: 48px; flex-wrap: wrap; gap: 8px; }
+        .cb-stat { text-align: center; padding: 0 20px; }
+        .cb-stat-num { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; color: var(--brand-primary); display: flex; align-items: center; justify-content: center; min-height: 44px; }
+        .cb-stat-logo img { height: 44px; width: auto; display: block; }
+        .cb-stat-label { font-size: 12px; color: var(--brand-mid); margin-top: 4px; }
+        .cb-arrow { font-size: 24px; color: var(--brand-primary); opacity: 0.4; }
+        .cb-beneficios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: left; }
+        .cb-ben-item { display: flex; gap: 16px; align-items: flex-start; background: #f9f9f9; padding: 24px; border-radius: 12px; }
+        .cb-ben-icon { font-size: 28px; flex-shrink: 0; }
+        .cb-ben-item strong { display: block; font-size: 14px; margin-bottom: 6px; }
+        .cb-ben-item p { font-size: 13px; color: var(--brand-mid); margin: 0; }
+
+        /* PROPIEDADES CB */
+        .propiedades-section { padding: var(--section-py) var(--section-px); background: #f9f9f9; }
+        .prop-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .prop-filtros { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .btn-cb-buscar { background: var(--brand-primary); color: white; border: none; padding: 14px 28px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: var(--transition-base); }
+        .btn-cb-buscar:hover { background: var(--brand-primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-cb-buscar:focus-visible { outline: 3px solid var(--brand-vivid); outline-offset: 2px; }
+        .prop-preview { position: relative; }
+        .prop-card-demo { background: white; border-radius: 12px; border: 1px solid var(--brand-light); padding: 0; overflow: hidden; margin-bottom: -20px; box-shadow: 0 4px 20px rgba(0,82,204,0.1); }
+        .prop-card-img { background: linear-gradient(135deg, var(--brand-primary-10), var(--brand-vivid-10)); height: 200px; overflow: hidden; position: relative; }
+        .prop-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
+        .prop-card-demo:hover .prop-card-img img { transform: scale(1.05); }
+        .prop-card-info { padding: 16px 20px; }
+        .prop-card-tag { display: inline-block; background: var(--brand-primary-10); color: var(--brand-primary); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
+        .prop-card-info strong { display: block; font-size: 15px; }
+        .prop-card-info p { font-size: 13px; color: var(--brand-mid); margin: 2px 0 8px; }
+        .prop-card-price { font-size: 18px; font-weight: 700; color: var(--brand-primary); }
+
+        /* TESTIMONIOS */
+        .testimonios-section { padding: var(--section-py) var(--section-px); background: white; }
+        .testimonios-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .testimonio-card { background: #f9f9f9; border-radius: 16px; padding: 32px; border: 1px solid var(--brand-light); }
+        .testimonio-stars { color: #f59e0b; font-size: 18px; margin-bottom: 16px; letter-spacing: 2px; }
+        .testimonio-texto { color: #444; font-size: 14px; line-height: 1.7; margin-bottom: 24px; font-style: italic; }
+        .testimonio-autor { display: flex; gap: 12px; align-items: center; }
+        .testimonio-avatar { width: 44px; height: 44px; background: var(--brand-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+        .testimonio-autor strong { display: block; font-size: 14px; }
+        .testimonio-autor span { font-size: 12px; color: #888; }
+
+        @media (max-width: 768px) {
+            .cb-infografia { flex-direction: column; }
+            .cb-arrow { transform: rotate(90deg); }
+            .cb-beneficios { grid-template-columns: 1fr; }
+            .prop-inner { grid-template-columns: 1fr; }
+            .prop-filtros { grid-template-columns: 1fr; }
+            .testimonios-grid { grid-template-columns: 1fr; }
+            .prop-preview { display: none; }
+        }
+    
+
+        /* ============================================================
+           HOVER & FOCUS STATES — Accesibilidad y feedback visual
+           ============================================================ */
+        .btn-ingresar, .btn-big, .btn-primary, .btn-secondary, .btn-cb-buscar {
+            transition: var(--transition-base);
+        }
+        .btn-ingresar:hover { background: var(--brand-primary-hover); transform: translateY(-1px); }
+        .btn-big:hover { background: var(--brand-primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
+        .btn-secondary:hover { background: var(--brand-light); border-color: var(--brand-mid); }
+        .btn-ingresar:focus-visible, .btn-big:focus-visible, .btn-primary:focus-visible,
+        .btn-secondary:focus-visible, .btn-cb-buscar:focus-visible {
+            outline: 3px solid var(--brand-vivid);
+            outline-offset: 2px;
+        }
+
+        /* Cards interactivas */
+        .caso-card, .testimonio-card, .plat-card, .tasa-box {
+            transition: var(--transition-base);
+        }
+        .caso-card:hover, .testimonio-card:hover, .plat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--brand-primary);
+        }
+
+        /* Links y navegación */
+        #landing-page nav a {
+            transition: color .2s ease;
+            position: relative;
+        }
+        #landing-page nav a:hover { color: var(--brand-primary); }
+        #landing-page nav a:focus-visible { outline: 2px solid var(--brand-vivid); outline-offset: 4px; border-radius: 4px; }
+
+        /* Footer links */
+        footer a { color: rgba(255,255,255,0.85); text-decoration: none; transition: opacity .2s ease; }
+        footer a:hover { opacity: 0.7; text-decoration: underline; text-underline-offset: 4px; }
+
+        /* Inputs focus */
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(26, 67, 148, 0.15);
+        }
+
+        /* Skip link (accesibilidad) */
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            background: var(--brand-vivid);
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            z-index: 9999;
+            border-radius: 0 0 8px 0;
+        }
+        .skip-link:focus { left: 0; }
+
+        /* Reduce motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== APP-ROOT RESET: neutralizar estilos del landing ===== */
+        #app-root { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+        #app-root nav { display: block; gap: 0; align-items: initial; }
+        #app-root nav a { color: inherit; font-size: inherit; font-weight: inherit; }
+        #app-root aside { z-index: 100; }
+        #app-root input, #app-root select, #app-root textarea {
+            padding: initial; border: initial; border-radius: initial; font-size: inherit;
+        }
+        #app-root button { border: none; cursor: pointer; background: transparent; font: inherit; color: inherit; padding: 0; }
+        #app-root *, #app-root *::before, #app-root *::after { box-sizing: border-box; }
+
+        /* ===== HERO POR CAPAS (fintech moderno) ===== */
+        :root{
+            --blue: #0052CC;
+            --blue-deep: #0041A3;
+            --ink: #1A1A1A;
+            --muted: #666666;
+            --bg-soft: #F5F7FB;
+            --card-border: rgba(0,0,0,.06);
+            --shadow-md: 0 18px 40px rgba(0,0,0,.10);
+            --shadow-lg: 0 28px 70px rgba(0,0,0,.14);
+            --radius-xl: 24px;
+        }
+
+        /* reemplazo visual de hero original */
+        .hero-layered{
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            padding: 92px 0 72px;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-deep) 100%);
+        }
+
+        /* Capa 1: fondo casas (asset sin texto) */
+        .hero-bg{
+            position:absolute;
+            inset:0;
+            background-image:
+                radial-gradient(1200px 600px at 20% 20%, rgba(255,255,255,.18), rgba(255,255,255,0) 55%),
+                url("assets/bg-houses.png");
+            background-size: cover;
+            background-position: center right;
+            filter: saturate(1.05) contrast(1.02);
+            transform: scale(1.02);
+            opacity: .35;
+            z-index: 0;
+        }
+
+        /* Capa 2: overlay legibilidad */
+        .hero-overlay{
+            position:absolute;
+            inset:0;
+            background: linear-gradient(90deg, rgba(0,65,163,.90) 0%, rgba(0,65,163,.55) 40%, rgba(0,65,163,.20) 70%, rgba(0,65,163,.05) 100%);
+            z-index: 1;
+        }
+
+        .hero-inner{
+            position: relative;
+            z-index: 2;
+            width: min(1200px, calc(100% - 40px));
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            gap: 34px;
+            align-items: center;
+            min-height: 520px;
+        }
+
+        .hero-copy{ color:#fff; max-width: 540px;  position: relative; z-index: 4; }
+        .hero-title{
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(38px, 4.2vw, 56px);
+            line-height: 1.02;
+            letter-spacing: -0.02em;
+            margin: 0 0 16px;
+        }
+        .brand-accent{
+            color: var(--brand-white);
+            text-shadow: 0 4px 24px rgba(13, 0, 255, 0.45), 0 2px 8px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .hero-subtitle{
+            margin: 0 0 26px;
+            font-size: 18px;
+            line-height: 1.55;
+            color: rgba(255,255,255,.88);
+        }
+
+        .hero-badges{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 420px; }
+        .badge-card{
+            display:flex; align-items:center; justify-content:center;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.22);
+            backdrop-filter: blur(8px);
+            color: rgba(255,255,255,.95);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .badge-icon{
+            display:inline-flex;
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            align-items:center; justify-content:center;
+            background: rgba(255,255,255,.16);
+            border: 1px solid rgba(255,255,255,.18);
+            font-weight: 600;
+        }
+
+        .card-hero{
+            background: rgba(255,255,255,.92);
+            border: 1px solid rgba(255,255,255,.38);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(10px);
+        }
+        .hero-sim{ position: relative; z-index: 4; padding: 18px; }
+
+        /* Evita doble “caja” dentro del card-hero */
+        .hero-sim .calculator-box{
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        /* Capa 3: pareja PNG transparente — alineada al borde inferior del hero */
+        .hero-couple{
+            position: absolute;
+            left: 46%;
+            bottom: -120px; /* offset negativo para "anclar" visualmente al borde inferior del hero (la PNG tiene padding transparente) */
+            transform: translateX(-50%);
+            width: min(820px, 62vw);
+            height: auto;
+            z-index: 2;
+            pointer-events: none;
+            filter: drop-shadow(0 30px 60px rgba(0,0,0,.22));
+        }
+
+        @media (max-width: 1060px){
+            .hero-inner{
+                grid-template-columns: 1fr;
+                min-height: auto;
+                padding-bottom: 0;
+            }
+            .hero-copy{ max-width: 680px; position: relative; z-index: 4; }
+            .hero-sim{ max-width: 720px; }
+            .hero-couple{
+                left: auto;
+                right: -20px;
+                bottom: -80px;
+                transform: none;
+                width: min(460px, 45vw);
+            }
+        }
+        /* En mobile ocultamos la foto de la pareja */
+        @media (max-width: 768px){
+            .hero-couple{ display: none; }
+        }
+        @media (max-width: 520px){
+            .hero-layered{ padding: 56px 0 48px; }
+            .hero-subtitle{ font-size: 16px; }
+            .badge-card{ font-size: 13px; }
+        }
+
+
+/* ===== CASOS ICONOS AJUSTADOS ===== */
+.caso-icon{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  margin-bottom:14px;
+}
+.caso-icon img{
+  width:110px; /* ~1/3 del tamaño previo */
+  height:auto;
+  display:block;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+/* ===== CASOS (polish) ===== */
+.caso-card{
+  padding:28px;
+  border-radius:16px;
+  border:1px solid rgba(0,0,0,.06);
+}
+
+
+/* ===== GLOBAL LAYOUT SYSTEM ===== */
+:root {
+    --container-width: 1480px;
+    --container-padding: 32px;
+}
+
+.container {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+}
+
+.header-container {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+}
+
+/* All sections aligned with header */
+/* unified layout: section constraint removed */
+
+/* Hero keeps full background but aligned content */
+.hero-inner {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+}
+
+
+        /* ===== Tooltip simple (retail) ===== */
+        .tip{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            width:18px;
+            height:18px;
+            margin-left:6px;
+            border-radius:999px;
+            border:1px solid rgba(0,0,0,.12);
+            background:#fff;
+            color:var(--brand-primary);
+            font-weight:800;
+            font-size:12px;
+            cursor:help;
+            position:relative;
+            vertical-align:middle;
+        }
+        .tip::after{
+            content: attr(data-tip);
+            position:absolute;
+            left:50%;
+            bottom: calc(100% + 10px);
+            transform: translateX(-50%);
+            width: min(320px, 72vw);
+            background: rgba(20,20,20,.92);
+            color:#fff;
+            padding:10px 12px;
+            border-radius:10px;
+            font-size:12px;
+            line-height:1.35;
+            box-shadow: 0 12px 30px rgba(0,0,0,.25);
+            opacity:0;
+            pointer-events:none;
+            transition: opacity .15s ease, transform .15s ease;
+            z-index: 9999;
+            text-transform:none;
+        }
+        .tip::before{
+            content:"";
+            position:absolute;
+            left:50%;
+            bottom: calc(100% + 4px);
+            transform: translateX(-50%);
+            border:6px solid transparent;
+            border-top-color: rgba(20,20,20,.92);
+            opacity:0;
+            transition: opacity .15s ease;
+            z-index: 9999;
+        }
+        .tip:hover::after, .tip:focus::after{
+            opacity:1;
+            transform: translateX(-50%) translateY(-2px);
+        }
+        .tip:hover::before, .tip:focus::before{ opacity:1; }
+    
+</style>
+
+    <!-- React, ReactDOM, Babel, and Tailwind CDN -->
+    <script>
+</head>
+<body>
+    <a href="#simulador" class="skip-link">Saltar al contenido</a>
+    <div id="landing-page">
+<header>
+        <div class="header-container">
+            <div class="logo"><img src="assets/logo.png" alt="TuCasaMasCerca Logo">
+            </div>
+            <button class="hamburger" id="hamburger" aria-label="Abrir menú" aria-expanded="false" onclick="toggleMobileMenu()">
+                <span></span><span></span><span></span>
+            </button>
+            <nav id="mainNav">
+                <a href="#como" onclick="closeMobileMenu()">Cómo funciona</a>
+                <a href="#cb" onclick="closeMobileMenu()">Coldwell Banker</a>
+                <a href="#propiedades" onclick="closeMobileMenu()">Propiedades</a>
+                <a href="#testimonios" onclick="closeMobileMenu()">Testimonios</a>
+                <a href="#faq" onclick="closeMobileMenu()">Preguntas</a>
+                <button class="btn-ingresar" onclick="closeMobileMenu(); openModal();">Ingresar</button>
+            </nav>
+        </div>
+    </header>
+
+    
+    <section class="hero-layered" id="simulador">
+        <!-- Capa fondo (casas) -->
+        <div class="hero-bg" aria-hidden="true"></div>
+        <!-- Overlay para legibilidad -->
+        <div class="hero-overlay" aria-hidden="true"></div>
+
+        <div class="hero-inner">
+            <div class="hero-copy">
+                <h1 class="hero-title">Tu casa está<br><span class="brand-accent">+Cerca</span> de<br>lo que creés</h1>
+                <p class="hero-subtitle">Simulá tu préstamo en minutos y<br>conocé cuánto podés financiar hoy.</p>
+
+                <div class="hero-badges">
+                    <div class="badge-card">100% online</div>
+                    <div class="badge-card">Rápido</div>
+                    <div class="badge-card">Transparente</div>
+                    <div class="badge-card">Simple</div>
+                </div>
+            </div>
+
+            <div class="hero-sim card-hero">
+                <div class="calculator-box">
+                    <h3>Simulá tu préstamo</h3>
+                    <div class="calculator-wrapper">
+                        <div>
+                            <div class="form-group">
+                                <label for="property-value">Valor del inmueble (U$D)</label>
+                                <input type="text" inputmode="numeric" id="property-value" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="loan-amount">Préstamo a solicitar (U$D)</label>
+                                <input type="text" inputmode="numeric" id="loan-amount" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="loan-term">Plazo</label>
+                                <select id="loan-term">
+                                    <option value="12">12 meses</option>
+                                    <option value="24">24 meses</option>
+                                    <option value="36">36 meses</option>
+                                    <option value="48">48 meses</option>
+                                    <option value="60">60 meses</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="result-highlight">
+                            <div style="font-size: 13px; color: var(--brand-mid); text-transform: uppercase;">Cuota mensual</div>
+                            <div class="result-amount" id="cuota">U$D 1.064</div>
+                            <div class="result-detail">Préstamo a solicitar: <strong id="ask">U$D 30.000</strong></div>
+                            <div class="result-detail">Monto bruto: <strong id="bruto">U$D 31.815</strong></div>
+                            <div class="result-detail">Recibirás: <strong id="recv">U$D 30.000</strong></div>
+                            <div style="border-top: 1px solid rgba(0, 82, 204, 0.2); margin-top: 12px; padding-top: 12px;">
+                                <div class="result-detail">TNA: <strong id="tna">12.50%</strong> <span class="tip" data-tip="Tasa Nominal Anual aplicada sobre saldo para calcular tu cuota.">?</span></div>
+                                <div class="result-detail">CFT: <strong id="cft">—</strong> <span class="tip" data-tip="Costo Financiero Total: tasa anualizada que incluye intereses, IVA y gastos. Es el costo real anual del crédito.">?</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-big" onclick="openLeadModal()">Contactar asesor</button>
+                </div>
+            </div>
+
+            <!-- Capa pareja (PNG con fondo transparente). Reemplazá la ruta por tu asset final -->
+            <img class="hero-couple" src="assets/couple.png" alt="Pareja mirando el celular" loading="eager" decoding="async" fetchpriority="high">
+        </div>
+    </section>
+
+
+<section class="aspiracion">
+        <h2>Cuando una casa te elige, el desafío es llegar.</h2>
+        <p>Con Tu Casa +Cerca, llegar es posible. Rápido, simple y 100% online.</p>
+    </section>
+
+    <section class="proceso-section" id="como">
+        <div class="flujo">
+            <h3 style="font-family: 'Poppins', sans-serif; font-size: clamp(20px, 3vw, 24px); font-weight: 600;">El flujo completo online en Tu Casa +Cerca</h3>
+            <div class="flujo-grid">
+                <div class="flujo-item"><h4>Simulador</h4><p>Probás tu capacidad según la propiedad.</p></div>
+                <div class="flujo-item"><h4>Link propiedad</h4><p>Compartís el link de inmuebles o CB.</p></div>
+                <div class="flujo-item"><h4>Reserva</h4><p>Cargás la reserva ad referéndum del crédito u oferta de compra.</p></div>
+                <div class="flujo-item"><h4>KYC — Conozca a su cliente</h4><p>Datos personales e identidad.</p></div>
+                <div class="flujo-item"><h4>Capacidad</h4><p>Documentación de ingresos.</p></div>
+                <div class="flujo-item"><h4>Dashboard</h4><p>Seguís todo en tiempo real.</p></div>
+
+            </div>
+            <div class="hero-icons">
+                <div class="hero-icon-item"><span class="hero-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span>Respuesta rápida</span></div>
+                <div class="hero-icon-item"><span class="hero-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span>100% online</span></div>
+                <div class="hero-icon-item"><span class="hero-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span>Sin burocracia</span></div>
+                <div class="hero-icon-item"><span class="hero-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span>Acompañamiento personalizado</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="casos" id="casos">
+  <h2 class="section-title">Historias que podrían ser la tuya</h2>
+
+  <div class="casos-grid">
+    <article class="caso-card">
+      <div class="caso-icon">
+        <img src="assets/caso-familia.png" alt="Se agranda la familia" loading="lazy">
+      </div>
+      <h3 class="caso-titulo">Se agranda la familia</h3>
+      <p>Necesitás más espacio. Esa casa con un dormitorio más está a tu alcance.</p>
+    </article>
+
+    <article class="caso-card">
+      <div class="caso-icon">
+        <img src="assets/caso-zona.png" alt="La zona preferida" loading="lazy">
+      </div>
+      <h3 class="caso-titulo">La zona preferida</h3>
+      <p>Siempre soñaste con ese barrio. Con Tu Casa +Cerca completás la diferencia.</p>
+    </article>
+
+    <article class="caso-card">
+      <div class="caso-icon">
+        <img src="assets/caso-remodelar.png" alt="Querés remodelar" loading="lazy">
+      </div>
+      <h3 class="caso-titulo">Querés remodelar</h3>
+      <p>Encontraste la casa perfecta pero necesita arreglos.</p>
+    </article>
+
+    <article class="caso-card">
+      <div class="caso-icon">
+        <img src="assets/caso-enamoraste.png" alt="Te enamoraste de ese inmueble" loading="lazy">
+      </div>
+      <h3 class="caso-titulo">Te enamoraste de ese inmueble</h3>
+      <p>Esta casa tiene que ser tuya.</p>
+    </article>
+
+    <article class="caso-card">
+      <div class="caso-icon">
+        <img src="assets/caso-sindeudas.png" alt="Sin deudas a familia" loading="lazy">
+      </div>
+      <h3 class="caso-titulo">Sin deudas a familia</h3>
+      <p>Querés financiamiento formal, sin dramas.</p>
+    </article>
+
+    <article class="caso-card">
+      <div class="caso-icon">
+        <img src="assets/caso-avanzar.png" alt="Querés avanzar" loading="lazy">
+      </div>
+      <h3 class="caso-titulo">Querés avanzar</h3>
+      <p>Mejorar tu calidad de vida es un objetivo.</p>
+    </article>
+  </div>
+    </section>
+
+    <!-- ALIANZA COLDWELL BANKER -->
+    <section class="cb-section" id="cb">
+        <div class="cb-inner">
+            <div class="cb-badge">Integración estratégica</div>
+            <h2 class="section-title" style="margin-bottom:16px;">Elegís la propiedad. Tu Casa +Cerca completa el camino.</h2>
+            <p class="cb-subtitle">Encontrás tu propiedad con Coldwell Banker Argentina y financiás el complemento con Tu Casa +Cerca, en un proceso integrado y 100% online. Coldwell Banker Argentina es parte de una red global reconocida mundialmente, con presencia en +40 países.</p>
+            <div class="cb-infografia">
+                <div class="cb-stat">
+                    <div class="cb-stat-num">100+</div>
+                    <div class="cb-stat-label">Años de trayectoria</div>
+                </div>
+                <div class="cb-arrow">→</div>
+                <div class="cb-stat">
+                    <div class="cb-stat-num">40+</div>
+                    <div class="cb-stat-label">Países con presencia</div>
+                </div>
+                <div class="cb-arrow">→</div>
+                <div class="cb-stat">
+                    <div class="cb-stat-num cb-stat-logo"><img src="assets/Coldwell-Banker-Symbol.png" alt="Coldwell Banker"></div>
+                    <div class="cb-stat-label">Red global reconocida</div>
+                </div>
+                <div class="cb-arrow">→</div>
+                <div class="cb-stat">
+                    <div class="cb-stat-num">Tu Casa +Cerca</div>
+                    <div class="cb-stat-label">Financiás el complemento</div>
+                </div>
+            </div>
+            <div class="cb-beneficios">
+                <div class="cb-ben-item">
+                    <div class="cb-ben-icon"><span class="icon icon-lg"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span></div>
+                    <div>
+                        <strong>Propiedades verificadas</strong>
+                        <p>Las propiedades publicadas por CB cuentan con acompañamiento inmobiliario profesional durante todo el proceso.</p>
+                    </div>
+                </div>
+                <div class="cb-ben-item">
+                    <div class="cb-ben-icon"><span class="icon icon-lg"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></div>
+                    <div>
+                        <strong>Asesoramiento integral</strong>
+                        <p>CB te acompaña en la búsqueda y Tu Casa +Cerca en el financiamiento, coordinado en un mismo recorrido.</p>
+                    </div>
+                </div>
+                <div class="cb-ben-item">
+                    <div class="cb-ben-icon"><span class="icon icon-lg"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span></div>
+                    <div>
+                        <strong>Proceso unificado</strong>
+                        <p>Elegís la propiedad en CB y gestionás el financiamiento en Tu Casa +Cerca, de forma integrada y sin fricciones.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BUSCADOR COLDWELL BANKER -->
+    <section class="propiedades-section" id="propiedades">
+        <div class="prop-inner">
+            <div class="prop-text">
+                <div class="cb-badge" style="margin-bottom:16px;">Propiedades aptas crédito</div>
+                <h2 class="section-title" style="text-align:left; margin-bottom:16px;">Encontrá tu próxima casa con Coldwell Banker Argentina</h2>
+                <p style="color:var(--brand-mid); margin-bottom:28px; font-size:15px;">Buscá propiedades en la red Coldwell Banker Argentina. Encontrás el inmueble y nosotros te financiamos el complemento. Así de simple.</p>
+                <div class="prop-filtros">
+                    <div class="form-group">
+                        <label>Zona o barrio</label>
+                        <input type="text" placeholder="Ej: Palermo, Belgrano..." id="cb-zona">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de propiedad</label>
+                        <select id="cb-tipo">
+                            <option value="">Todos</option>
+                            <option>Departamento</option>
+                            <option>Casa</option>
+                            <option>PH</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio hasta (USD)</label>
+                        <input type="number" placeholder="Ej: 150000" id="cb-precio">
+                    </div>
+                </div>
+                <button class="btn-cb-buscar" onclick="buscarEnCB()">
+                    <span class="icon icon-sm" style="margin-right:8px;vertical-align:-3px;"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Ver propiedades en Coldwell Banker Argentina
+                </button>
+                <p style="font-size:12px; color:#999; margin-top:12px;">Serás redirigido al sitio oficial de Coldwell Banker Argentina con tu búsqueda aplicada.</p>
+            </div>
+            <div class="prop-imagen">
+                <div class="prop-preview">
+                    <div class="prop-card-demo">
+                        <div class="prop-card-img"><img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=70" alt="Departamento moderno en Palermo" loading="lazy"></div>
+                        <div class="prop-card-info">
+                            <div class="prop-card-tag">Apto crédito Tu Casa +Cerca</div>
+                            <strong>Departamento 3 amb.</strong>
+                            <p>Palermo, CABA</p>
+                            <div class="prop-card-price">USD 120.000</div>
+                        </div>
+                    </div>
+                    <div class="prop-card-demo" style="opacity:0.7; transform: scale(0.95) translateY(8px);">
+                        <div class="prop-card-img"><img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&auto=format&fit=crop&q=70" alt="PH luminoso en Caballito" loading="lazy"></div>
+                        <div class="prop-card-info">
+                            <div class="prop-card-tag">Apto crédito Tu Casa +Cerca</div>
+                            <strong>PH 2 amb.</strong>
+                            <p>Caballito, CABA</p>
+                            <div class="prop-card-price">USD 95.000</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIOS -->
+    <section class="testimonios-section" id="testimonios">
+        <h2 class="section-title">Lo que dicen quienes ya dieron el paso</h2>
+        <p style="text-align:center; color:var(--brand-mid); margin-top:-32px; margin-bottom:48px;">Historias reales de personas que usaron Tu Casa +Cerca para comprar su casa.</p>
+        <div class="testimonios-grid">
+            <div class="testimonio-card">
+                <div class="testimonio-stars">★★★★★</div>
+                <p class="testimonio-texto">"Tenía los ahorros pero me faltaban USD 25.000 para cerrar el trato. Con Tu Casa +Cerca tramité el crédito en 10 días y hoy vivo en el departamento que siempre quise en Palermo."</p>
+                <div class="testimonio-autor">
+                    <div class="testimonio-avatar">ML</div>
+                    <div>
+                        <strong>María Laura G.</strong>
+                        <span>Compró en Palermo, CABA</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonio-card">
+                <div class="testimonio-stars">★★★★★</div>
+                <p class="testimonio-texto">"Mi familia creció y necesitábamos mudarnos. Todo fue 100% online, sin perder tiempo en papelerío. El proceso fue transparente desde el primer momento."</p>
+                <div class="testimonio-autor">
+                    <div class="testimonio-avatar">RS</div>
+                    <div>
+                        <strong>Roberto S.</strong>
+                        <span>Compró en Belgrano, CABA</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonio-card">
+                <div class="testimonio-stars">★★★★★</div>
+                <p class="testimonio-texto">"Encontré la casa a través de Coldwell Banker y la financié con Tu Casa +Cerca. Fue como si todo estuviera diseñado para funcionar junto. Recomiendo el proceso a todo el mundo."</p>
+                <div class="testimonio-autor">
+                    <div class="testimonio-avatar">VF</div>
+                    <div>
+                        <strong>Valeria F.</strong>
+                        <span>Compró en San Isidro, GBA</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="tasas">
+        <h2 class="section-title" id="tasas">Tasas y Cuotas</h2>
+        <div class="tasas-grid">
+            <div class="tasa-box">
+                <h3 style="display:flex;align-items:center;gap:10px;"><span class="icon" style="color:var(--brand-primary);"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="11" width="4" height="9"/><rect x="15" y="5" width="4" height="15"/></svg></span>Cuotas por Plazo</h3>
+                <p style="font-size: 12px; color: var(--brand-mid); margin-bottom: 16px;">Ejemplos en base a un crédito de 30.000 USD</p>
+                <div class="tasa-table-row"><span>12 meses</span><span class="tasa-value" id="ex-cuota-12">—</span></div>
+                <div class="tasa-table-row"><span>24 meses</span><span class="tasa-value" id="ex-cuota-24">—</span></div>
+                <div class="tasa-table-row"><span>36 meses</span><span class="tasa-value" id="ex-cuota-36">—</span></div>
+                <div class="tasa-table-row"><span>48 meses</span><span class="tasa-value" id="ex-cuota-48">—</span></div>
+                <div class="tasa-table-row"><span>60 meses</span><span class="tasa-value" id="ex-cuota-60">—</span></div>
+            </div>
+            <div class="tasa-box">
+                <h3 style="display:flex;align-items:center;gap:10px;"><span class="icon" style="color:var(--brand-primary);"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>CFT — Costo Financiero Total <span class="tip" data-tip="Tasa anualizada que incluye intereses, IVA y gastos. Es el costo real anual del crédito según la normativa argentina.">?</span></h3>
+                <p style="font-size: 12px; color: var(--brand-mid); margin-bottom: 16px;">CFT anualizado: incluye intereses, comisiones e IVA sobre intereses (sin sellados ni gastos de escritura).</p>
+                <div class="tasa-table-row"><span>12 meses</span><span class="tasa-value" id="ex-tna-12">—</span></div>
+                <div class="tasa-table-row"><span>24 meses</span><span class="tasa-value" id="ex-tna-24">—</span></div>
+                <div class="tasa-table-row"><span>36 meses</span><span class="tasa-value" id="ex-tna-36">—</span></div>
+                <div class="tasa-table-row"><span>48 meses</span><span class="tasa-value" id="ex-tna-48">—</span></div>
+                <div class="tasa-table-row"><span>60 meses</span><span class="tasa-value" id="ex-tna-60">—</span></div>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="faq" id="faq">
+        <div class="faq-container">
+            <h2 class="section-title">Preguntas Frecuentes</h2>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Cuál es el monto máximo?</span><span>+</span></div>
+                <div class="faq-answer">El menor de: U$D 50.000 o 35% del valor del inmueble.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Qué es el upfront?</span><span>+</span></div>
+                <div class="faq-answer">Comisión 5% + IVA 21%. Si solicitas U$D 30.000, upfront es U$D 1.815. Recibirás U$D 30.000 pero pagarás cuota sobre U$D 31.815.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Cuánto tarda?</span><span>+</span></div>
+                <div class="faq-answer">7-14 días máximo desde solicitud al dinero en cuenta.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Necesito demostrar ingresos?</span><span>+</span></div>
+                <div class="faq-answer">Sí. Evaluamos tu capacidad de pago con documentación de ingresos (recibo de sueldo, declaraciones impositivas o extractos bancarios). El proceso es simple y todo se carga online.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿La hipoteca se hace sobre qué propiedad?</span><span>+</span></div>
+                <div class="faq-answer">La hipoteca se constituye sobre la propiedad que vas a comprar. Es un crédito hipotecario real: la garantía es el inmueble que adquirís.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Puedo cancelar anticipadamente?</span><span>+</span></div>
+                <div class="faq-answer">Sí. Podés cancelar el crédito antes del vencimiento. Te informaremos las condiciones de prepago al momento de la aprobación.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Qué pasa si la propiedad la encontré a través de Coldwell Banker Argentina?</span><span>+</span></div>
+                <div class="faq-answer">Perfecto. Operamos en alianza con Coldwell Banker Argentina. Solo compartís el link de la propiedad en tu solicitud y el proceso se coordina de forma integrada entre ambas plataformas.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Los créditos son en pesos o en dólares?</span><span>+</span></div>
+                <div class="faq-answer">Los préstamos se denominan en dólares estadounidenses (USD), lo que protege el valor del crédito frente a la inflación y es coherente con los valores de las propiedades en Argentina.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)"><span>¿Quién respalda los fondos?</span><span>+</span></div>
+                <div class="faq-answer">Tu Casa +Cerca opera a través de un Fondo Común de Inversión Cerrado (FCICC) con oferta pública bajo regulación de la Comisión Nacional de Valores (CNV). Tus créditos están respaldados por estructura legal formal.</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-final">
+        <h2>¿Listo para dar el siguiente paso?</h2>
+        <p>Simulá tu préstamo y conocé tu cuota real en 2 minutos</p>
+        <button class="btn-primary" onclick="openModal()">Ingresar</button>
+    </section>
+
+    <footer>
+        <div class="footer-container">
+            <div><h4>Producto</h4><a href="#simulador">Simulador</a><a href="#tasas">Tasas</a></div>
+            <div><h4>Empresa</h4><a href="#">Blog</a><a href="#">Contacto</a></div>
+            <div><h4>Legal</h4><a href="#">Términos</a><a href="#">Privacidad</a></div>
+            <div><h4>Contacto</h4><a href="tel:+541144444444">+54 (11) 4444-4444</a></div>
+        </div>
+    </footer>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Acceso a plataforma en desarrollo</div><p style="color:var(--brand-mid);margin-top:8px;">Muy pronto vas a poder ingresar y gestionar tu crédito desde acá.</p><div style="margin-top:18px;"><button type="button" class="btn-big" onclick="closeModal()">Entendido</button></div>
+        </div>
+    </div>
+
+
+
+    <div id="leadModal" class="modal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-title">Contactar asesor</div>
+            <p style="color:var(--brand-mid);margin-top:8px;">Dejanos tus datos y un agente se contactará con vos. Guardaremos también tu última simulación.</p>
+
+            <form id="leadForm" style="margin-top: 18px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input id="leadNombre" type="text" required placeholder="Tu nombre">
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido</label>
+                        <input id="leadApellido" type="text" required placeholder="Tu apellido">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input id="leadTelefono" type="tel" required placeholder="+54 11 ...">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input id="leadEmail" type="email" required placeholder="tu@correo.com">
+                    </div>
+                </div>
+
+                <div class="result-highlight" style="margin-top: 10px;">
+                    <div class="result-detail">Última simulación</div>
+                    <div class="result-detail">Valor del inmueble: <strong id="leadProp">—</strong></div>
+                    <div class="result-detail">Préstamo solicitado: <strong id="leadLoan">—</strong></div>
+                    <div class="result-detail">Plazo: <strong id="leadTerm">—</strong></div>
+                    <div class="result-detail">Cuota: <strong id="leadCuota">—</strong></div>
+                    <div class="result-detail">TNA: <strong id="leadTna">—</strong></div>
+                </div>
+
+                <div style="display:flex; gap: 10px; margin-top: 16px; justify-content:flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeLeadModal()">Cancelar</button>
+                    <button type="submit" class="btn-big" style="margin-top:0;">Enviar</button>
+                </div>
+
+                <p style="font-size:12px; color:#999; margin-top:10px;">(Demo) Por ahora no se envía a base de datos: lo guardamos localmente y lo mostramos en consola.</p>
+            </form>
+        </div>
+    </div>
+
+
+    </div>
+
+<script>
+        const DEFAULT_CONFIG = {
+            tasasBase: { 12: 0.105, 24: 0.115, 36: 0.125, 48: 0.135, 60: 0.145 },
+            maxLTV: 0.35,
+            maxLoan: 50000,
+            simDefaults: { propertyValue: 100000, loanAmount: 35000, months: 60 }
+        };
+
+        function loadConfig() {
+            try {
+                const raw = localStorage.getItem('tcmc_config');
+                if (!raw) return structuredClone(DEFAULT_CONFIG);
+                const cfg = JSON.parse(raw);
+
+                // Merge defensivo
+                const merged = structuredClone(DEFAULT_CONFIG);
+                if (cfg && typeof cfg === 'object') {
+                    if (cfg.tasasBase && typeof cfg.tasasBase === 'object') {
+                        for (const k of Object.keys(merged.tasasBase)) {
+                            if (typeof cfg.tasasBase[k] === 'number' && isFinite(cfg.tasasBase[k])) merged.tasasBase[k] = cfg.tasasBase[k];
+                        }
+                    }
+                    if (typeof cfg.maxLTV === 'number' && isFinite(cfg.maxLTV)) merged.maxLTV = cfg.maxLTV;
+                    if (typeof cfg.maxLoan === 'number' && isFinite(cfg.maxLoan)) merged.maxLoan = cfg.maxLoan;
+                    if (cfg.simDefaults && typeof cfg.simDefaults === 'object') {
+                        if (typeof cfg.simDefaults.propertyValue === 'number') merged.simDefaults.propertyValue = cfg.simDefaults.propertyValue;
+                        if (typeof cfg.simDefaults.loanAmount === 'number') merged.simDefaults.loanAmount = cfg.simDefaults.loanAmount;
+                        if (typeof cfg.simDefaults.months === 'number') merged.simDefaults.months = cfg.simDefaults.months;
+                    }
+                }
+                return merged;
+            } catch (e) {
+                return structuredClone(DEFAULT_CONFIG);
+            }
+        }
+
+        function saveConfig(cfg) {
+            localStorage.setItem('tcmc_config', JSON.stringify(cfg));
+        }
+
+        let CONFIG = loadConfig();
+
+
+        // --- Última cotización (para lead) ---
+        let LAST_QUOTE = null;
+
+        function setLastQuote(data) {
+            LAST_QUOTE = data;
+        }
+
+        function fillLeadQuote() {
+            const q = LAST_QUOTE;
+            const fmtMoney0 = (n) => 'U$D ' + Math.round(n).toLocaleString('es-AR');
+            const fmtMoney2 = (n) => 'U$D ' + n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (!q) return;
+
+            document.getElementById('leadProp').textContent = fmtMoney0(q.propertyValue);
+            document.getElementById('leadLoan').textContent = fmtMoney0(q.loanAmount);
+            document.getElementById('leadTerm').textContent = q.termMonths + ' meses';
+            document.getElementById('leadCuota').textContent = fmtMoney2(q.cuota);
+            document.getElementById('leadTna').textContent = (q.tasaAnual * 100).toFixed(2) + '%';
+        }
+
+        // ---- Modal Lead ----
+        const leadModal = document.getElementById('leadModal');
+        function openLeadModal() {
+            fillLeadQuote();
+            leadModal.style.display = 'block';
+        }
+        function closeLeadModal() { leadModal.style.display = 'none'; }
+
+
+
+        function calcularCuota(tasaAnual, meses, montoBruto) {
+            const tm = tasaAnual / 12;
+            if (tm === 0) return montoBruto / meses;
+            const num = montoBruto * (tm * Math.pow(1 + tm, meses));
+            const den = Math.pow(1 + tm, meses) - 1;
+            return num / den;
+        }
+
+        function calcularTNA(cuotaMensual, meses, prestamo) {
+            // TD: (Total pagado / Principal solicitado) - 1
+            // TNA anualizada según Excel (compuesta): (1+TD)^(12/meses)-1
+            const td = (cuotaMensual * meses) / prestamo - 1;
+            return Math.pow(1 + td, 12 / meses) - 1;
+        }
+
+        function calcularBruto(prestamo) {
+            const upfront = prestamo * 0.05;
+            const iva = upfront * 0.21;
+            return prestamo + upfront + iva;
+        }
+
+        // Helpers para inputs con separador de miles (formato es-AR)
+        function parseIntFromInput(el) {
+            const digits = (el.value || '').replace(/\D/g, '');
+            return digits ? parseInt(digits, 10) : 0;
+        }
+        function formatIntForInput(n) {
+            return (n || 0).toLocaleString('es-AR');
+        }
+
+        function updateCalculator() {
+            const propEl = document.getElementById('property-value');
+            const loanEl = document.getElementById('loan-amount');
+            const prop = parseIntFromInput(propEl) || 100000;
+            let loan = parseIntFromInput(loanEl) || (CONFIG.simDefaults?.loanAmount || 35000);
+            const months = parseInt(document.getElementById('loan-term').value) || 60;
+
+            const maxPct = Math.floor(prop * CONFIG.maxLTV);
+            const maxAllow = Math.min(CONFIG.maxLoan, maxPct);
+            if (loan > maxAllow) loan = maxAllow;
+
+            // feedback en inputs (con separador de miles)
+            loanEl.value = formatIntForInput(loan);
+
+            const bruto = calcularBruto(loan);
+            const tasa = CONFIG.tasasBase[months] ?? 0.085;
+            const cuota = calcularCuota(tasa, months, bruto);
+            const tnaCalc = calcularTNA(cuota, months, loan);
+
+            document.getElementById('cuota').textContent = 'U$D ' + cuota.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('tna').textContent = (tasa * 100).toFixed(2) + '%';
+            document.getElementById('cft').textContent = (tnaCalc * 100).toFixed(2) + '%';
+            document.getElementById('ask').textContent = 'U$D ' + loan.toLocaleString('es-AR');
+            document.getElementById('bruto').textContent = 'U$D ' + Math.round(bruto).toLocaleString('es-AR');
+            document.getElementById('recv').textContent = 'U$D ' + loan.toLocaleString('es-AR');
+
+            // guardar última cotización
+            setLastQuote({
+                propertyValue: prop,
+                loanAmount: loan,
+                termMonths: months,
+                bruto,
+                tasaAnual: tasa,
+                cuota,
+                tasaAnual: tasa,
+                tir: tnaCalc,
+                ts: new Date().toISOString()
+            });
+        }
+
+        function updateExamples() {
+            const baseLoan = 30000;
+            const bruto = calcularBruto(baseLoan);
+
+            [12,24,36,48,60].forEach(meses => {
+                const tasa = CONFIG.tasasBase[meses] ?? 0.085;
+                const cuota = calcularCuota(tasa, meses, bruto);
+                const tna = calcularTNA(cuota, meses, baseLoan);
+
+                const cuotaEl = document.getElementById(`ex-cuota-${meses}`);
+                const tnaEl = document.getElementById(`ex-tna-${meses}`);
+                if (cuotaEl) cuotaEl.textContent = 'U$D ' + cuota.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+                if (tnaEl) tnaEl.textContent = (tna * 100).toFixed(2) + '%';
+            });
+        }
+
+        function buscarEnCB() {
+            const zona = document.getElementById('cb-zona').value;
+            const tipo = document.getElementById('cb-tipo').value;
+            const precio = document.getElementById('cb-precio').value;
+            let url = 'https://www.coldwellbanker.com.ar/propiedades?';
+            const params = ['suitable_for_credit=1']; // filtro por defecto: solo aptas credito Tu Casa +Cerca
+            if (zona) params.push('zona=' + encodeURIComponent(zona));
+            if (tipo) params.push('tipo=' + encodeURIComponent(tipo));
+            if (precio) params.push('precio_hasta=' + encodeURIComponent(precio));
+            url += params.join('&');
+            window.open(url, '_blank');
+        }
+
+        // ---- Modal "Ingresar" ----
+        const modal = document.getElementById('modal');
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const nav = document.getElementById('mainNav');
+            const btn = document.getElementById('hamburger');
+            const isOpen = nav.classList.toggle('open');
+            btn.classList.toggle('open', isOpen);
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+        function closeMobileMenu() {
+            const nav = document.getElementById('mainNav');
+            const btn = document.getElementById('hamburger');
+            nav.classList.remove('open');
+            btn.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+
+        const APP_URL = window.APP_URL || 'https://app.tucasamascerca.com';
+        function openModal() {
+            const params = new URLSearchParams();
+            const propRaw = document.getElementById('property-value')?.value || '';
+            const loanRaw = document.getElementById('loan-amount')?.value || '';
+            const months = document.getElementById('loan-term')?.value;
+            const prop = propRaw.replace(/\D/g, '');
+            const loan = loanRaw.replace(/\D/g, '');
+            if (prop) params.set('propertyValue', prop);
+            if (loan) params.set('loanAmount', loan);
+            if (months) params.set('months', months);
+            const qs = params.toString();
+            window.location.href = APP_URL + '/login' + (qs ? '?' + qs : '');
+        }
+        function closeModal() { modal.style.display = 'none'; }
+
+        // ---- Backoffice ----
+        // El backoffice de configuracion vive ahora en la app (super_admin > Configuracion).
+        // La landing lee CONFIG via localStorage hasta que se conecte GET /api/config/public.
+
+        window.onclick = (e) => {
+            if (e.target === modal) closeModal();
+            if (e.target === leadModal) closeLeadModal();
+        };
+
+        // Lead form submit (demo: consola + localStorage)
+        document.getElementById('leadForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const payload = {
+                nombre: document.getElementById('leadNombre').value.trim(),
+                apellido: document.getElementById('leadApellido').value.trim(),
+                telefono: document.getElementById('leadTelefono').value.trim(),
+                email: document.getElementById('leadEmail').value.trim(),
+                quote: LAST_QUOTE
+            };
+
+            try {
+                const key = 'tcmc_leads';
+                const arr = JSON.parse(localStorage.getItem(key) || '[]');
+                arr.push(payload);
+                localStorage.setItem(key, JSON.stringify(arr));
+            } catch (err) {}
+
+            console.log('Lead generado (demo):', payload);
+            alert('¡Listo! Un agente se va a contactar con vos.');
+            closeLeadModal();
+            e.target.reset();
+        });
+
+        // FAQ
+        function toggleFaq(el) { el.parentElement.classList.toggle('active'); }
+
+        // smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', (e) => {
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                e.preventDefault();
+                const t = document.querySelector(href);
+                if (t) t.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Re-format con miles mientras el usuario tipea, preservando posición del cursor aprox.
+        function liveFormatInput(el) {
+            el.addEventListener('input', () => {
+                const raw = (el.value || '').replace(/\D/g, '');
+                el.value = raw ? parseInt(raw, 10).toLocaleString('es-AR') : '';
+                updateCalculator();
+            });
+        }
+        liveFormatInput(document.getElementById('property-value'));
+        liveFormatInput(document.getElementById('loan-amount'));
+        document.getElementById('loan-term').addEventListener('change', () => { updateCalculator(); });
+
+        // Inicializar inputs con los defaults del simulador (configurables desde el super_admin de la app)
+        function initSimulatorDefaults() {
+            const d = CONFIG.simDefaults || DEFAULT_CONFIG.simDefaults;
+            document.getElementById('property-value').value = formatIntForInput(d.propertyValue);
+            document.getElementById('loan-amount').value = formatIntForInput(d.loanAmount);
+            document.getElementById('loan-term').value = String(d.months);
+        }
+        initSimulatorDefaults();
+
+        // init
+        updateCalculator();
+        updateExamples();
+    </script>
+
+
+
+</body>
+</html>
