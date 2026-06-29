@@ -18,6 +18,7 @@ Carpeta lista para entregar a un freelance (diseñador Figma + desarrollador Web
 5. **`04-Design-Tokens.json`** — paleta, tipografías, espacios (importable a Figma con plugin Tokens Studio)
 6. **`05-Custom-Code-Simulator.html`** — bloque de código del simulador, listo para pegar en Webflow/Framer como Embed
 7. **`06-Assets/`** — todas las imágenes optimizadas
+8. **`08-Mini-Tutorial-Framer-DIY.md`** *(o `.docx`)* — **EXTRA**: tutorial paso a paso si querés armar la landing vos mismo en Framer en un fin de semana (4-6 hs), sin contratar freelance. Después podés contratar uno solo para pulir (~USD 200-400 vs USD 600-1.200 desde cero).
 
 ---
 
