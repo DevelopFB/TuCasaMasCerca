@@ -1,0 +1,133 @@
+<!--
+  ==========================================================================
+  SIMULADOR TU CASA +CERCA — BLOQUE EMBED LISTO PARA WEBFLOW / FRAMER
+  ==========================================================================
+  Cómo usar:
+
+  WEBFLOW:
+    1. En el Designer, arrastra un componente "Embed" donde quieras el simulador
+    2. Pegá TODO el contenido de este archivo dentro del Embed
+    3. Publicá el sitio (los Embeds solo se ejecutan en preview/published, no en Designer)
+
+  FRAMER:
+    1. Insertá un componente "Code" o "Embed" (Insert → Code)
+    2. Elegí "HTML" como tipo
+    3. Pegá todo este contenido
+
+  Personalización rápida:
+    - Defaults (linea ~15): cambiar propertyValue, loanAmount, months
+    - Tasas (linea ~16): cambiar los porcentajes anuales por plazo
+    - APP_URL (linea ~14): cambiar al dominio real cuando esté publicada la app
+  ==========================================================================
+-->
+<div id="tcmc-sim" style="font-family:'Outfit',sans-serif;max-width:520px;margin:0 auto;background:linear-gradient(135deg,#f5f5f5 0%,#fff 100%);padding:32px;border-radius:16px;box-shadow:0 20px 48px rgba(26,67,148,.18);">
+  <h3 style="margin:0 0 20px;font-size:20px;font-weight:600;color:#1E1E1E;">Simulá tu préstamo</h3>
+
+  <div style="margin-bottom:14px;">
+    <label style="display:block;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:#748082;margin-bottom:6px;">Valor del inmueble (U$D)</label>
+    <input id="tcmc-prop" type="text" inputmode="numeric" autocomplete="off" style="width:100%;padding:12px 14px;border:2px solid #E1EAEB;border-radius:8px;font-size:15px;font-family:inherit;color:#1E1E1E;outline:none;">
+  </div>
+
+  <div style="margin-bottom:14px;">
+    <label style="display:block;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:#748082;margin-bottom:6px;">Préstamo a solicitar (U$D)</label>
+    <input id="tcmc-loan" type="text" inputmode="numeric" autocomplete="off" style="width:100%;padding:12px 14px;border:2px solid #E1EAEB;border-radius:8px;font-size:15px;font-family:inherit;color:#1E1E1E;outline:none;">
+  </div>
+
+  <div style="margin-bottom:20px;">
+    <label style="display:block;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:#748082;margin-bottom:6px;">Plazo</label>
+    <select id="tcmc-term" style="width:100%;padding:12px 14px;border:2px solid #E1EAEB;border-radius:8px;font-size:15px;font-family:inherit;color:#1E1E1E;outline:none;background:white;">
+      <option value="12">12 meses</option>
+      <option value="24">24 meses</option>
+      <option value="36">36 meses</option>
+      <option value="48">48 meses</option>
+      <option value="60">60 meses</option>
+    </select>
+  </div>
+
+  <div style="background:rgba(26,67,148,0.10);padding:20px;border-radius:12px;border-left:4px solid #1A4394;">
+    <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:#748082;">Cuota mensual</div>
+    <div id="tcmc-cuota" style="font-size:32px;font-weight:700;color:#1A4394;margin:8px 0;">U$D 0,00</div>
+    <div style="font-size:13px;color:#1E1E1E;line-height:1.7;">
+      Préstamo a solicitar: <strong id="tcmc-ask">U$D 0</strong><br>
+      Monto bruto: <strong id="tcmc-bruto">U$D 0</strong><br>
+      Recibirás: <strong id="tcmc-recv">U$D 0</strong>
+    </div>
+    <div style="border-top:1px solid rgba(26,67,148,0.2);margin-top:12px;padding-top:12px;font-size:13px;color:#1E1E1E;line-height:1.7;">
+      TNA: <strong id="tcmc-tna">0%</strong> <span title="Tasa Nominal Anual aplicada sobre saldo para calcular tu cuota." style="cursor:help;color:#748082;">ⓘ</span><br>
+      CFT: <strong id="tcmc-cft">0%</strong> <span title="Costo Financiero Total: tasa anualizada que incluye intereses, IVA y gastos. Es el costo real anual del crédito." style="cursor:help;color:#748082;">ⓘ</span>
+    </div>
+  </div>
+
+  <button id="tcmc-go" style="margin-top:20px;width:100%;background:#1A4394;color:white;padding:14px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s ease;">
+    Contactar asesor
+  </button>
+</div>
+
+<script>
+(function(){
+  // ===== CONFIG (cambiar acá) =====
+  var APP_URL = 'https://app.tucasamascerca.com.ar'; // dominio app productiva (cuando esté lista)
+  var DEFAULTS = { propertyValue: 100000, loanAmount: 35000, months: 60 };
+  var TASAS = { 12: 0.105, 24: 0.115, 36: 0.125, 48: 0.135, 60: 0.145 };
+  var MAX_LTV = 0.35;
+  var MAX_LOAN = 50000;
+
+  // ===== LÓGICA =====
+  function parseInt2(el){ var d=(el.value||'').replace(/\D/g,''); return d?parseInt(d,10):0; }
+  function fmt(n){ return (n||0).toLocaleString('es-AR'); }
+  function fmt2(n){ return n.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  function calcularBruto(p){ var u=p*0.05; return p+u+u*0.21; }
+  function calcularCuota(t,m,b){ var tm=t/12; return b*(tm*Math.pow(1+tm,m))/(Math.pow(1+tm,m)-1); }
+  function calcularCFT(c,m,p){ var td=(c*m)/p-1; return Math.pow(1+td,12/m)-1; }
+
+  var propEl = document.getElementById('tcmc-prop');
+  var loanEl = document.getElementById('tcmc-loan');
+  var termEl = document.getElementById('tcmc-term');
+
+  function update(){
+    var prop = parseInt2(propEl) || DEFAULTS.propertyValue;
+    var loan = parseInt2(loanEl) || DEFAULTS.loanAmount;
+    var months = parseInt(termEl.value) || DEFAULTS.months;
+    var maxAllow = Math.min(MAX_LOAN, Math.floor(prop*MAX_LTV));
+    if(loan>maxAllow) loan=maxAllow;
+    loanEl.value = fmt(loan);
+    var bruto = calcularBruto(loan);
+    var tasa = TASAS[months] || 0.125;
+    var cuota = calcularCuota(tasa, months, bruto);
+    var cft = calcularCFT(cuota, months, loan);
+    document.getElementById('tcmc-cuota').textContent = 'U$D ' + fmt2(cuota);
+    document.getElementById('tcmc-ask').textContent = 'U$D ' + fmt(loan);
+    document.getElementById('tcmc-bruto').textContent = 'U$D ' + fmt(Math.round(bruto));
+    document.getElementById('tcmc-recv').textContent = 'U$D ' + fmt(loan);
+    document.getElementById('tcmc-tna').textContent = (tasa*100).toFixed(2) + '%';
+    document.getElementById('tcmc-cft').textContent = (cft*100).toFixed(2) + '%';
+  }
+
+  function liveFormat(el){
+    el.addEventListener('input', function(){
+      var raw = (el.value||'').replace(/\D/g,'');
+      el.value = raw ? parseInt(raw,10).toLocaleString('es-AR') : '';
+      update();
+    });
+  }
+  liveFormat(propEl); liveFormat(loanEl);
+  termEl.addEventListener('change', update);
+
+  // Inicializar con defaults
+  propEl.value = fmt(DEFAULTS.propertyValue);
+  loanEl.value = fmt(DEFAULTS.loanAmount);
+  termEl.value = String(DEFAULTS.months);
+  update();
+
+  // Botón Contactar → redirige a app con query params
+  document.getElementById('tcmc-go').addEventListener('click', function(){
+    var prop = parseInt2(propEl), loan = parseInt2(loanEl), months = parseInt(termEl.value);
+    var params = new URLSearchParams();
+    if(prop) params.set('propertyValue', prop);
+    if(loan) params.set('loanAmount', loan);
+    if(months) params.set('months', months);
+    window.location.href = APP_URL + '/login' + (params.toString() ? '?' + params.toString() : '');
+  });
+})();
+</script>
