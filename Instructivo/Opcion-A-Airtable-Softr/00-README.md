@@ -29,7 +29,9 @@ Tu volumen actual (~100 operaciones/año) NO justifica una plataforma custom de 
 | **02-Airtable-Schema.md** | Diseño de la base de datos: tablas, campos, vistas, automatizaciones |
 | **03-Softr-Layout.md** | Diseño de la app: páginas, formularios, permisos por rol |
 | **04-Plan-Operativo-Semanal.md** | Paso a paso día por día durante las 4 semanas |
-| **05-Brief-Freelance-Airtable.docx** | Si decidís contratar 8-15 hs de un experto para acelerar |
+| **05-Brief-Freelance-Airtable.docx** | Aviso para postear en Workana/Upwork (~USD 400-700) |
+| **06-Camino-1-DIY-Completo** *(md + docx)* | **Tutorial completo para hacerlo vos mismo** sin freelance. 37 horas, paso a paso con clicks específicos. |
+| **07-Camino-2-Hibrido** *(md + docx)* | **División de tareas vos + freelance** para acelerar. 12-15 hs tuyas + 12-15 hs freelance. |
 
 ---
 
@@ -37,8 +39,11 @@ Tu volumen actual (~100 operaciones/año) NO justifica una plataforma custom de 
 
 1. **Hoy:** Leé `01-Plan-General` y aprobá el alcance/costos
 2. **Esta semana:** Crear cuentas Airtable + Softr (gratis para probar)
-3. **Próximos 2 fines de semana:** Seguir `04-Plan-Operativo-Semanal`
-4. **Si te trabás:** Contratar 8-15 hs de freelance con `05-Brief-Freelance-Airtable`
+3. **Elegí tu camino:**
+   - **Camino 1 — DIY completo (37 hs tuyas):** Seguí `06-Camino-1-DIY-Completo`. Ahorrás USD 500-700, tardás 4-5 fines de semana.
+   - **Camino 2 — Híbrido (12-15 hs tuyas + freelance):** Seguí `07-Camino-2-Hibrido`. Inversión extra USD 500-700, te ahorra ~25 horas de trabajo, terminás en 3-4 semanas.
+
+> **Tip pragmático:** Postea el aviso del freelance HOY (Camino 2) Y empezá vos en paralelo el Camino 1. Si en 10 días aparece un buen freelance, le pasás lo que llevás hecho. Si no, seguís vos. Win-win.
 
 ---
 
