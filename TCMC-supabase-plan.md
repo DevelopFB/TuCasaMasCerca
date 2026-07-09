@@ -156,7 +156,7 @@ CREATE INDEX idx_profiles_estado ON profiles(estado);
 CREATE TABLE config_global (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   tasas_base      JSONB NOT NULL DEFAULT '{
-    "12": 0.105, "24": 0.115, "36": 0.125, "48": 0.135, "60": 0.145
+    "12": 0.095, "24": 0.105, "36": 0.115, "48": 0.125, "60": 0.135
   }'::jsonb,
   max_ltv         NUMERIC(5,4) NOT NULL DEFAULT 0.35,
   max_loan        NUMERIC(12,2) NOT NULL DEFAULT 50000,
@@ -169,7 +169,7 @@ CREATE TABLE config_global (
 
 -- Seed inicial (un solo registro)
 INSERT INTO config_global (tasas_base, max_ltv, max_loan)
-VALUES ('{"12":0.105,"24":0.115,"36":0.125,"48":0.135,"60":0.145}', 0.35, 50000);
+VALUES ('{"12":0.095,"24":0.105,"36":0.115,"48":0.125,"60":0.135}', 0.35, 50000);
 
 -- ============================================================
 -- TABLA: loans (legajos/créditos)

@@ -93,7 +93,7 @@ La tabla más importante. Cada registro es una solicitud de crédito.
 | `Valor propiedad (USD)` | Number (integer) | |
 | `Valor ofertado (USD)` | Number (integer) | Base para LTV |
 | `Plazo (meses)` | Single select | 12 / 24 / 36 / 48 / 60 |
-| `Tasa anual aplicada` | Number (decimal, 2 dec) | Ej: 0.145 = 14.5% |
+| `Tasa anual aplicada` | Number (decimal, 2 dec) | Ej: 0.135 = 13.5% |
 | `Monto bruto (USD)` | Formula | `{Monto solicitado (USD)} + ({Monto solicitado (USD)} * 0.05 * 1.21)` |
 | `LTV %` | Formula | `IF({Valor ofertado (USD)}>0, ROUND({Monto solicitado (USD)}/{Valor ofertado (USD)}*100, 1), 0)` |
 | `Cuota mensual estimada` | Formula | Fórmula PMT compleja (ver abajo) |

@@ -68,11 +68,11 @@ Para que cuando el super_admin cambie tasas en la app, la landing se actualice s
 ```json
 {
   "tasasBase": {
-    "12": 0.105,
-    "24": 0.115,
-    "36": 0.125,
-    "48": 0.135,
-    "60": 0.145
+    "12": 0.095,
+    "24": 0.105,
+    "36": 0.115,
+    "48": 0.125,
+    "60": 0.135
   },
   "maxLTV": 0.35,
   "maxLoan": 50000,

@@ -563,7 +563,7 @@ CREATE UNIQUE INDEX idx_form_config_active ON form_config (is_active) WHERE is_a
 CREATE TABLE simulator_config (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   version         INT NOT NULL,
-  tasas_base      JSONB NOT NULL,                              -- { "12": 0.105, "24": 0.115, ... }
+  tasas_base      JSONB NOT NULL,                              -- { "12": 0.095, "24": 0.105, ... }
   max_ltv         NUMERIC(4, 4) NOT NULL DEFAULT 0.35,
   max_loan        NUMERIC(12, 2) NOT NULL DEFAULT 50000,
   is_active       BOOLEAN DEFAULT false,
@@ -1623,7 +1623,7 @@ VALUES (1, '<<<DEFAULT_FORM_CONFIG_JSON>>>'::jsonb, true);
 -- Simulator config inicial
 INSERT INTO simulator_config (version, tasas_base, max_ltv, max_loan, is_active)
 VALUES (1,
-        '{"12":0.105,"24":0.115,"36":0.125,"48":0.135,"60":0.145}'::jsonb,
+        '{"12":0.095,"24":0.105,"36":0.115,"48":0.125,"60":0.135}'::jsonb,
         0.35, 50000, true);
 ```
 

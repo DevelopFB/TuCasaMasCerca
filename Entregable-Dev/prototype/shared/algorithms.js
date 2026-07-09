@@ -24,11 +24,11 @@
   // ============================================================================
   const CONFIG_DEFAULTS = {
     tasasBase: {
-      12: 0.105,  // 10.5% anual para 12 meses
-      24: 0.115,  // 11.5% anual para 24 meses
-      36: 0.125,  // 12.5% anual para 36 meses
-      48: 0.135,  // 13.5% anual para 48 meses
-      60: 0.145   // 14.5% anual para 60 meses
+      12: 0.095,  // 9.5% anual para 12 meses
+      24: 0.105,  // 10.5% anual para 24 meses
+      36: 0.115,  // 11.5% anual para 36 meses
+      48: 0.125,  // 12.5% anual para 48 meses
+      60: 0.135   // 13.5% anual para 60 meses
     },
     maxLTV: 0.35,      // 35% del valor de la propiedad
     maxLoan: 50000     // USD 50.000 maximo

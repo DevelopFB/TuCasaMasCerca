@@ -222,7 +222,7 @@ chmod 644 /var/www/html/index.html
 Search for `CONFIG_DEFAULTS` (around line 1240)
 ```javascript
 const CONFIG_DEFAULTS = {
-  tasasBase: { 12: 0.105, 24: 0.115, 36: 0.125, 48: 0.135, 60: 0.145 },
+  tasasBase: { 12: 0.095, 24: 0.105, 36: 0.115, 48: 0.125, 60: 0.135 },
   maxLTV: 0.35,
   maxLoan: 50000,
 };
