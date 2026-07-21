@@ -1,0 +1,34 @@
+# Sistema
+.DS_Store
+.claude/
+*.skill
+*.~lock.*
+~$*
+
+# ============================================================
+# SOLO EL MOCKUP ES PUBLICO.
+# Todo lo interno/confidencial queda local y NUNCA se sube:
+# ============================================================
+AVANCE_JUNIO_2026/
+ORDENANDO NUMEROS/
+PROYECCION CONO SUR/
+VERSION BALANZ/
+Coldwellbankers/
++CASA-MANUAL-FINAL/
+Entregable-Dev/
+Instructivo/
+docs-legacy/
+Para-SeisElementos/
+Para-SeisElementos.zip
+
+# Documentos sueltos internos
+*.xlsx
+*.docx
+*.pptx
+*.pdf
+*.rtf
+INTEGRATION_README.md
+TCMC-Spec-Desarrollador.md
+TCMC-supabase-plan.md
+zi2gWLjQ
+couple.png
