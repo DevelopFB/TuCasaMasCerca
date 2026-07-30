@@ -1122,6 +1122,8 @@
 <script>
         const DEFAULT_CONFIG = {
             tasasBase: { 12: 0.095, 24: 0.105, 36: 0.115, 48: 0.125, 60: 0.135 },
+            upfront: 0.05,   // comisión de originación (capitalizada en el bruto)
+            iva: 0.21,       // IVA sobre la comisión
             maxLTV: 0.35,
             maxLoan: 50000,
             simDefaults: { propertyValue: 100000, loanAmount: 35000, months: 60 }
@@ -1141,6 +1143,8 @@
                             if (typeof cfg.tasasBase[k] === 'number' && isFinite(cfg.tasasBase[k])) merged.tasasBase[k] = cfg.tasasBase[k];
                         }
                     }
+                    if (typeof cfg.upfront === 'number' && isFinite(cfg.upfront)) merged.upfront = cfg.upfront;
+                    if (typeof cfg.iva === 'number' && isFinite(cfg.iva)) merged.iva = cfg.iva;
                     if (typeof cfg.maxLTV === 'number' && isFinite(cfg.maxLTV)) merged.maxLTV = cfg.maxLTV;
                     if (typeof cfg.maxLoan === 'number' && isFinite(cfg.maxLoan)) merged.maxLoan = cfg.maxLoan;
                     if (cfg.simDefaults && typeof cfg.simDefaults === 'object') {
@@ -1200,16 +1204,45 @@
             return num / den;
         }
 
-        function calcularTNA(cuotaMensual, meses, prestamo) {
-            // TD: (Total pagado / Principal solicitado) - 1
-            // TNA anualizada según Excel (compuesta): (1+TD)^(12/meses)-1
-            const td = (cuotaMensual * meses) / prestamo - 1;
-            return Math.pow(1 + td, 12 / meses) - 1;
+        /**
+         * Tasa mensual que iguala el valor presente de las cuotas al monto recibido.
+         * Bisección. Equivalente a RATE(nper, -pmt, pv) de Excel.
+         */
+        function tasaMensualEfectiva(montoRecibido, cuotaMensual, meses) {
+            if (!(montoRecibido > 0) || !(cuotaMensual > 0) || !(meses > 0)) return NaN;
+            if (cuotaMensual * meses <= montoRecibido) return 0;
+
+            let lo = 1e-9, hi = 1.0;
+            for (let k = 0; k < 200; k++) {
+                const m = (lo + hi) / 2;
+                let vp = 0;
+                for (let t = 1; t <= meses; t++) vp += cuotaMensual / Math.pow(1 + m, t);
+                if (vp > montoRecibido) lo = m; else hi = m;
+            }
+            return (lo + hi) / 2;
         }
 
-        function calcularBruto(prestamo) {
-            const upfront = prestamo * 0.05;
-            const iva = upfront * 0.21;
+        /**
+         * CFT — tasa efectiva anual. Incluye intereses + comisión + IVA sobre la comisión.
+         * NO incluye sellados, escritura ni seguros.
+         * @param cuotaMensual  cuota calculada sobre el monto BRUTO
+         * @param meses         plazo
+         * @param prestamo      monto NETO que recibe el tomador
+         */
+        function calcularCFT(cuotaMensual, meses, prestamo) {
+            const im = tasaMensualEfectiva(prestamo, cuotaMensual, meses);
+            return isNaN(im) ? NaN : Math.pow(1 + im, 12) - 1;
+        }
+
+        /** TEA de la tasa sola, sin comisión. CFT − TEA = cuánto pesa la comisión. */
+        function calcularTEA(tasaAnual) {
+            return Math.pow(1 + tasaAnual / 12, 12) - 1;
+        }
+
+        function calcularBruto(prestamo, config) {
+            const c = config || CONFIG;
+            const upfront = prestamo * c.upfront;
+            const iva = upfront * c.iva;
             return prestamo + upfront + iva;
         }
 
@@ -1236,19 +1269,29 @@
             // feedback en inputs (con separador de miles)
             loanEl.value = formatIntForInput(loan);
 
+            // Plazo no habilitado → no cotizar (nunca usar una tasa fallback silenciosa)
+            const tasa = CONFIG.tasasBase[months];
+            if (typeof tasa !== 'number') {
+                ['cuota', 'tna', 'cft', 'ask', 'bruto', 'recv'].forEach(id => {
+                    document.getElementById(id).textContent = '—';
+                });
+                setLastQuote(null);
+                return;
+            }
+
             const bruto = calcularBruto(loan);
-            const tasa = CONFIG.tasasBase[months] ?? 0.085;
             const cuota = calcularCuota(tasa, months, bruto);
-            const tnaCalc = calcularTNA(cuota, months, loan);
+            // CFT: se deriva SIEMPRE de la cuota y del monto recibido — nunca se guarda fijo
+            const cft = calcularCFT(cuota, months, loan);
 
             document.getElementById('cuota').textContent = 'U$D ' + cuota.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById('tna').textContent = (tasa * 100).toFixed(2) + '%';
-            document.getElementById('cft').textContent = (tnaCalc * 100).toFixed(2) + '%';
+            document.getElementById('cft').textContent = isNaN(cft) ? '—' : (cft * 100).toFixed(2) + '%';
             document.getElementById('ask').textContent = 'U$D ' + loan.toLocaleString('es-AR');
             document.getElementById('bruto').textContent = 'U$D ' + Math.round(bruto).toLocaleString('es-AR');
             document.getElementById('recv').textContent = 'U$D ' + loan.toLocaleString('es-AR');
 
-            // guardar última cotización
+            // guardar última cotización (el CFT viaja junto a los inputs que lo generan)
             setLastQuote({
                 propertyValue: prop,
                 loanAmount: loan,
@@ -1256,8 +1299,7 @@
                 bruto,
                 tasaAnual: tasa,
                 cuota,
-                tasaAnual: tasa,
-                tir: tnaCalc,
+                cft,
                 ts: new Date().toISOString()
             });
         }
@@ -1266,15 +1308,16 @@
             const baseLoan = 30000;
             const bruto = calcularBruto(baseLoan);
 
-            [12,24,36,48,60].forEach(meses => {
-                const tasa = CONFIG.tasasBase[meses] ?? 0.085;
+            Object.keys(CONFIG.tasasBase).map(Number).forEach(meses => {
+                const tasa = CONFIG.tasasBase[meses];
+                if (typeof tasa !== 'number') return;
                 const cuota = calcularCuota(tasa, meses, bruto);
-                const tna = calcularTNA(cuota, meses, baseLoan);
+                const cft = calcularCFT(cuota, meses, baseLoan);
 
                 const cuotaEl = document.getElementById(`ex-cuota-${meses}`);
-                const tnaEl = document.getElementById(`ex-tna-${meses}`);
+                const cftEl = document.getElementById(`ex-tna-${meses}`);
                 if (cuotaEl) cuotaEl.textContent = 'U$D ' + cuota.toLocaleString('es-AR', { maximumFractionDigits: 0 });
-                if (tnaEl) tnaEl.textContent = (tna * 100).toFixed(2) + '%';
+                if (cftEl) cftEl.textContent = isNaN(cft) ? '—' : (cft * 100).toFixed(2) + '%';
             });
         }
 
@@ -1457,8 +1500,10 @@ const Banknote = createIconComponent('<rect x="2" y="6" width="20" height="12" r
 const Bell = createIconComponent('<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>');
 
 // Payment schedule generator
-const STAGES_ALL = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Propuesta Final', 'Escritura', 'Finalizado', 'Rechazado'];
-const STAGES_FLOW = ['Solicitud Inicial', 'Scoring', 'Pre Aprobación', 'Escribanía', 'Aprobación', 'Propuesta Final', 'Escritura'];
+// Flujo MVP simplificado (keep it simple). Los hitos de escribania, aprobacion del Fondo y
+// escritura se registran como datos/avisos dentro del legajo, no como etapas visibles.
+const STAGES_ALL = ['Solicitud Iniciada', 'Scoring y Pre Aprobación', 'Propuesta Final', 'Finalizado', 'Rechazado'];
+const STAGES_FLOW = ['Solicitud Iniciada', 'Scoring y Pre Aprobación', 'Propuesta Final', 'Finalizado'];
 
 // ============================================================================
 // FORM BUILDER - DEFAULT CONFIG DEL FORMULARIO DE SOLICITUD DE CREDITO
@@ -1540,6 +1585,14 @@ const QUESTION_TYPES = [
   { value: 'info', label: 'Info (solo lectura)' },
 ];
 
+// Si el vencimiento cae en dia no habil (sab/dom en el mock), pasa al primer dia habil posterior
+function nextBusinessDay(d) {
+  const day = d.getDay();
+  if (day === 6) d.setDate(d.getDate() + 2);
+  else if (day === 0) d.setDate(d.getDate() + 1);
+  return d;
+}
+
 function generatePaymentSchedule(loanAmount, months, fechaEscritura, tasaAnual) {
   const bruto = loanAmount + (loanAmount * 0.05) + (loanAmount * 0.05 * 0.21);
   const tm = tasaAnual / 12;
@@ -1549,6 +1602,7 @@ function generatePaymentSchedule(loanAmount, months, fechaEscritura, tasaAnual) 
   for (let i = 1; i <= months; i++) {
     const dueDate = new Date(startDate);
     dueDate.setMonth(dueDate.getMonth() + i);
+      nextBusinessDay(dueDate);
     payments.push({
       number: i,
       dueDate: dueDate.toISOString().split('T')[0],
@@ -1563,8 +1617,9 @@ function generatePaymentSchedule(loanAmount, months, fechaEscritura, tasaAnual) 
 }
 
 function getTasaForMonths(months) {
-  const tasas = { 12: 0.095, 24: 0.105, 36: 0.115, 48: 0.125, 60: 0.135 };
-  return tasas[months] || tasas[36];
+  // Plazo no habilitado → NaN (error explícito, nunca cotizar con una tasa fallback)
+  const tasa = CONFIG_DEFAULTS.tasasBase[months];
+  return typeof tasa === 'number' ? tasa : NaN;
 }
 
 // ============================================================================
@@ -1573,14 +1628,17 @@ function getTasaForMonths(months) {
 
 const CONFIG_DEFAULTS = {
   tasasBase: { 12: 0.095, 24: 0.105, 36: 0.115, 48: 0.125, 60: 0.135 },
+  upfront: 0.05,   // comisión de originación (capitalizada en el bruto)
+  iva: 0.21,       // IVA sobre la comisión
   maxLTV: 0.35,
   maxLoan: 50000,
   simDefaults: { propertyValue: 100000, loanAmount: 35000, months: 60 },
 };
 
-const calcularBruto = (loan) => {
-  const upfront = loan * 0.05;
-  const iva = upfront * 0.21;
+const calcularBruto = (loan, config) => {
+  const c = config || CONFIG_DEFAULTS;
+  const upfront = loan * c.upfront;
+  const iva = upfront * c.iva;
   return loan + upfront + iva;
 };
 
@@ -1590,10 +1648,36 @@ const calcularCuota = (tasaAnual, meses, montoBruto) => {
   return (montoBruto * (tm * Math.pow(1 + tm, meses))) / (Math.pow(1 + tm, meses) - 1);
 };
 
-const calcularTIR = (cuota, meses, prestamo) => {
-  const td = (cuota * meses) / prestamo - 1;
-  return Math.pow(1 + td, 12 / meses) - 1;
+/**
+ * Tasa mensual que iguala el valor presente de las cuotas al monto recibido.
+ * Bisección. Equivalente a RATE(nper, -pmt, pv) de Excel.
+ */
+const tasaMensualEfectiva = (montoRecibido, cuotaMensual, meses) => {
+  if (!(montoRecibido > 0) || !(cuotaMensual > 0) || !(meses > 0)) return NaN;
+  if (cuotaMensual * meses <= montoRecibido) return 0;
+
+  let lo = 1e-9, hi = 1.0;
+  for (let k = 0; k < 200; k++) {
+    const m = (lo + hi) / 2;
+    let vp = 0;
+    for (let t = 1; t <= meses; t++) vp += cuotaMensual / Math.pow(1 + m, t);
+    if (vp > montoRecibido) lo = m; else hi = m;
+  }
+  return (lo + hi) / 2;
 };
+
+/**
+ * CFT — tasa efectiva anual. Incluye intereses + comisión + IVA sobre la comisión.
+ * NO incluye sellados, escritura ni seguros.
+ * Se deriva SIEMPRE de la cuota y del monto recibido — nunca se guarda fijo.
+ */
+const calcularCFT = (cuotaMensual, meses, prestamo) => {
+  const im = tasaMensualEfectiva(prestamo, cuotaMensual, meses);
+  return isNaN(im) ? NaN : Math.pow(1 + im, 12) - 1;
+};
+
+/** TEA de la tasa sola, sin comisión. CFT − TEA = cuánto pesa la comisión. */
+const calcularTEA = (tasaAnual) => Math.pow(1 + tasaAnual / 12, 12) - 1;
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -1670,8 +1754,8 @@ const MOCK_CLIENTS = [
       tasaFinal: 0.125,
       items: [],
       brutoFinal: 47722.50,
-      cuotaFinal: 1596.47,
-      cftFinal: 0.085,
+      cuotaFinal: 1596.49,
+      cftFinal: 0.1798,
       estado: 'Aceptada',
       aceptacion: { fecha: '25/11/2025', usuario: 'Juan García López' }
     },
@@ -1723,8 +1807,8 @@ const MOCK_CLIENTS = [
         { concepto: 'Gastos administrativos', monto: 250 }
       ],
       brutoFinal: 53675.00,
-      cuotaFinal: 1426.63,
-      cftFinal: 0.0818,
+      cuotaFinal: 1426.68,
+      cftFinal: 0.1766,
       estado: 'Emitida',
       aceptacion: null
     },
@@ -1744,7 +1828,7 @@ const MOCK_CLIENTS = [
     phone: '+54 11 4567-8901',
     dni: '37.345.678',
     status: 'En proceso',
-    stage: 'Scoring',
+    stage: 'Scoring y Pre Aprobación',
     createdAt: '2025-11-05',
     advisor: 'Alejandra Gutiérrez',
     agenteId: 'usr007',
@@ -1773,7 +1857,7 @@ const MOCK_CLIENTS = [
     phone: '+54 11 5678-9012',
     dni: '38.456.789',
     status: 'Nueva',
-    stage: 'Solicitud Inicial',
+    stage: 'Solicitud Iniciada',
     createdAt: '2025-11-10',
     advisor: 'María Rodríguez',
     agenteId: 'usr005',
@@ -1913,9 +1997,9 @@ const ClientSimulator = ({ onAdvance }) => {
 
   const maxAllowed = Math.min(propertyValue * CONFIG_DEFAULTS.maxLTV, CONFIG_DEFAULTS.maxLoan);
   const bruto = calcularBruto(loanAmount);
-  const tasa = CONFIG_DEFAULTS.tasasBase[months] || 0.125;
+  const tasa = getTasaForMonths(months);
   const cuota = calcularCuota(tasa, months, bruto);
-  const tir = calcularTIR(cuota, months, loanAmount);
+  const cft = calcularCFT(cuota, months, loanAmount);
   const ltv = (loanAmount / propertyValue) * 100;
   const isValidLTV = ltv <= 35;
 
@@ -1925,7 +2009,7 @@ const ClientSimulator = ({ onAdvance }) => {
     if (loanAmount > max) setLoanAmount(Math.floor(max));
   }, [propertyValue]);
 
-  const rateExamples = [12, 24, 36, 48, 60].map(m => {
+  const rateExamples = Object.keys(CONFIG_DEFAULTS.tasasBase).map(Number).map(m => {
     const r = CONFIG_DEFAULTS.tasasBase[m];
     const b = calcularBruto(30000);
     const c = calcularCuota(r, m, b);
@@ -1971,7 +2055,7 @@ const ClientSimulator = ({ onAdvance }) => {
             <label className="block text-sm font-semibold text-slate-700 mb-2">Plazo</label>
             <select value={months} onChange={(e) => setMonths(Number(e.target.value))}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {[12, 24, 36, 48, 60].map(m => <option key={m} value={m}>{m} meses</option>)}
+              {Object.keys(CONFIG_DEFAULTS.tasasBase).map(Number).map(m => <option key={m} value={m}>{m} meses</option>)}
             </select>
           </div>
         </div>
@@ -2000,7 +2084,7 @@ const ClientSimulator = ({ onAdvance }) => {
             </div>
             <div>
               <div className="text-xs text-slate-500 uppercase font-semibold mb-1">CFT</div>
-              <div className="text-lg font-bold text-slate-800">{(tir * 100).toFixed(2)}%</div>
+              <div className="text-lg font-bold text-slate-800">{isNaN(cft) ? '—' : (cft * 100).toFixed(2) + '%'}</div>
               <div className="text-[10px] text-slate-400 mt-0.5 leading-tight">Costo Financiero<br/>Total (anual)</div>
             </div>
           </div>
@@ -2397,7 +2481,7 @@ const ClientNewRequest = ({ prefill, onSubmit }) => {
                   onChange={(e) => handleInputChange('months', Number(e.target.value))}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {[12, 24, 36, 48, 60].map(m => (
+                  {Object.keys(CONFIG_DEFAULTS.tasasBase).map(Number).map(m => (
                     <option key={m} value={m}>{m} meses</option>
                   ))}
                 </select>
@@ -3075,8 +3159,8 @@ const AdvisorDashboard = ({ loans }) => {
           <div className="flex items-center gap-4">
             <BarChart3 size={32} className="text-amber-600" />
             <div>
-              <div className="text-sm text-slate-600">Créditos Aprobados</div>
-              <div className="text-3xl font-bold">{stageCount['Escritura'] || 0}</div>
+              <div className="text-sm text-slate-600">En Propuesta Final</div>
+              <div className="text-3xl font-bold">{stageCount['Propuesta Final'] || 0}</div>
             </div>
           </div>
         </div>
@@ -3084,7 +3168,7 @@ const AdvisorDashboard = ({ loans }) => {
 
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4">Por Etapa</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {STAGES_ALL.map(stage => (
             <div key={stage} className={`rounded-lg p-4 text-center ${
               stage === 'Finalizado' ? 'bg-gradient-to-br from-green-50 to-green-100' :
@@ -3154,12 +3238,8 @@ const AdvisorClients = ({ loans, onUpdateLoan }) => {
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
                     client.stage === 'Finalizado' ? 'bg-green-100 text-green-700' :
                     client.stage === 'Rechazado' ? 'bg-red-100 text-red-700' :
-                    client.stage === 'Scoring' ? 'bg-amber-100 text-amber-700' :
-                    client.stage === 'Pre Aprobación' ? 'bg-blue-100 text-blue-700' :
-                    client.stage === 'Escribanía' ? 'bg-purple-100 text-purple-700' :
-                    client.stage === 'Aprobación' ? 'bg-indigo-100 text-indigo-700' :
+                    client.stage === 'Scoring y Pre Aprobación' ? 'bg-amber-100 text-amber-700' :
                     client.stage === 'Propuesta Final' ? 'bg-sky-100 text-sky-700' :
-                    client.stage === 'Escritura' ? 'bg-cyan-100 text-cyan-700' :
                     'bg-slate-100 text-slate-700'
                   }`}>
                     {client.stage}
@@ -3202,7 +3282,7 @@ const AdvisorPipeline = ({ loans }) => {
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8">Etapas</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {STAGES_ALL.map(stage => (
           <div key={stage} className={`bg-white rounded-lg shadow-md p-3 border-t-4 ${stage === 'Finalizado' ? 'border-green-500' : stage === 'Rechazado' ? 'border-red-500' : 'border-blue-400'}`}>
             <div className="font-semibold text-xs mb-3 pb-2 border-b flex items-center justify-between">
@@ -3232,7 +3312,7 @@ const AdminDashboard = ({ loans }) => {
   const data = loans || MOCK_CLIENTS;
   const totalClients = data.length;
   const totalVolume = data.reduce((sum, c) => sum + c.loanAmount, 0);
-  const approvedCount = data.filter(c => ['Escritura', 'Finalizado'].includes(c.stage)).length;
+  const approvedCount = data.filter(c => c.stage === 'Finalizado').length;
   const stageCount = {};
 
   data.forEach(c => {
@@ -3287,7 +3367,7 @@ const AdminDashboard = ({ loans }) => {
 
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4">Distribución por Etapa</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {STAGES_ALL.map(stage => (
             <div key={stage} className={`rounded-lg p-4 text-center ${
               stage === 'Finalizado' ? 'bg-gradient-to-br from-green-50 to-green-100' :
@@ -3687,11 +3767,10 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
   // ---- PROPUESTA FINAL: la simulacion es estimativa; esta es la oferta en firme ----
   const calcPropuesta = (monto, plazo, tasa, items) => {
     const itemsTotal = (items || []).reduce((s, i) => s + (parseFloat(i.monto) || 0), 0);
-    const bruto = monto + (monto * 0.05 * 1.21) + itemsTotal;
-    const tm = tasa / 12;
-    const cuota = bruto * (tm * Math.pow(1 + tm, plazo)) / (Math.pow(1 + tm, plazo) - 1);
-    const td = (cuota * plazo) / monto - 1;
-    const cft = Math.pow(1 + td, 12 / plazo) - 1;
+    const bruto = calcularBruto(monto) + itemsTotal;
+    const cuota = calcularCuota(tasa, plazo, bruto);
+    // CFT sobre los flujos reales: el tomador recibe el neto y paga la cuota del bruto
+    const cft = calcularCFT(cuota, plazo, monto);
     return { bruto, cuota, cft };
   };
 
@@ -3717,7 +3796,7 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
       aceptacion: null
     };
     const updates = { propuesta };
-    if (!['Propuesta Final', 'Escritura', 'Finalizado'].includes(selectedClient.stage)) updates.stage = 'Propuesta Final';
+    if (!['Propuesta Final', 'Finalizado'].includes(selectedClient.stage)) updates.stage = 'Propuesta Final';
     if (onUpdateLoan) onUpdateLoan(selectedClient.id, updates);
     setSelectedClient(prev => ({ ...prev, ...updates }));
     setPropForm(null);
@@ -3747,12 +3826,8 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
   const stageColor = (stage) => {
     if (stage === 'Finalizado') return 'border-green-500';
     if (stage === 'Rechazado') return 'border-red-500';
-    if (stage === 'Scoring') return 'border-amber-400';
-    if (stage === 'Pre Aprobación') return 'border-blue-400';
-    if (stage === 'Escribanía') return 'border-purple-400';
-    if (stage === 'Aprobación') return 'border-indigo-400';
+    if (stage === 'Scoring y Pre Aprobación') return 'border-amber-400';
     if (stage === 'Propuesta Final') return 'border-sky-400';
-    if (stage === 'Escritura') return 'border-cyan-400';
     return 'border-slate-400';
   };
 
@@ -3780,7 +3855,7 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
       </div>
 
       {/* PIPELINE INTEGRADO */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-2 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 mb-6">
         {STAGES_ALL.map(stage => {
           const s = stageStats[stage];
           const isActive = filters.stage === stage;
@@ -3869,12 +3944,8 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
                     client.stage === 'Finalizado' ? 'bg-green-100 text-green-700' :
                     client.stage === 'Rechazado' ? 'bg-red-100 text-red-700' :
-                    client.stage === 'Scoring' ? 'bg-amber-100 text-amber-700' :
-                    client.stage === 'Pre Aprobación' ? 'bg-blue-100 text-blue-700' :
-                    client.stage === 'Escribanía' ? 'bg-purple-100 text-purple-700' :
-                    client.stage === 'Aprobación' ? 'bg-indigo-100 text-indigo-700' :
+                    client.stage === 'Scoring y Pre Aprobación' ? 'bg-amber-100 text-amber-700' :
                     client.stage === 'Propuesta Final' ? 'bg-sky-100 text-sky-700' :
-                    client.stage === 'Escritura' ? 'bg-cyan-100 text-cyan-700' :
                     'bg-slate-100 text-slate-700'
                   }`}>
                     {client.stage}
@@ -4109,7 +4180,7 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1">Plazo (meses)</label>
                         <select value={propForm.plazoFinal} onChange={e => { const p = parseInt(e.target.value); setPropForm({ ...propForm, plazoFinal: p, tasaPct: (getTasaForMonths(p) * 100).toFixed(2) }); }} className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm">
-                          {[12, 24, 36, 48, 60].map(m => <option key={m} value={m}>{m}</option>)}
+                          {Object.keys(CONFIG_DEFAULTS.tasasBase).map(Number).map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
                       </div>
                       <div>
@@ -4204,8 +4275,8 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
                     alert('Debe ingresar la fecha de escritura');
                     return;
                   }
-                  if ((newStage === 'Escritura' || newStage === 'Finalizado') && !(selectedClient.propuesta && selectedClient.propuesta.estado === 'Aceptada')) {
-                    alert('Para avanzar a Escritura o Finalizado debe existir una Propuesta Final aceptada por el cliente');
+                  if (newStage === 'Finalizado' && !(selectedClient.propuesta && selectedClient.propuesta.estado === 'Aceptada')) {
+                    alert('Para avanzar a Finalizado debe existir una Propuesta Final aceptada por el cliente');
                     return;
                   }
                   if (onUpdateLoan && selectedClient) {
@@ -4226,7 +4297,7 @@ const AdminLegajos = ({ loans, onUpdateLoan }) => {
                           const pays = [];
                           const start = new Date(fechaEscritura);
                           for (let i = 1; i <= prop.plazoFinal; i++) {
-                            const d = new Date(start); d.setMonth(d.getMonth() + i);
+                            const d = new Date(start); d.setMonth(d.getMonth() + i); nextBusinessDay(d);
                             pays.push({ number: i, dueDate: d.toISOString().split('T')[0], amount: Math.round(prop.cuotaFinal * 100) / 100, status: 'Pendiente', comprobante: null, pagoInfo: null });
                           }
                           updates.payments = pays;
@@ -4935,8 +5006,8 @@ const AdminReports = ({ loans, profiles }) => {
   const agents = (profiles || MOCK_PROFILES).filter(p => p.rol === 'agente' && p.estado === 'activo');
 
   // ---- Pipeline by stage ----
-  const STAGE_BENCHMARKS = { 'Solicitud Inicial': 7, 'Scoring': 14, 'Pre Aprobación': 21, 'Escribanía': 30, 'Aprobación': 14, 'Escritura': 7 };
-  const pipelineData = STAGES_FLOW.map(stage => {
+  const STAGE_BENCHMARKS = { 'Solicitud Iniciada': 7, 'Scoring y Pre Aprobación': 21, 'Propuesta Final': 14 };
+  const pipelineData = STAGES_FLOW.filter(s => s !== 'Finalizado').map(stage => {
     const inStage = data.filter(l => l.stage === stage);
     const volume = inStage.reduce((s,l) => s + l.loanAmount, 0);
     const avgDays = inStage.length > 0 ? Math.round(inStage.reduce((s,l) => s + Math.floor((Date.now() - new Date(l.createdAt).getTime()) / 86400000), 0) / inStage.length) : 0;
@@ -5275,7 +5346,7 @@ const AdminConfig = () => {
 
         <h3 className="text-base font-semibold mb-3">Tasas Base por Plazo (TNA % anual)</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {[12, 24, 36, 48, 60].map(month => (
+          {Object.keys(config.tasasBase).map(Number).map(month => (
             <div key={month}>
               <label className="block text-xs font-semibold mb-1 text-slate-600">{month} meses</label>
               <input
@@ -5322,7 +5393,7 @@ const AdminConfig = () => {
               value={config.simDefaults.months}
               onChange={(e) => handleSimDefaultChange('months', parseInt(e.target.value))}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {[12, 24, 36, 48, 60].map(m => <option key={m} value={m}>{m} meses</option>)}
+              {Object.keys(config.tasasBase).map(Number).map(m => <option key={m} value={m}>{m} meses</option>)}
             </select>
           </div>
         </div>
@@ -6419,7 +6490,7 @@ const App = () => {
       advisor: formData.advisor || 'María Rodríguez',
       agenteId: null,
       oficinaId: null,
-      stage: 'Solicitud Inicial',
+      stage: 'Solicitud Iniciada',
       status: 'Pendiente',
       createdAt: new Date().toISOString().split('T')[0],
       propertyLink: formData.propertyLink,

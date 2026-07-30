@@ -1111,6 +1111,8 @@
 <script>
         const DEFAULT_CONFIG = {
             tasasBase: { 12: 0.095, 24: 0.105, 36: 0.115, 48: 0.125, 60: 0.135 },
+            upfront: 0.05,   // comision de originacion (capitalizada en el bruto)
+            iva: 0.21,       // IVA sobre la comision
             maxLTV: 0.35,
             maxLoan: 50000,
             simDefaults: { propertyValue: 100000, loanAmount: 35000, months: 60 }
@@ -1130,6 +1132,8 @@
                             if (typeof cfg.tasasBase[k] === 'number' && isFinite(cfg.tasasBase[k])) merged.tasasBase[k] = cfg.tasasBase[k];
                         }
                     }
+                    if (typeof cfg.upfront === 'number' && isFinite(cfg.upfront)) merged.upfront = cfg.upfront;
+                    if (typeof cfg.iva === 'number' && isFinite(cfg.iva)) merged.iva = cfg.iva;
                     if (typeof cfg.maxLTV === 'number' && isFinite(cfg.maxLTV)) merged.maxLTV = cfg.maxLTV;
                     if (typeof cfg.maxLoan === 'number' && isFinite(cfg.maxLoan)) merged.maxLoan = cfg.maxLoan;
                     if (cfg.simDefaults && typeof cfg.simDefaults === 'object') {
@@ -1189,16 +1193,45 @@
             return num / den;
         }
 
-        function calcularTNA(cuotaMensual, meses, prestamo) {
-            // TD: (Total pagado / Principal solicitado) - 1
-            // TNA anualizada según Excel (compuesta): (1+TD)^(12/meses)-1
-            const td = (cuotaMensual * meses) / prestamo - 1;
-            return Math.pow(1 + td, 12 / meses) - 1;
+        /**
+         * Tasa mensual que iguala el valor presente de las cuotas al monto recibido.
+         * Biseccion. Equivalente a RATE(nper, -pmt, pv) de Excel.
+         */
+        function tasaMensualEfectiva(montoRecibido, cuotaMensual, meses) {
+            if (!(montoRecibido > 0) || !(cuotaMensual > 0) || !(meses > 0)) return NaN;
+            if (cuotaMensual * meses <= montoRecibido) return 0;
+
+            let lo = 1e-9, hi = 1.0;
+            for (let k = 0; k < 200; k++) {
+                const m = (lo + hi) / 2;
+                let vp = 0;
+                for (let t = 1; t <= meses; t++) vp += cuotaMensual / Math.pow(1 + m, t);
+                if (vp > montoRecibido) lo = m; else hi = m;
+            }
+            return (lo + hi) / 2;
         }
 
-        function calcularBruto(prestamo) {
-            const upfront = prestamo * 0.05;
-            const iva = upfront * 0.21;
+        /**
+         * CFT — tasa efectiva anual. Incluye intereses + comision + IVA sobre la comision.
+         * NO incluye sellados, escritura ni seguros.
+         * @param cuotaMensual  cuota calculada sobre el monto BRUTO
+         * @param meses         plazo
+         * @param prestamo      monto NETO que recibe el tomador
+         */
+        function calcularCFT(cuotaMensual, meses, prestamo) {
+            const im = tasaMensualEfectiva(prestamo, cuotaMensual, meses);
+            return isNaN(im) ? NaN : Math.pow(1 + im, 12) - 1;
+        }
+
+        /** TEA de la tasa sola, sin comision. CFT − TEA = cuanto pesa la comision. */
+        function calcularTEA(tasaAnual) {
+            return Math.pow(1 + tasaAnual / 12, 12) - 1;
+        }
+
+        function calcularBruto(prestamo, config) {
+            const c = config || CONFIG;
+            const upfront = prestamo * c.upfront;
+            const iva = upfront * c.iva;
             return prestamo + upfront + iva;
         }
 
@@ -1225,19 +1258,29 @@
             // feedback en inputs (con separador de miles)
             loanEl.value = formatIntForInput(loan);
 
+            // Plazo no habilitado → no cotizar (nunca usar una tasa fallback silenciosa)
+            const tasa = CONFIG.tasasBase[months];
+            if (typeof tasa !== 'number') {
+                ['cuota', 'tna', 'cft', 'ask', 'bruto', 'recv'].forEach(id => {
+                    document.getElementById(id).textContent = '—';
+                });
+                setLastQuote(null);
+                return;
+            }
+
             const bruto = calcularBruto(loan);
-            const tasa = CONFIG.tasasBase[months] ?? 0.085;
             const cuota = calcularCuota(tasa, months, bruto);
-            const tnaCalc = calcularTNA(cuota, months, loan);
+            // CFT: se deriva SIEMPRE de la cuota y del monto recibido — nunca se guarda fijo
+            const cft = calcularCFT(cuota, months, loan);
 
             document.getElementById('cuota').textContent = 'U$D ' + cuota.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById('tna').textContent = (tasa * 100).toFixed(2) + '%';
-            document.getElementById('cft').textContent = (tnaCalc * 100).toFixed(2) + '%';
+            document.getElementById('cft').textContent = isNaN(cft) ? '—' : (cft * 100).toFixed(2) + '%';
             document.getElementById('ask').textContent = 'U$D ' + loan.toLocaleString('es-AR');
             document.getElementById('bruto').textContent = 'U$D ' + Math.round(bruto).toLocaleString('es-AR');
             document.getElementById('recv').textContent = 'U$D ' + loan.toLocaleString('es-AR');
 
-            // guardar última cotización
+            // guardar última cotización (el CFT viaja junto a los inputs que lo generan)
             setLastQuote({
                 propertyValue: prop,
                 loanAmount: loan,
@@ -1245,8 +1288,7 @@
                 bruto,
                 tasaAnual: tasa,
                 cuota,
-                tasaAnual: tasa,
-                tir: tnaCalc,
+                cft,
                 ts: new Date().toISOString()
             });
         }
@@ -1255,15 +1297,16 @@
             const baseLoan = 30000;
             const bruto = calcularBruto(baseLoan);
 
-            [12,24,36,48,60].forEach(meses => {
-                const tasa = CONFIG.tasasBase[meses] ?? 0.085;
+            Object.keys(CONFIG.tasasBase).map(Number).forEach(meses => {
+                const tasa = CONFIG.tasasBase[meses];
+                if (typeof tasa !== 'number') return;
                 const cuota = calcularCuota(tasa, meses, bruto);
-                const tna = calcularTNA(cuota, meses, baseLoan);
+                const cft = calcularCFT(cuota, meses, baseLoan);
 
                 const cuotaEl = document.getElementById(`ex-cuota-${meses}`);
-                const tnaEl = document.getElementById(`ex-tna-${meses}`);
+                const cftEl = document.getElementById(`ex-tna-${meses}`);
                 if (cuotaEl) cuotaEl.textContent = 'U$D ' + cuota.toLocaleString('es-AR', { maximumFractionDigits: 0 });
-                if (tnaEl) tnaEl.textContent = (tna * 100).toFixed(2) + '%';
+                if (cftEl) cftEl.textContent = isNaN(cft) ? '—' : (cft * 100).toFixed(2) + '%';
             });
         }
 

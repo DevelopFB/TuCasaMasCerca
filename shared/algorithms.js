@@ -30,6 +30,8 @@
       48: 0.125,  // 12.5% anual para 48 meses
       60: 0.135   // 13.5% anual para 60 meses
     },
+    upfront: 0.05,     // comision de originacion 5% (capitalizada en el bruto)
+    iva: 0.21,         // IVA 21% sobre la comision
     maxLTV: 0.35,      // 35% del valor de la propiedad
     maxLoan: 50000     // USD 50.000 maximo
   };
@@ -39,11 +41,13 @@
   // ============================================================================
 
   /**
-   * Monto bruto = prestamo + 5% upfront + 21% IVA sobre upfront
+   * Monto bruto = prestamo + comision upfront + IVA sobre la comision.
+   * La comision y el IVA salen de la config (nunca hardcodeados).
    */
-  function calcularBruto(prestamo) {
-    const upfront = prestamo * 0.05;
-    const iva = upfront * 0.21;
+  function calcularBruto(prestamo, config) {
+    const c = config || CONFIG_DEFAULTS;
+    const upfront = prestamo * c.upfront;
+    const iva = upfront * c.iva;
     return prestamo + upfront + iva;
   }
 
@@ -58,19 +62,52 @@
   }
 
   /**
-   * TNA aproximada (anualizada compuesta)
+   * Tasa mensual que iguala el valor presente de las cuotas al monto recibido.
+   * Biseccion. Equivalente a RATE(nper, -pmt, pv) de Excel.
    */
-  function calcularTNA(cuotaMensual, meses, prestamo) {
-    const td = (cuotaMensual * meses) / prestamo - 1;
-    return Math.pow(1 + td, 12 / meses) - 1;
+  function tasaMensualEfectiva(montoRecibido, cuotaMensual, meses) {
+    if (!(montoRecibido > 0) || !(cuotaMensual > 0) || !(meses > 0)) return NaN;
+    if (cuotaMensual * meses <= montoRecibido) return 0;
+
+    let lo = 1e-9, hi = 1.0;
+    for (let k = 0; k < 200; k++) {
+      const m = (lo + hi) / 2;
+      let vp = 0;
+      for (let t = 1; t <= meses; t++) vp += cuotaMensual / Math.pow(1 + m, t);
+      if (vp > montoRecibido) lo = m; else hi = m;
+    }
+    return (lo + hi) / 2;
   }
 
   /**
-   * Tasa segun plazo (consulta CONFIG)
+   * CFT — tasa efectiva anual. Incluye intereses + comision + IVA sobre la comision.
+   * NO incluye sellados, escritura ni seguros.
+   * REGLA: el CFT nunca se guarda ni se escribe — se deriva siempre de la cuota
+   * y del monto recibido. Si tiene que viajar (API/PDF/mail), viaja junto a los
+   * inputs que lo generan.
+   * @param cuotaMensual  cuota calculada sobre el monto BRUTO
+   * @param meses         plazo
+   * @param prestamo      monto NETO que recibe el tomador
+   */
+  function calcularCFT(cuotaMensual, meses, prestamo) {
+    const im = tasaMensualEfectiva(prestamo, cuotaMensual, meses);
+    return isNaN(im) ? NaN : Math.pow(1 + im, 12) - 1;
+  }
+
+  /** TEA de la tasa sola, sin comision. CFT − TEA = cuanto pesa la comision. */
+  function calcularTEA(tasaAnual) {
+    return Math.pow(1 + tasaAnual / 12, 12) - 1;
+  }
+
+  /**
+   * Tasa segun plazo (consulta CONFIG).
+   * Plazo no habilitado → NaN (error explicito; la UI muestra "—", nunca se
+   * cotiza con una tasa fallback silenciosa).
    */
   function getTasaForMonths(meses, config) {
     const c = config || CONFIG_DEFAULTS;
-    return c.tasasBase[meses] || 0.125;
+    const tasa = c.tasasBase[meses];
+    return typeof tasa === 'number' ? tasa : NaN;
   }
 
   /**
@@ -86,8 +123,8 @@
    * Generacion de cronograma de pagos
    * Se ejecuta cuando un legajo pasa a Finalizado con fecha de escritura.
    */
-  function generatePaymentSchedule(loanAmount, months, fechaEscritura, tasaAnual) {
-    const bruto = calcularBruto(loanAmount);
+  function generatePaymentSchedule(loanAmount, months, fechaEscritura, tasaAnual, config) {
+    const bruto = calcularBruto(loanAmount, config);
     const cuota = calcularCuota(tasaAnual, months, bruto);
     const startDate = new Date(fechaEscritura);
     const payments = [];
@@ -143,7 +180,9 @@
     CONFIG_DEFAULTS: CONFIG_DEFAULTS,
     calcularBruto: calcularBruto,
     calcularCuota: calcularCuota,
-    calcularTNA: calcularTNA,
+    tasaMensualEfectiva: tasaMensualEfectiva,
+    calcularCFT: calcularCFT,
+    calcularTEA: calcularTEA,
     getTasaForMonths: getTasaForMonths,
     maxAllowedLoan: maxAllowedLoan,
     generatePaymentSchedule: generatePaymentSchedule,

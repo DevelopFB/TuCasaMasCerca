@@ -39,7 +39,7 @@ Cuando un usuario completa el simulador y deja su email/telefono, la landing dis
     "months": 36,
     "cuota": 1234.56,
     "tna": 0.125,
-    "bruto": 47625
+    "bruto": 47722.50
   },
   "source": "landing_simulator",
   "utm": {
@@ -51,6 +51,8 @@ Cuando un usuario completa el simulador y deja su email/telefono, la landing dis
 ```
 
 **Response:** `201 Created` con `{ "leadId": "lead_xxx" }`
+
+> **Regla CFT:** el CFT **no** viaja en el lead ni se persiste como valor fijo. Se deriva siempre de `cuota`, `months` y `loanAmount` (los inputs del quote) con `calcularCFT` de `/shared/algorithms.js`. Si un consumidor necesita mostrarlo, lo recalcula de esos inputs.
 
 **Errores:**
 - `400` si falta email o quote
@@ -74,12 +76,19 @@ Para que cuando el super_admin cambie tasas en la app, la landing se actualice s
     "48": 0.125,
     "60": 0.135
   },
+  "upfront": 0.05,
+  "iva": 0.21,
   "maxLTV": 0.35,
   "maxLoan": 50000,
-  "version": 3,
-  "updatedAt": "2026-04-20T10:00:00Z"
+  "version": 4,
+  "updatedAt": "2026-07-30T10:00:00Z"
 }
 ```
+
+**Notas:**
+- Los plazos habilitados son exactamente las claves de `tasasBase`. Un plazo que no figure ahi es un **error explicito** (la UI muestra "—"); nunca se cotiza con una tasa fallback.
+- Las listas de plazos en la UI se generan con `Object.keys(config.tasasBase)` — agregar un plazo a la config lo hace aparecer solo, sin tocar codigo.
+- `upfront` (comision de originacion) e `iva` viajan en la config: si cambian desde el panel de admin, el CFT se recalcula solo.
 
 **Caching:**
 - La landing puede cachear la respuesta en `localStorage` por 5 min
@@ -92,14 +101,22 @@ Para que cuando el super_admin cambie tasas en la app, la landing se actualice s
 
 Ambos lados importan los mismos algoritmos desde `/shared/algorithms.js`:
 
-- `calcularBruto(prestamo)`
+- `calcularBruto(prestamo, config)` — comision e IVA salen de la config
 - `calcularCuota(tasaAnual, meses, bruto)`
-- `calcularTNA(cuotaMensual, meses, prestamo)`
-- `getTasaForMonths(meses, config)`
+- `tasaMensualEfectiva(montoRecibido, cuotaMensual, meses)` — biseccion, equivalente a `RATE(nper, -pmt, pv)` de Excel
+- `calcularCFT(cuotaMensual, meses, prestamo)` — tasa efectiva anual sobre los flujos reales del tomador (recibe el neto, paga cuota del bruto)
+- `calcularTEA(tasaAnual)` — TEA de la tasa sola; `CFT − TEA` = cuanto pesa la comision
+- `getTasaForMonths(meses, config)` — plazo no habilitado → `NaN` (nunca fallback)
 - `maxAllowedLoan(propertyValue, config)`
-- `generatePaymentSchedule(loanAmount, months, fechaEscritura, tasaAnual)`
+- `generatePaymentSchedule(loanAmount, months, fechaEscritura, tasaAnual, config)`
 - `getEstadoLoan(loan)`
 - `formatCurrency(num)`
+
+> `calcularTNA` fue **eliminada** (anualizaba una tasa directa sobre el capital original: no es una tasa y daba un CFT menor a la propia TNA). No existe alias: cualquier consumidor que la llame debe romper en build, no seguir mostrando un numero equivocado.
+
+**Regla que no se puede romper:** el CFT nunca se cachea en DB, nunca se devuelve por API como valor fijo, y nunca se escribe en un PDF/mail sin sus inputs. Se deriva siempre de la cuota y del monto recibido; si viaja, viaja junto a los inputs que lo generan.
+
+**Test de control obligatorio:** con la comision en cero, `calcularCFT` tiene que dar exactamente `calcularTEA(tasaNominal)` en los cinco plazos (9,9248% / 11,0203% / 12,1259% / 13,2416% / 14,3674%). Cualquier implementacion basada en una tasa directa anualizada falla este test.
 
 **Regla:** si alguno de los equipos necesita **modificar** un calculo, debe:
 1. Crear issue en GitHub con label `breaking-change`
@@ -133,13 +150,14 @@ Solo los endpoints publicos (`/api/leads`, `/api/config/public`) deben estar dis
 
 ## 6) Versionado del contrato
 
-Version actual: **1.0** (2026-04-20)
+Version actual: **1.1** (2026-07-30)
 
 Si se cambia algo aca, bumpear la version y avisar a ambos equipos.
 
 | Version | Fecha | Cambios |
 |---------|-------|---------|
 | 1.0 | 2026-04-20 | Contrato inicial |
+| 1.1 | 2026-07-30 | CFT correcto (TIR de flujos reales, biseccion); se elimina `calcularTNA` sin alias; `upfront`/`iva` pasan a config; plazos sin tasa → error explicito; regla "el CFT nunca se persiste" |
 
 ---
 
