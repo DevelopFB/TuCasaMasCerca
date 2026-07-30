@@ -7,38 +7,31 @@
 (function (global) {
   'use strict';
 
-  // Etapas del workflow (ver Brief APP seccion 5)
+  // Etapas del workflow — flujo MVP simplificado (ver Alcance seccion 5).
+  // Los hitos de escribania, aprobacion del Fondo y escritura se registran como
+  // datos/avisos dentro del legajo (fechas y adjuntos), no como etapas visibles.
+  // Vision completa (fase 2): Solicitud Inicial → Scoring → Pre Aprobación →
+  // Escribanía → Aprobación → Propuesta Final → Escritura → Finalizado.
   const STAGES_ALL = [
-    'Solicitud Inicial',
-    'Scoring',
-    'Pre Aprobación',
-    'Escribanía',
-    'Aprobación',
+    'Solicitud Iniciada',
+    'Scoring y Pre Aprobación',
     'Propuesta Final',
-    'Escritura',
     'Finalizado',
     'Rechazado'
   ];
 
   const STAGES_FLOW = [
-    'Solicitud Inicial',
-    'Scoring',
-    'Pre Aprobación',
-    'Escribanía',
-    'Aprobación',
+    'Solicitud Iniciada',
+    'Scoring y Pre Aprobación',
     'Propuesta Final',
-    'Escritura'
+    'Finalizado'
   ];
 
   // Colores por etapa (sugerencia de UI)
   const STAGE_COLORS = {
-    'Solicitud Inicial': 'slate',
-    'Scoring': 'amber',
-    'Pre Aprobación': 'blue',
-    'Escribanía': 'purple',
-    'Aprobación': 'indigo',
+    'Solicitud Iniciada': 'slate',
+    'Scoring y Pre Aprobación': 'amber',
     'Propuesta Final': 'sky',
-    'Escritura': 'cyan',
     'Finalizado': 'green',
     'Rechazado': 'red'
   };
